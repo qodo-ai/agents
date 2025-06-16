@@ -132,8 +132,6 @@ Each reference agent includes:
 ```toml
 # agent.toml
 version = "1.0"
-description = "Brief description of what your agent does"
-
 [commands.my_agent]
 description = "Detailed description for users"
 instructions = """
@@ -141,26 +139,42 @@ Your agent's behavior instructions here.
 Be specific about the task and expected outcomes.
 """
 
+# Optional: Define arguments
 arguments = [
     { name = "input_file", type = "string", required = true, description = "Input file path" },
     { name = "threshold", type = "number", required = false, default = 0.8, description = "Quality threshold" }
 ]
 
-# MCP servers your agent uses
+# Optional: MCP servers your agent uses
 mcpServers = """
 {
-    "filesystem": {
-        "command": "npx",
-        "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
+    "shell": {
+      "command": "uvx",
+      "args": [
+        "mcp-shell-server"
+      ],
+      "env": {
+        "ALLOW_COMMANDS": "..."
+      }
     },
-    "git": {
-        "command": "uvx",
-        "args": ["mcp-server-git"]
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ]
     }
 }
 """
 
-available_tools = ["filesystem", "git"]
+# Optional: Define available tools
+available_tools = ["filesystem", "git", "shell", "github"]
+
+# Optional: Define execution strategy: "plan" for multi-step, "act" for direct execution
 execution_strategy = "act"
 
 # Optional: Define expected output structure
