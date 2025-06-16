@@ -18,7 +18,7 @@ These agents demonstrate core patterns and best practices for the Qodo framework
 
 ### Development Workflow Agents
 - **[Code Review](agents/code-review/)** - Comprehensive code review with Qodo Merge integration
-- **[Test Generation](agents/test-generation/)** - Automated test suite creation and validation
+- **[Diff Test Generation](agents/diff-test-suite/)** - Automated test suite creation and validation of code changes
 - **[Documentation](agents/documentation/)** - Generate and maintain project documentation
 - **[Refactoring](agents/refactoring/)** - Safe code refactoring with validation
 - **[Security Audit](agents/security-audit/)** - Security vulnerability scanning and remediation
