@@ -242,9 +242,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 💬 Community
 
-- [GitHub Discussions](https://github.com/qodo-ai/agent-reference-implementations/discussions)
-- [Discord Server](https://discord.gg/qodo-ai)
-- [Documentation](https://docs.qodo.ai)
+- [GitHub Discussions](https://github.com/qodo-ai/agents/discussions)
+- [Discord Server](https://discord.com/invite/SgSxuQ65GF)
+- [Documentation](https://docs.qodo.ai/qodo-documentation/qodo-gen/cli)
 
 ## ⭐ Support
 
