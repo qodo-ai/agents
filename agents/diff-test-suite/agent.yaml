@@ -1,0 +1,119 @@
+version: "1.0"
+commands:
+  diff_test_suite:
+    description: "Analyze code diffs, then generate a comprehensive test suite covering changed behaviors."
+    
+    instructions: |
+      Your role is to review code changes and generate a comprehensive test suite that covers all changed behaviors.
+      The diff will show either your working changes (unstaged + staged) vs. the current branch, or current branch vs. main if no working changes exist.
+      
+      Follow these steps:
+      
+      1. PREPARATION PHASE
+        - Use git to identify all files changed.
+        - For each changed file, determine the specific lines and functions that were modified.
+        - Use the filesystem tool to read the contents of changed files.
+      
+      2. ANALYSIS PHASE
+        - Analyze the code changes to understand the new or altered behaviors.
+        - Identify edge cases and potential failure points introduced by the changes.
+        - Plan test cases that thoroughly exercise the modified logic, including positive, negative, and edge scenarios.
+      
+      3. IMPLEMENTATION PHASE
+        - Generate test code in the appropriate language and framework for the project (infer from existing tests or project structure).
+        - Ensure tests are well-structured, readable, and follow best practices.
+        - Save the generated test files in the correct test directory, mirroring the structure of the changed source files.
+      
+      4. VALIDATION PHASE
+        - Run each generated test file individually to ensure it passes.
+        - If any test fails, debug and fix the issue before proceeding.
+        - Re-run fixed tests to confirm they now pass.
+      
+      5. COMPLETION PHASE
+        - Run the entire test suite to ensure no regressions.
+        - Summarize the generated tests and their coverage of the code changes.
+        - Confirm that all generated tests are passing.
+    
+    arguments:
+      - name: "files_to_ignore"
+        type: "string"
+        required: false
+        default: ""
+        description: "Optional list of files to ignore, separated by commas"
+      - name: "ignore_working_changes"
+        type: "boolean"
+        required: false
+        default: false
+        description: "Controls what changes are included in the diff: false (default) = shows your working changes (unstaged + staged) vs. current branch, or current branch vs. main if no working changes; true = always compares current branch vs. main, ignoring any working changes (default: false)"
+      - name: "base_branch"
+        type: "string"
+        required: false
+        default: "main"
+        description: "The branch to compare against (default: main)"
+      - name: "test_directory"
+        type: "string"
+        required: false
+        default: ""
+        description: "Directory to place generated tests (default: inferred from project)"
+      - name: "run_tests"
+        type: "boolean"
+        required: false
+        default: true
+        description: "Whether to run the tests after generation"
+    
+    mcpServers: |
+      {
+        "mcpServers": {
+          "shell": {
+            "command": "uvx",
+            "args": [
+              "mcp-shell-server"
+            ],
+            "env": {
+              "ALLOW_COMMANDS": "ls,cat,pwd,rg,wc,touch,find,mkdir,rm,cp,mv,chmod,head,tail,sort,uniq,cut,tr,sed,awk,grep,diff,which,whereis,file,stat,du,df,ps,kill,env,export,echo,printf,test,true,false,sleep,timeout,xargs,tee,yes,seq,date,basename,dirname,realpath,readlink,ln,tar,gzip,gunzip,zip,unzip,curl,wget,jq,yq,xmllint,git,npm,npx,yarn,pnpm,node,ts-node,tsc,deno,bun,python,python3,pip,pip3,poetry,pipenv,pytest,unittest,nose2,java,javac,junit,mvn,gradle,go,gofmt,gotest,cargo,rustc,rustfmt,ruby,gem,bundle,rake,rspec,php,composer,phpunit,dotnet,msbuild,nuget,make,cmake,ninja,gcc,g++,clang,clang++,ld,ar,objdump,nm,strip,gdb,lldb,valgrind,strace,ltrace,ldd,pkg-config,autoconf,automake,libtool,m4,flex,bison,perl,cpan,swift,swiftc,kotlin,kotlinc,scala,scalac,sbt,clojure,lein,elixir,mix,erlang,erl,escript,ghc,cabal,stack,runhaskell,ocaml,opam,dune,r,rscript,julia,lua,luac,tcl,tclsh,bash,sh,zsh,fish,csh,tcsh,dash,ksh,bc,dc,sqlite3,mysql,psql,redis-cli,mongo,elasticsearch,jest,mocha,jasmine,karma,cypress,playwright,selenium,webdriver,chromedriver,geckodriver,rspec,minitest,cucumber,behave,pytest,unittest,nose2,testng,junit,spock,scalatest,quickcheck,hspec,tasty,criterion,bench,ab,siege,wrk,hey,nmap,netstat,ss,lsof,iftop,htop,top,iostat,vmstat,free,uptime,uname,whoami,id,groups,sudo,su,chown,chgrp,umask,ulimit,nohup,screen,tmux,vim,nano,emacs,less,more,watch,tree,rsync,scp,ssh,telnet,ftp,sftp,ping,traceroute,dig,nslookup,host,whois,arp,route,ip,ifconfig,systemctl,service,crontab,at,batch,jobs,fg,bg,disown,history,alias,unalias,type,command,builtin,hash,help,man,info,apropos,whatis,locale,iconv,od,hexdump,xxd,strings,objcopy,readelf,size,strip,addr2line,c++filt,nm,ar,ranlib,ld,as,gprof,gcov,lcov,genhtml,cppcheck,clang-tidy,clang-format,astyle,indent,splint,lint,shellcheck,yamllint,eslint,tslint,pylint,flake8,black,isort,rubocop,gofmt,rustfmt,prettier,autopep8,yapf,standardjs,jshint,csslint,htmlhint,stylelint,commitizen,commitlint,husky,lint-staged,pre-commit,tox,nox,pipx,pyenv,rbenv,nvm,sdkman,kiex,kerl,rustup,gvm,tfenv,kubectl,helm,docker,docker-compose,podman,vagrant,terraform,ansible,packer,consul,vault,nomad,prometheus,grafana,jaeger,zipkin,opentelemetry,datadog,newrelic,sentry,rollbar,bugsnag,honeybadger,airbrake,raygun,loggly,splunk,elk,logstash,kibana,elasticsearch,fluentd,fluent-bit,rsyslog,syslog-ng,journalctl,dmesg,logrotate,cron,anacron,systemd,init,rc,service,chkconfig,update-rc.d,systemctl,launchctl,brew,apt,apt-get,yum,dnf,zypper,pacman,emerge,portage,pkg,pkgng,snap,flatpak,appimage,rpm,dpkg,alien,checkinstall,fpm,nfpm,goreleaser,electron-builder,pkg,nexe,vercel,netlify,heroku,aws,gcloud,az,kubectl,helm,istio,linkerd,envoy,nginx,apache,haproxy,traefik,caddy,lighttpd,tomcat,jetty,undertow,wildfly,glassfish,websphere,weblogic,iis,gunicorn,uwsgi,unicorn,puma,passenger,pm2,forever,nodemon,supervisor,circus,celery,rq,sidekiq,delayed_job,active_job,spring,hibernate,django,flask,fastapi,express,koa,hapi,restify,meteor,next,nuxt,gatsby,create-react-app,vue-cli,angular-cli,ember-cli,ionic,cordova,phonegap,react-native,flutter,xamarin,unity,unreal,godot,blender,gimp,imagemagick,ffmpeg,vlc,mplayer,sox,lame,flac,ogg,mp3,wav,avi,mp4,mkv,webm,gif,png,jpg,jpeg,svg,pdf,latex,pdflatex,xelatex,lualex,bibtex,biber,makeindex,pandoc,markdown,rst,asciidoc,textile,creole,mediawiki,confluence,notion,obsidian,roam,logseq,zettlr,typora,mark,remarkable,ghostwriter,writemonkey,focuswriter,manuskript,scrivener,artoftext,ulysses,bear,day-one,journey,momento,diaro,grid-diary,five-minute-journal,stoic,calm,headspace,insight-timer,ten-percent-happier"
+            }
+          }
+        }
+      }
+    
+    available_tools: ["git", "filesystem", "shell"]
+    execution_strategy: "act"
+    
+    output_schema: |
+      {
+         "properties": {
+             "summary": {
+                 "description": "Summary of the generated test suite and coverage of code changes",
+                 "title": "Test Suite Summary",
+                 "type": "string"
+             },
+             "generated_tests": {
+                 "description": "List of generated test files with their paths",
+                 "title": "Generated Tests",
+                 "type": "array",
+                 "items": { "type": "string" }
+             },
+             "test_results": {
+                 "description": "Results of running the generated test suite",
+                 "title": "Test Results",
+                 "type": "object",
+                 "properties": {
+                     "passed": { "type": "integer" },
+                     "failed": { "type": "integer" },
+                     "failures": {
+                         "type": "array",
+                         "items": { "type": "string" }
+                     }
+                 },
+                 "required": ["passed", "failed", "failures"]
+             },
+             "success": {
+                 "description": "Whether all generated tests pass successfully",
+                 "title": "Success",
+                 "type": "boolean"
+             }
+         },
+         "required": ["summary", "generated_tests", "test_results", "success"]
+      }
+    
+    exit_expression: "success"
