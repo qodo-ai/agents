@@ -344,7 +344,7 @@ qodo diff_test_suite --log=debug.log --run_tests=false
 cat debug.log
 
 # Save all output for analysis
-qodo -q diff_test_suite > results.json 2> errors.log
+qodo diff_test_suite > results.json 2> errors.log
 ```
 
 ### Common Issues and Solutions
