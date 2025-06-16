@@ -50,23 +50,7 @@ commands:
         required: false
         description: "Comma-separated list of file patterns to exclude"
     
-    mcpServers: |
-      {
-        "qodo_merge": {
-          "command": "npx",
-          "args": ["-y", "@qodo/merge-server"]
-        },
-        "git": {
-          "command": "uvx",
-          "args": ["mcp-server-git"]
-        },
-        "filesystem": {
-          "command": "npx",
-          "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
-        }
-      }
-    
-    available_tools: ["qodo_merge", "git", "filesystem"]
+    available_tools: ["Qodo Merge", "git", "filesystem"]
     execution_strategy: "act"
     
     output_schema: |

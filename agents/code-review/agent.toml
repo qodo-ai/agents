@@ -35,26 +35,8 @@ arguments = [
     { name = "exclude_files", type = "string", required = false, description = "Comma-separated list of file patterns to exclude" }
 ]
 
-# MCP servers this agent uses
-mcpServers = """
-{
-    "qodo_merge": {
-        "command": "npx",
-        "args": ["-y", "@qodo/merge-server"]
-    },
-    "git": {
-        "command": "uvx",
-        "args": ["mcp-server-git"]
-    },
-    "filesystem": {
-        "command": "npx",
-        "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
-    }
-}
-"""
-
 # Tools available to this agent
-available_tools = ["qodo_merge", "git", "filesystem"]
+available_tools = ["Qodo Merge", "git", "filesystem"]
 
 # Execution strategy: "act" for immediate execution, "plan" for multi-step planning
 execution_strategy = "act"
