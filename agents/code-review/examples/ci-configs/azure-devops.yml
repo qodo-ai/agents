@@ -1,0 +1,58 @@
+# Azure DevOps Pipeline for Code Review Agent
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: qodo-credentials
+
+stages:
+- stage: CodeReview
+  displayName: 'Code Review'
+  jobs:
+  - job: Review
+    displayName: 'Run Code Review'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: 'Install Node.js'
+    
+    - script: npm install -g @qodo/gen
+      displayName: 'Install Qodo CLI'
+    
+    - script: |
+        qodo -q --ci code_review \
+          --target_branch=$(System.PullRequest.TargetBranch) \
+          --severity_threshold=medium \
+          --include_suggestions=true \
+          > $(Agent.TempDirectory)/review-results.json
+      displayName: 'Run Code Review'
+      env:
+        QODO_API_KEY: $(qodo-api-key)
+    
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '$(Agent.TempDirectory)/review-results.json'
+        testRunTitle: 'Code Review Results'
+      condition: always()
+    
+    - script: |
+        approved=$(jq -r '.approved' $(Agent.TempDirectory)/review-results.json)
+        if [ "$approved" != "true" ]; then
+          echo "##vso[task.logissue type=error]Code review failed"
+          exit 1
+        fi
+      displayName: 'Check Review Status'

@@ -1,0 +1,118 @@
+# Code Review Agent Configuration
+version = "1.0"
+description = "Comprehensive code review agent using Qodo Merge integration"
+
+[commands.code_review]
+description = "Analyze code changes using Qodo Merge and provide categorized feedback"
+
+instructions = """
+You are an expert code reviewer. Your task is to:
+
+1. Analyze the provided code changes using Qodo Merge improve tool
+2. Categorize findings into: Critical, High, Medium, Low priority
+3. Provide specific, actionable feedback for each issue
+4. Suggest concrete improvements with code examples
+5. Check for security vulnerabilities, performance issues, and maintainability concerns
+6. Ensure code follows best practices and team standards
+
+Focus on:
+- Security vulnerabilities and potential exploits
+- Performance bottlenecks and optimization opportunities  
+- Code maintainability and readability
+- Adherence to coding standards and conventions
+- Proper error handling and edge cases
+- Test coverage for new functionality
+
+Provide constructive feedback that helps developers improve their code quality.
+"""
+
+# Arguments that can be passed to the agent
+arguments = [
+    { name = "target_branch", type = "string", required = false, default = "main", description = "Target branch to compare against" },
+    { name = "severity_threshold", type = "string", required = false, default = "medium", description = "Minimum severity level to report (low, medium, high, critical)" },
+    { name = "include_suggestions", type = "boolean", required = false, default = true, description = "Include improvement suggestions" },
+    { name = "focus_areas", type = "string", required = false, description = "Comma-separated list of focus areas (security, performance, maintainability)" },
+    { name = "exclude_files", type = "string", required = false, description = "Comma-separated list of file patterns to exclude" }
+]
+
+# MCP servers this agent uses
+mcpServers = """
+{
+    "qodo_merge": {
+        "command": "npx",
+        "args": ["-y", "@qodo/merge-server"]
+    },
+    "git": {
+        "command": "uvx",
+        "args": ["mcp-server-git"]
+    },
+    "filesystem": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
+    }
+}
+"""
+
+# Tools available to this agent
+available_tools = ["qodo_merge", "git", "filesystem"]
+
+# Execution strategy: "act" for immediate execution, "plan" for multi-step planning
+execution_strategy = "act"
+
+# Expected output structure for integration
+output_schema = """
+{
+    "type": "object",
+    "properties": {
+        "summary": {
+            "type": "object",
+            "properties": {
+                "total_issues": {"type": "number"},
+                "critical_issues": {"type": "number"},
+                "high_issues": {"type": "number"},
+                "medium_issues": {"type": "number"},
+                "low_issues": {"type": "number"},
+                "files_reviewed": {"type": "number"},
+                "overall_score": {"type": "number", "minimum": 0, "maximum": 10}
+            },
+            "required": ["total_issues", "critical_issues", "high_issues", "medium_issues", "low_issues", "files_reviewed", "overall_score"]
+        },
+        "issues": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "file": {"type": "string"},
+                    "line": {"type": "number"},
+                    "severity": {"type": "string", "enum": ["critical", "high", "medium", "low"]},
+                    "category": {"type": "string"},
+                    "title": {"type": "string"},
+                    "description": {"type": "string"},
+                    "suggestion": {"type": "string"},
+                    "code_example": {"type": "string"}
+                },
+                "required": ["file", "severity", "category", "title", "description"]
+            }
+        },
+        "suggestions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "file": {"type": "string"},
+                    "type": {"type": "string"},
+                    "description": {"type": "string"},
+                    "implementation": {"type": "string"}
+                },
+                "required": ["file", "type", "description"]
+            }
+        },
+        "approved": {"type": "boolean"},
+        "requires_changes": {"type": "boolean"}
+    },
+    "required": ["summary", "issues", "approved", "requires_changes"]
+}
+"""
+
+# Success condition for CI/CD integration
+exit_expression = "approved"

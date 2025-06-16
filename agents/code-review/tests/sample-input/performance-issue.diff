@@ -1,0 +1,27 @@
+diff --git a/src/utils.js b/src/utils.js
+index 1234567..abcdefg 100644
+--- a/src/utils.js
++++ b/src/utils.js
+@@ -15,12 +15,18 @@ class DataProcessor {
+   }
+ 
+   findMatchingItems(items, criteria) {
+-    return items.filter(item => 
+-      criteria.every(criterion => 
+-        item[criterion.field] === criterion.value
+-      )
+-    );
++    // Inefficient nested loop - O(n²) complexity
++    const matches = [];
++    for (let i = 0; i < items.length; i++) {
++      for (let j = 0; j < criteria.length; j++) {
++        if (items[i][criteria[j].field] === criteria[j].value) {
++          matches.push(items[i]);
++          break;
++        }
++      }
++    }
++    return matches;
+   }
+ 
+   processData(data) {

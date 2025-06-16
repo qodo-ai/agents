@@ -1,0 +1,140 @@
+# GitHub Actions Workflow for Code Review Agent
+name: Code Review with Qodo Agent
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+jobs:
+  code-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install Qodo CLI
+        run: npm install -g @qodo/gen
+      
+      - name: Run Code Review
+        id: review
+        run: |
+          # Run code review and save output
+          qodo -q --ci code_review \
+            --target_branch=${{ github.base_ref || 'main' }} \
+            --severity_threshold=medium \
+            --focus_areas=security,performance \
+            --exclude_files="*.test.js,*.spec.ts,dist/*" \
+            --include_suggestions=true \
+            > review-results.json
+          
+          # Extract key metrics
+          echo "approved=$(jq -r '.approved' review-results.json)" >> $GITHUB_OUTPUT
+          echo "total_issues=$(jq -r '.summary.total_issues' review-results.json)" >> $GITHUB_OUTPUT
+          echo "critical_issues=$(jq -r '.summary.critical_issues' review-results.json)" >> $GITHUB_OUTPUT
+          echo "overall_score=$(jq -r '.summary.overall_score' review-results.json)" >> $GITHUB_OUTPUT
+      
+      - name: Upload Review Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-review-results
+          path: review-results.json
+      
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('review-results.json', 'utf8'));
+            
+            let comment = `## 🔍 Code Review Results\n\n`;
+            comment += `**Overall Score:** ${results.summary.overall_score}/10\n`;
+            comment += `**Total Issues:** ${results.summary.total_issues}\n`;
+            comment += `**Critical:** ${results.summary.critical_issues} | `;
+            comment += `**High:** ${results.summary.high_issues} | `;
+            comment += `**Medium:** ${results.summary.medium_issues} | `;
+            comment += `**Low:** ${results.summary.low_issues}\n\n`;
+            
+            if (results.issues.length > 0) {
+              comment += `### 🚨 Issues Found\n\n`;
+              results.issues.slice(0, 5).forEach(issue => {
+                const emoji = issue.severity === 'critical' ? '🔴' : 
+                             issue.severity === 'high' ? '🟠' : 
+                             issue.severity === 'medium' ? '🟡' : '🟢';
+                comment += `${emoji} **${issue.title}** (${issue.severity})\n`;
+                comment += `📁 \`${issue.file}:${issue.line}\`\n`;
+                comment += `${issue.description}\n\n`;
+              });
+              
+              if (results.issues.length > 5) {
+                comment += `... and ${results.issues.length - 5} more issues\n\n`;
+              }
+            }
+            
+            if (results.suggestions.length > 0) {
+              comment += `### 💡 Suggestions\n\n`;
+              results.suggestions.slice(0, 3).forEach(suggestion => {
+                comment += `- **${suggestion.file}**: ${suggestion.description}\n`;
+              });
+            }
+            
+            comment += `\n**Status:** ${results.approved ? '✅ Approved' : '❌ Requires Changes'}`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+      
+      - name: Set Status Check
+        if: always()
+        run: |
+          if [ "${{ steps.review.outputs.approved }}" = "true" ]; then
+            echo "✅ Code review passed"
+            exit 0
+          else
+            echo "❌ Code review failed - ${{ steps.review.outputs.total_issues }} issues found"
+            exit 1
+          fi
+
+  security-review:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'security-sensitive')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Qodo CLI
+        run: npm install -g @qodo/gen
+      
+      - name: Security-focused Review
+        run: |
+          qodo code_review \
+            --focus_areas=security \
+            --severity_threshold=high \
+            --security_level=strict \
+            > security-review.json
+          
+          # Fail if any security issues found
+          security_issues=$(jq -r '.summary.security_issues // 0' security-review.json)
+          if [ "$security_issues" -gt 0 ]; then
+            echo "🚨 Security issues found: $security_issues"
+            jq -r '.issues[] | select(.category == "security") | "- \(.title) in \(.file):\(.line)"' security-review.json
+            exit 1
+          fi

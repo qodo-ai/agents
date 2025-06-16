@@ -1,0 +1,21 @@
+diff --git a/src/auth.js b/src/auth.js
+index 1234567..abcdefg 100644
+--- a/src/auth.js
++++ b/src/auth.js
+@@ -38,8 +38,12 @@ class AuthService {
+   }
+ 
+   async authenticateUser(username, password) {
+-    const hashedPassword = await bcrypt.hash(password, 10);
+-    return this.findUserByCredentials(username, hashedPassword);
++    // Direct SQL query - SECURITY VULNERABILITY
++    const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
++    const result = await this.db.query(query);
++    
++    if (result.rows.length > 0) {
++      return result.rows[0];
++    }
++    return null;
+   }
+ 
+   async findUserByCredentials(username, hashedPassword) {

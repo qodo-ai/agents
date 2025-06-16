@@ -1,0 +1,33 @@
+{
+  "summary": {
+    "total_issues": 1,
+    "critical_issues": 1,
+    "high_issues": 0,
+    "medium_issues": 0,
+    "low_issues": 0,
+    "files_reviewed": 1,
+    "overall_score": 2.0
+  },
+  "issues": [
+    {
+      "file": "src/auth.js",
+      "line": 42,
+      "severity": "critical",
+      "category": "security",
+      "title": "SQL Injection Vulnerability",
+      "description": "Direct string concatenation in SQL query allows injection attacks. User input is directly interpolated into the SQL query without parameterization.",
+      "suggestion": "Use parameterized queries or prepared statements to prevent SQL injection",
+      "code_example": "const query = 'SELECT * FROM users WHERE username = $1 AND password = $2'; const result = await this.db.query(query, [username, hashedPassword]);"
+    }
+  ],
+  "suggestions": [
+    {
+      "file": "src/auth.js",
+      "type": "security",
+      "description": "Implement proper password hashing and verification",
+      "implementation": "Use bcrypt.compare() to verify passwords instead of direct comparison"
+    }
+  ],
+  "approved": false,
+  "requires_changes": true
+}
