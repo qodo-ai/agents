@@ -1,6 +1,4 @@
 version: "1.0"
-description: "Comprehensive code review agent using Qodo Merge integration"
-
 commands:
   code_review:
     description: "Analyze code changes using Qodo Merge and provide categorized feedback"
