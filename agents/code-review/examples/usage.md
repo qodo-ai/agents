@@ -1,64 +1,506 @@
-# Basic Usage Examples
+# Usage Examples
 
-This document provides basic usage examples for the Code Review Agent.
+This document provides practical examples of using the Code Review Agent in various scenarios.
 
-## Simple Code Review
+## Basic Usage
 
-Review current changes against the main branch:
-
+### Review Current Changes
 ```bash
+# Review all unstaged and staged changes
 qodo code_review
-```
 
-## Review Against Specific Branch
-
-Compare changes against a different target branch:
-
-```bash
+# Review against specific branch
 qodo code_review --target_branch=develop
+
+# Review with custom severity threshold
+qodo code_review --severity_threshold=high
 ```
 
-## Focus on Security Issues
-
-Review only security-related issues with high severity:
-
+### Focus on Specific Areas
 ```bash
-qodo code_review --focus_areas=security --severity_threshold=high
-```
+# Focus on security issues only
+qodo code_review --focus_areas=security
 
-## Include Improvement Suggestions
+# Review multiple focus areas
+qodo code_review --focus_areas=security,performance,maintainability
 
-Get detailed improvement suggestions along with issue detection:
-
-```bash
+# Include improvement suggestions
 qodo code_review --include_suggestions=true
 ```
 
-## Exclude Specific Files
+## Advanced Configuration
 
-Skip test files and generated code from review:
-
+### Exclude Specific Files
 ```bash
+# Exclude test files and generated code
 qodo code_review --exclude_files="*.test.js,*.spec.ts,dist/*,build/*"
+
+# Exclude configuration and documentation
+qodo code_review --exclude_files="*.config.js,*.md,docs/*"
+
+# Exclude multiple patterns
+qodo code_review --exclude_files="node_modules/*,*.generated.ts,__tests__/*"
 ```
 
-## Comprehensive Review
+### Project-Specific Examples
 
-Run a comprehensive review with all options:
-
+#### Node.js/Express API
 ```bash
+# Review API changes with security focus
 qodo code_review \
   --target_branch=main \
-  --severity_threshold=medium \
-  --focus_areas=security,performance,maintainability \
-  --include_suggestions=true \
-  --exclude_files="*.test.js,*.spec.ts"
+  --focus_areas=security,performance \
+  --exclude_files="package-lock.json,node_modules/*" \
+  --severity_threshold=medium
+```
+
+#### Python Django Project
+```bash
+# Review Django app changes
+qodo code_review \
+  --target_branch=develop \
+  --focus_areas=security,maintainability \
+  --exclude_files="*.pyc,__pycache__/*,migrations/*" \
+  --include_suggestions=true
+```
+
+#### Java Spring Boot
+```bash
+# Review Spring Boot changes
+qodo code_review \
+  --target_branch=main \
+  --focus_areas=security,performance \
+  --exclude_files="target/*,*.class" \
+  --severity_threshold=high
+```
+
+## CI/CD Integration
+
+### GitHub Actions Workflow
+```yaml
+name: Code Review
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  code-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install Qodo CLI
+        run: npm install -g @qodo/gen
+        
+      - name: Run code review
+        run: |
+          qodo -q --ci code_review \
+            --target_branch=${{ github.base_ref }} \
+            --severity_threshold=medium \
+            --focus_areas=security,performance \
+            --exclude_files="package-lock.json,*.md" \
+            > review-results.json
+            
+      - name: Display results
+        run: |
+          echo "Code review results:"
+          cat review-results.json | jq '.'
+          
+      - name: Check for critical issues
+        run: |
+          critical_issues=$(jq -r '.summary.critical_issues' review-results.json)
+          if [ "$critical_issues" -gt 0 ]; then
+            echo "❌ Critical issues found: $critical_issues"
+            exit 1
+          fi
+          
+      - name: Comment on PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('review-results.json', 'utf8'));
+            
+            let comment = `## 🔍 Code Review Results\n\n`;
+            comment += `**Overall Score:** ${results.summary.overall_score}/10\n`;
+            comment += `**Total Issues:** ${results.summary.total_issues}\n`;
+            comment += `**Files Reviewed:** ${results.summary.files_reviewed}\n\n`;
+            
+            if (results.summary.critical_issues > 0) {
+              comment += `⚠️ **${results.summary.critical_issues} Critical Issues Found**\n\n`;
+            }
+            
+            if (results.issues.length > 0) {
+              comment += `### Issues Found:\n`;
+              results.issues.forEach(issue => {
+                comment += `- **${issue.severity.toUpperCase()}** in \`${issue.file}:${issue.line}\`: ${issue.title}\n`;
+              });
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+```
+
+### GitLab CI Pipeline
+```yaml
+stages:
+  - code-review
+  - quality-gate
+
+code-review:
+  stage: code-review
+  image: node:18
+  before_script:
+    - npm install -g @qodo/gen
+  script:
+    - |
+      qodo -q --ci code_review \
+        --target_branch=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME \
+        --severity_threshold=medium \
+        --focus_areas=security,performance,maintainability \
+        --exclude_files="node_modules/*,dist/*" \
+        > review-results.json
+    - cat review-results.json
+  artifacts:
+    paths:
+      - review-results.json
+    reports:
+      junit: review-results.xml
+    expire_in: 1 hour
+  only:
+    - merge_requests
+
+quality-gate:
+  stage: quality-gate
+  image: alpine:latest
+  dependencies:
+    - code-review
+  before_script:
+    - apk add --no-cache jq
+  script:
+    - |
+      critical_issues=$(jq -r '.summary.critical_issues' review-results.json)
+      high_issues=$(jq -r '.summary.high_issues' review-results.json)
+      overall_score=$(jq -r '.summary.overall_score' review-results.json)
+      
+      echo "Critical issues: $critical_issues"
+      echo "High issues: $high_issues"
+      echo "Overall score: $overall_score"
+      
+      if [ "$critical_issues" -gt 0 ]; then
+        echo "❌ Quality gate failed: Critical issues found"
+        exit 1
+      fi
+      
+      if [ "$high_issues" -gt 3 ]; then
+        echo "❌ Quality gate failed: Too many high severity issues"
+        exit 1
+      fi
+      
+      if [ "$(echo "$overall_score < 7.0" | bc)" -eq 1 ]; then
+        echo "❌ Quality gate failed: Overall score too low"
+        exit 1
+      fi
+      
+      echo "✅ Quality gate passed"
+  only:
+    - merge_requests
+```
+
+### Jenkins Pipeline
+```groovy
+pipeline {
+    agent any
+    
+    stages {
+        stage('Setup') {
+            steps {
+                sh 'npm install -g @qodo/gen'
+            }
+        }
+        
+        stage('Code Review') {
+            steps {
+                script {
+                    def targetBranch = env.CHANGE_TARGET ?: 'main'
+                    sh """
+                        qodo -q --ci code_review \
+                          --target_branch=${targetBranch} \
+                          --severity_threshold=medium \
+                          --focus_areas=security,performance \
+                          --exclude_files="Jenkinsfile,*.md" \
+                          > review-results.json
+                    """
+                    
+                    def results = readJSON file: 'review-results.json'
+                    
+                    echo "Code Review Summary:"
+                    echo "Overall Score: ${results.summary.overall_score}/10"
+                    echo "Total Issues: ${results.summary.total_issues}"
+                    echo "Critical Issues: ${results.summary.critical_issues}"
+                    
+                    if (results.summary.critical_issues > 0) {
+                        error("Critical issues found in code review")
+                    }
+                    
+                    // Set build description
+                    currentBuild.description = "Score: ${results.summary.overall_score}/10, Issues: ${results.summary.total_issues}"
+                }
+            }
+        }
+        
+        stage('Quality Gate') {
+            steps {
+                script {
+                    def results = readJSON file: 'review-results.json'
+                    
+                    if (results.summary.overall_score < 7.0) {
+                        unstable("Code quality score below threshold")
+                    }
+                    
+                    if (results.summary.high_issues > 5) {
+                        unstable("Too many high severity issues")
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            archiveArtifacts artifacts: 'review-results.json', fingerprint: true
+            
+            script {
+                def results = readJSON file: 'review-results.json'
+                
+                // Publish test results if available
+                if (fileExists('review-results.xml')) {
+                    publishTestResults testResultsPattern: 'review-results.xml'
+                }
+                
+                // Send notification
+                if (results.summary.critical_issues > 0) {
+                    slackSend(
+                        color: 'danger',
+                        message: "🚨 Critical issues found in ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                    )
+                }
+            }
+        }
+    }
+}
+```
+
+## IDE Integration
+
+### VS Code Tasks
+```json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Code Review - Current Changes",
+            "type": "shell",
+            "command": "qodo",
+            "args": [
+                "code_review",
+                "--include_suggestions=true"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Code Review - Security Focus",
+            "type": "shell",
+            "command": "qodo",
+            "args": [
+                "code_review",
+                "--focus_areas=security",
+                "--severity_threshold=high",
+                "--exclude_files=*.test.js,*.spec.ts"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Code Review - Comprehensive",
+            "type": "shell",
+            "command": "qodo",
+            "args": [
+                "code_review",
+                "--target_branch=main",
+                "--focus_areas=security,performance,maintainability",
+                "--include_suggestions=true",
+                "--severity_threshold=medium"
+            ],
+            "group": "test"
+        }
+    ]
+}
+```
+
+### IntelliJ IDEA External Tool
+```xml
+<tool name="Code Review" description="Run code review on current changes" showInMainMenu="true" showInEditor="true" showInProject="true" showInSearchPopup="true" disabled="false" useConsole="true" showConsoleOnStdOut="false" showConsoleOnStdErr="false" synchronizeAfterRun="true">
+  <exec>
+    <option name="COMMAND" value="qodo" />
+    <option name="PARAMETERS" value="code_review --focus_areas=security,performance --include_suggestions=true" />
+    <option name="WORKING_DIRECTORY" value="$ProjectFileDir$" />
+  </exec>
+</tool>
+```
+
+## Pre-commit Hooks
+
+### Using pre-commit Framework
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: local
+    hooks:
+      - id: code-review
+        name: Code review for staged changes
+        entry: qodo
+        args: [code_review, --severity_threshold=high, --focus_areas=security]
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
+```
+
+### Git Hook Script
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+
+echo "Running code review on staged changes..."
+
+# Run the code review
+qodo -q --ci code_review --severity_threshold=high --focus_areas=security > /tmp/review-results.json
+
+# Check if successful
+if [ $? -ne 0 ]; then
+    echo "❌ Code review failed"
+    cat /tmp/review-results.json
+    exit 1
+fi
+
+# Parse results
+critical_issues=$(jq -r '.summary.critical_issues' /tmp/review-results.json 2>/dev/null || echo "0")
+high_issues=$(jq -r '.summary.high_issues' /tmp/review-results.json 2>/dev/null || echo "0")
+overall_score=$(jq -r '.summary.overall_score' /tmp/review-results.json 2>/dev/null || echo "0")
+
+echo "Code Review Results:"
+echo "  Critical Issues: $critical_issues"
+echo "  High Issues: $high_issues"
+echo "  Overall Score: $overall_score/10"
+
+# Block commit if critical issues found
+if [ "$critical_issues" -gt 0 ]; then
+    echo "❌ Commit blocked: Critical security or quality issues found"
+    echo "Please fix the following issues before committing:"
+    jq -r '.issues[] | select(.severity == "critical") | "  - \(.file):\(.line) - \(.title)"' /tmp/review-results.json
+    exit 1
+fi
+
+# Warn about high issues but allow commit
+if [ "$high_issues" -gt 0 ]; then
+    echo "⚠️  Warning: $high_issues high severity issues found"
+    echo "Consider addressing these issues:"
+    jq -r '.issues[] | select(.severity == "high") | "  - \(.file):\(.line) - \(.title)"' /tmp/review-results.json
+fi
+
+echo "✅ Code review passed"
+exit 0
+```
+
+## Troubleshooting Examples
+
+### Debug Mode
+```bash
+# Run with verbose output
+qodo code_review --log=debug.log --severity_threshold=low
+
+# Check the debug log
+cat debug.log
+
+# Save all output for analysis
+qodo code_review > review-results.json 2> errors.log
+```
+
+### Common Issues and Solutions
+
+#### No Changes Detected
+```bash
+# Check git status
+git status
+
+# Ensure you're in a git repository
+git rev-parse --git-dir
+
+# Check if target branch exists
+git branch -a | grep main
+
+# Force review of specific files
+git add -A && qodo code_review
+```
+
+#### False Positives
+```bash
+# Adjust severity threshold
+qodo code_review --severity_threshold=high
+
+# Focus on specific areas only
+qodo code_review --focus_areas=security
+
+# Exclude problematic files
+qodo code_review --exclude_files="legacy/*,vendor/*"
+```
+
+#### Performance Issues
+```bash
+# Exclude large files or directories
+qodo code_review --exclude_files="dist/*,build/*,node_modules/*"
+
+# Review smaller changesets
+git add specific-file.js
+qodo code_review
+
+# Use specific focus areas
+qodo code_review --focus_areas=security
 ```
 
 ## Output Examples
 
 ### Successful Review (No Issues)
-
 ```json
 {
   "summary": {
@@ -71,14 +513,20 @@ qodo code_review \
     "overall_score": 10.0
   },
   "issues": [],
-  "suggestions": [],
+  "suggestions": [
+    {
+      "file": "src/utils.js",
+      "type": "performance",
+      "description": "Consider using Map instead of Object for frequent lookups",
+      "implementation": "Replace object with new Map() for better performance"
+    }
+  ],
   "approved": true,
   "requires_changes": false
 }
 ```
 
-### Review with Issues Found
-
+### Review with Critical Issues
 ```json
 {
   "summary": {
@@ -131,5 +579,50 @@ qodo code_review \
   ],
   "approved": false,
   "requires_changes": true
+}
+```
+
+### Review with Warnings Only
+```json
+{
+  "summary": {
+    "total_issues": 2,
+    "critical_issues": 0,
+    "high_issues": 0,
+    "medium_issues": 1,
+    "low_issues": 1,
+    "files_reviewed": 3,
+    "overall_score": 8.5
+  },
+  "issues": [
+    {
+      "file": "src/helpers.js",
+      "line": 23,
+      "severity": "medium",
+      "category": "maintainability",
+      "title": "Complex Function",
+      "description": "Function has high cyclomatic complexity (12)",
+      "suggestion": "Consider breaking into smaller functions"
+    },
+    {
+      "file": "src/styles.css",
+      "line": 45,
+      "severity": "low",
+      "category": "maintainability",
+      "title": "Unused CSS Rule",
+      "description": "CSS rule appears to be unused",
+      "suggestion": "Remove unused styles to reduce bundle size"
+    }
+  ],
+  "suggestions": [
+    {
+      "file": "src/helpers.js",
+      "type": "refactoring",
+      "description": "Extract validation logic into separate utility functions",
+      "implementation": "Create validateInput(), sanitizeData(), and formatOutput() functions"
+    }
+  ],
+  "approved": true,
+  "requires_changes": false
 }
 ```
