@@ -1,5 +1,7 @@
 # Qodo Agent Reference Implementations
 
+> **🚧 PROJECT STATUS**: This repository is under active development. Most agents listed are **planned features** and not yet implemented. Only agents marked with ✅ are currently available. We welcome contributions to help build these agents!
+
 A curated collection of reference agent implementations for the [Qodo CLI](https://github.com/qodo-ai/qodo-gen-cli) framework, showcasing best practices and common patterns for building AI-powered development workflows.
 
 ## What are Qodo Agents?
@@ -16,50 +18,54 @@ Qodo Agents are configurable AI workflows that combine:
 
 These agents demonstrate core patterns and best practices for the Qodo framework.
 
+> **⚠️ IMPLEMENTATION STATUS**: Most of the agents listed below are **not yet implemented** and are included as planned features. Only agents marked with ✅ are currently available. We are actively working on implementing these agents - contributions are welcome!
+
 ### Development Workflow Agents
-- **[Code Review](agents/code-review/)** - Comprehensive code review with Qodo Merge integration
-- **[Diff Test Generation](agents/diff-test-suite/)** - Automated test suite creation and validation of code changes
-- **[Documentation](agents/documentation/)** - Generate and maintain project documentation
-- **[Refactoring](agents/refactoring/)** - Safe code refactoring with validation
-- **[Security Audit](agents/security-audit/)** - Security vulnerability scanning and remediation
+- **[Code Review](agents/code-review/)** ✅ - Comprehensive code review with Qodo Merge integration
+- **[Diff Test Generation](agents/diff-test-suite/)** ✅ - Automated test suite creation and validation of code changes
+- **[Documentation](agents/documentation/)** 🚧 *Not yet implemented* - Generate and maintain project documentation
+- **[Refactoring](agents/refactoring/)** 🚧 *Not yet implemented* - Safe code refactoring with validation
+- **[Security Audit](agents/security-audit/)** 🚧 *Not yet implemented* - Security vulnerability scanning and remediation
 
 ### CI/CD Integration Agents
-- **[Pre-commit Validation](agents/pre-commit/)** - Pre-commit hook validation and fixes
-- **[Release Notes](agents/release-notes/)** - Automated release note generation
-- **[Deployment Validation](agents/deployment/)** - Post-deployment health checks
-- **[Performance Analysis](agents/performance/)** - Performance regression detection
+- **[Pre-commit Validation](agents/pre-commit/)** 🚧 *Not yet implemented* - Pre-commit hook validation and fixes
+- **[Release Notes](agents/release-notes/)** 🚧 *Not yet implemented* - Automated release note generation
+- **[Deployment Validation](agents/deployment/)** 🚧 *Not yet implemented* - Post-deployment health checks
+- **[Performance Analysis](agents/performance/)** 🚧 *Not yet implemented* - Performance regression detection
 
 ### Project Management Agents
-- **[Issue Triage](agents/issue-triage/)** - Automated issue classification and routing
-- **[Sprint Planning](agents/sprint-planning/)** - Sprint planning assistance
-- **[Technical Debt](agents/tech-debt/)** - Technical debt identification and prioritization
+- **[Issue Triage](agents/issue-triage/)** 🚧 *Not yet implemented* - Automated issue classification and routing
+- **[Sprint Planning](agents/sprint-planning/)** 🚧 *Not yet implemented* - Sprint planning assistance
+- **[Technical Debt](agents/tech-debt/)** 🚧 *Not yet implemented* - Technical debt identification and prioritization
 
 ### Data & Analytics Agents
-- **[Data Pipeline](agents/data-pipeline/)** - Data pipeline monitoring and validation
-- **[Report Generation](agents/reports/)** - Automated report generation
-- **[Metrics Analysis](agents/metrics/)** - Performance metrics analysis
+- **[Data Pipeline](agents/data-pipeline/)** 🚧 *Not yet implemented* - Data pipeline monitoring and validation
+- **[Report Generation](agents/reports/)** 🚧 *Not yet implemented* - Automated report generation
+- **[Metrics Analysis](agents/metrics/)** 🚧 *Not yet implemented* - Performance metrics analysis
 
 ## 🤝 Community Agents
 
 Community-contributed agents demonstrating various use cases and integrations.
 
+> **⚠️ IMPLEMENTATION STATUS**: The community agents listed below are **planned features** and are not yet implemented. We encourage community contributions to help build these agents!
+
 > **Note:** Community agents are maintained by their respective authors and should be used at your own discretion.
 
 ### Language-Specific Agents
-- **[Python Linting](community/python-linting/)** - Python-specific code quality checks
-- **[JavaScript Testing](community/js-testing/)** - JavaScript/TypeScript testing workflows
-- **[Go Optimization](community/go-optimization/)** - Go performance optimization
-- **[Rust Safety](community/rust-safety/)** - Rust memory safety validation
+- **[Python Linting](community/python-linting/)** 🚧 *Not yet implemented* - Python-specific code quality checks
+- **[JavaScript Testing](community/js-testing/)** 🚧 *Not yet implemented* - JavaScript/TypeScript testing workflows
+- **[Go Optimization](community/go-optimization/)** 🚧 *Not yet implemented* - Go performance optimization
+- **[Rust Safety](community/rust-safety/)** 🚧 *Not yet implemented* - Rust memory safety validation
 
 ### Framework-Specific Agents
-- **[React Component](community/react-component/)** - React component analysis and optimization
-- **[Django Migration](community/django-migration/)** - Django database migration validation
-- **[FastAPI Documentation](community/fastapi-docs/)** - FastAPI documentation generation
+- **[React Component](community/react-component/)** 🚧 *Not yet implemented* - React component analysis and optimization
+- **[Django Migration](community/django-migration/)** 🚧 *Not yet implemented* - Django database migration validation
+- **[FastAPI Documentation](community/fastapi-docs/)** 🚧 *Not yet implemented* - FastAPI documentation generation
 
 ### Integration Agents
-- **[GitHub Actions](community/github-actions/)** - GitHub Actions workflow optimization
-- **[Docker Security](community/docker-security/)** - Docker container security scanning
-- **[Kubernetes Health](community/k8s-health/)** - Kubernetes cluster health monitoring
+- **[GitHub Actions](community/github-actions/)** 🚧 *Not yet implemented* - GitHub Actions workflow optimization
+- **[Docker Security](community/docker-security/)** 🚧 *Not yet implemented* - Docker container security scanning
+- **[Kubernetes Health](community/k8s-health/)** 🚧 *Not yet implemented* - Kubernetes cluster health monitoring
 
 ## 📚 Agent Categories
 
