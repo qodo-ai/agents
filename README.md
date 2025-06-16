@@ -72,7 +72,6 @@ Community-contributed agents demonstrating various use cases and integrations.
 ### By Execution Strategy
 - **Planning Agents** - Multi-step strategic approaches
 - **Action Agents** - Direct execution patterns
-- **Hybrid Agents** - Adaptive strategy selection
 
 ### By Integration Type
 - **MCP-Based** - Leveraging Model Context Protocol servers
@@ -216,21 +215,15 @@ qodo my_agent --ci --input_file=test/sample.txt
 ## 📖 Documentation
 
 ### Agent Configuration Reference
-- [Configuration Schema](docs/configuration-schema.md)
-- [MCP Server Integration](docs/mcp-integration.md)
-- [Output Schema Design](docs/output-schema.md)
-- [CI/CD Integration](docs/ci-cd-integration.md)
+- [Basic Agent Tutorial](https://docs.qodo.ai/qodo-documentation/qodo-gen/cli/creating-and-managing-agents) ✅ - Creating and managing agents
+- [MCP Server Integration](https://modelcontextprotocol.io/introduction) ✅ - Model Context Protocol documentation
+- [CI/CD Integration](https://docs.qodo.ai/qodo-documentation/qodo-gen/cli/ci-and-automation) ✅ - CI and automation with Qodo CLI
+- [Output Schema Design](docs/output-schema.md) 🚧 *Not yet available*
 
 ### Best Practices
-- [Agent Design Patterns](docs/design-patterns.md)
-- [Error Handling](docs/error-handling.md)
-- [Performance Optimization](docs/performance.md)
-- [Security Considerations](docs/security.md)
-
-### Examples
-- [Basic Agent Tutorial](docs/tutorials/basic-agent.md)
-- [MCP Integration Tutorial](docs/tutorials/mcp-integration.md)
-- [CI/CD Setup Tutorial](docs/tutorials/ci-cd-setup.md)
+- [Agent Design Patterns](docs/design-patterns.md) 🚧 *Not yet available*
+- [Performance Optimization](docs/performance.md) 🚧 *Not yet available*
+- [Security Considerations](docs/security.md) 🚧 *Not yet available*
 
 ## 🤝 Contributing
 
