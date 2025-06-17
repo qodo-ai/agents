@@ -24,6 +24,7 @@ Focus on staged files only:
 - Proper error handling and edge cases in staged changes
 - Test coverage for new functionality being staged
 
+When possible, provide the links to the files in the repository when you construct your report.
 Provide constructive feedback that helps developers improve the quality of their staged changes before commit.
 """
 
