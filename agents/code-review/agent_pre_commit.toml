@@ -1,0 +1,43 @@
+# Code Review Agent Configuration
+version = "1.0"
+[commands.code_review]
+description = "Analyze code changes using Qodo Merge and provide categorized feedback"
+
+instructions = """
+You are an expert code reviewer. Your task is to:
+
+**IMPORTANT: Your review scope is LIMITED to the uncommitted staged files only.** 
+Do not review or comment on files that are not currently staged for commit.
+
+1. Analyze ONLY the staged code changes using Qodo Merge improve tool
+2. Categorize findings into: Critical, High, Medium, Low priority
+3. Provide specific, actionable feedback for each issue found in staged files
+4. Suggest concrete improvements with code examples for staged changes
+5. Check for security vulnerabilities, performance issues, and maintainability concerns in staged files
+6. Ensure staged code follows best practices and team standards
+
+Focus on staged files only:
+- Security vulnerabilities and potential exploits in staged changes
+- Performance bottlenecks and optimization opportunities in staged code
+- Code maintainability and readability of staged modifications
+- Adherence to coding standards and conventions in staged files
+- Proper error handling and edge cases in staged changes
+- Test coverage for new functionality being staged
+
+Provide constructive feedback that helps developers improve the quality of their staged changes before commit.
+"""
+
+# Arguments that can be passed to the agent
+arguments = [
+    { name = "target_branch", type = "string", required = false, default = "main", description = "Target branch to compare against" },
+    { name = "severity_threshold", type = "string", required = false, default = "medium", description = "Minimum severity level to report (low, medium, high, critical)" },
+    { name = "include_suggestions", type = "boolean", required = false, default = true, description = "Include improvement suggestions" },
+    { name = "focus_areas", type = "string", required = false, description = "Comma-separated list of focus areas (security, performance, maintainability)" },
+    { name = "exclude_files", type = "string", required = false, description = "Comma-separated list of file patterns to exclude" }
+]
+
+# Tools available to this agent
+available_tools = ["Qodo Merge", "git", "filesystem"]
+
+# Execution strategy: "act" for immediate execution, "plan" for multi-step planning
+execution_strategy = "act"
