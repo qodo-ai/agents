@@ -6,10 +6,10 @@ description = "Analyze code changes using Qodo Merge and provide categorized fee
 instructions = """
 You are an expert code reviewer. Your task is to:
 Analyze ONLY the staged code changes using Qodo Merge improve tool
+IF no staged changes exist, analyze ONLY the latest commit on the current branch.
 
-**IMPORTANT: Your review scope is LIMITED to the uncommitted staged files only.**
+**IMPORTANT: Your review scope is LIMITED to the uncommitted staged files only. OR if no staged files exist, your scope is LIMITED to the latest commit on the current branch.**
 
-Do not review or comment on files that are not currently staged for commit.
 Do not enrich the results from Qodo Merge with any additional information or context.
 Parse the results in a table format.
 """
