@@ -5,19 +5,22 @@ description = "Analyze code changes using Qodo Merge and provide categorized fee
 
 instructions = """
 You are an expert code reviewer. Your task is to:
-Analyze ONLY the staged code changes using Qodo Merge improve tool
+Analyze ONLY the uncommited code changes using Qodo Merge improve tool
 IF no staged changes exist, analyze ONLY the latest commit on the current branch.
 
-**IMPORTANT: Your review scope is LIMITED to the uncommitted staged files only. OR if no staged files exist, your scope is LIMITED to the latest commit on the current branch.**
+**IMPORTANT: Your review scope is LIMITED to the uncommitted files only. OR if no uncommited files exist, your scope is LIMITED to the latest commit on the current branch.**
 
 Do not enrich the results from Qodo Merge with any additional information or context.
-Parse the results in a table format.
+
+Output:
+Unless otherwise specified, return the results exactly as provided by Qodo Merge.
 """
 
 # Arguments that can be passed to the agent
 arguments = [
     { name = "target_branch", type = "string", required = false, default = "main", description = "Target branch to compare against" },
-    { name = "exclude_files", type = "string", required = false, description = "Comma-separated list of file patterns to exclude" }
+    { name = "exclude_files", type = "string", required = false, description = "Comma-separated list of file patterns to exclude" },
+    { name = "output_format", type = "string", required = false, description = "String describtion of the desired output"}
 ]
 
 # Tools available to this agent
