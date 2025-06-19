@@ -46,49 +46,52 @@ output_schema = """
     "properties": {
         "summary": {
             "type": "object",
+            "description": "Summary statistics of the code review",
             "properties": {
-                "total_issues": {"type": "number"},
-                "critical_issues": {"type": "number"},
-                "high_issues": {"type": "number"},
-                "medium_issues": {"type": "number"},
-                "low_issues": {"type": "number"},
-                "files_reviewed": {"type": "number"},
-                "overall_score": {"type": "number", "minimum": 0, "maximum": 10}
+                "total_issues": {"type": "number", "description": "Total number of issues found"},
+                "critical_issues": {"type": "number", "description": "Number of critical severity issues"},
+                "high_issues": {"type": "number", "description": "Number of high severity issues"},
+                "medium_issues": {"type": "number", "description": "Number of medium severity issues"},
+                "low_issues": {"type": "number", "description": "Number of low severity issues"},
+                "files_reviewed": {"type": "number", "description": "Number of files reviewed"},
+                "overall_score": {"type": "number", "minimum": 0, "maximum": 10, "description": "Overall code quality score (0-10)"}
             },
             "required": ["total_issues", "critical_issues", "high_issues", "medium_issues", "low_issues", "files_reviewed", "overall_score"]
         },
         "issues": {
             "type": "array",
+            "description": "List of issues found during code review",
             "items": {
                 "type": "object",
                 "properties": {
-                    "file": {"type": "string"},
-                    "line": {"type": "number"},
-                    "severity": {"type": "string", "enum": ["critical", "high", "medium", "low"]},
-                    "category": {"type": "string"},
-                    "title": {"type": "string"},
-                    "description": {"type": "string"},
-                    "suggestion": {"type": "string"},
-                    "code_example": {"type": "string"}
+                    "file": {"type": "string", "description": "File path where issue was found"},
+                    "line": {"type": "number", "description": "Line number where issue occurs"},
+                    "severity": {"type": "string", "enum": ["critical", "high", "medium", "low"], "description": "Severity level of the issue"},
+                    "category": {"type": "string", "description": "Category of the issue (e.g., security, performance)"},
+                    "title": {"type": "string", "description": "Brief title of the issue"},
+                    "description": {"type": "string", "description": "Detailed description of the issue"},
+                    "suggestion": {"type": "string", "description": "Suggested fix for the issue"},
+                    "code_example": {"type": "string", "description": "Example code showing the fix"}
                 },
                 "required": ["file", "severity", "category", "title", "description"]
             }
         },
         "suggestions": {
             "type": "array",
+            "description": "List of improvement suggestions",
             "items": {
                 "type": "object",
                 "properties": {
-                    "file": {"type": "string"},
-                    "type": {"type": "string"},
-                    "description": {"type": "string"},
-                    "implementation": {"type": "string"}
+                    "file": {"type": "string", "description": "File path for the suggestion"},
+                    "type": {"type": "string", "description": "Type of suggestion (e.g., refactoring, optimization)"},
+                    "description": {"type": "string", "description": "Description of the suggestion"},
+                    "implementation": {"type": "string", "description": "How to implement the suggestion"}
                 },
                 "required": ["file", "type", "description"]
             }
         },
-        "approved": {"type": "boolean"},
-        "requires_changes": {"type": "boolean"}
+        "approved": {"type": "boolean", "description": "Whether the code is approved for merge"},
+        "requires_changes": {"type": "boolean", "description": "Whether changes are required before approval"}
     },
     "required": ["summary", "issues", "approved", "requires_changes"]
 }
