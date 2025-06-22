@@ -1,0 +1,29 @@
+name: Automatic Issue Handler
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  handle-new-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run issue handler agent
+        uses: qodo-ai/qodo-gen-cli@v1
+        env:
+          QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          prompt: github-issue-handler
+          agent-file: path/to/agent.toml
+          key-value-pairs: |
+            issue_number=${{ github.event.issue.number }}
