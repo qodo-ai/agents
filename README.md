@@ -1,6 +1,6 @@
 # Qodo Agent Reference Implementations
 
-> **🚧 PROJECT STATUS**: This repository is under active development. Most agents listed are **planned features** and not yet implemented. Only agents marked with ✅ are currently available. We welcome contributions to help build these agents!
+> **🚧 PROJECT STATUS**: This repository is under active development. We welcome contributions to help build some cool agents!
 
 A curated collection of reference agent implementations for the [Qodo CLI](https://github.com/qodo-ai/qodo-gen-cli) framework, showcasing best practices and common patterns for building AI-powered development workflows.
 
