@@ -1,4 +1,4 @@
-// Jenkins Pipeline for Code Review Agent
+// Jenkins Pipeline for Diff Test Suite Agent
 pipeline {
     agent any
     
@@ -8,17 +8,17 @@ pipeline {
     }
     
     stages {
-        stage('Code Review') {
+        stage('Generate Tests') {
             steps {
                 script {
-                    def targetBranch = env.CHANGE_TARGET ?: 'main'
+                    def baseBranch = env.CHANGE_TARGET ?: 'main'
                     
                     docker.image('qodo/qodo-gen-cli:latest').inside {
                         sh """
                             qodo-gen-cli \
-                              --prompt code-review \
+                              --prompt diff-test-suite \
                               --agent-file path/to/agent.toml \
-                              --key-value-pairs "target_branch=${targetBranch},severity_threshold=medium,focus_areas=security,performance,include_suggestions=true"
+                              --key-value-pairs "base_branch=${baseBranch},files_to_ignore=package-lock.json,*.md,run_tests=true"
                         """
                     }
                 }
@@ -28,8 +28,8 @@ pipeline {
     
     post {
         always {
-            // Archive any generated artifacts
-            archiveArtifacts artifacts: '**/*.json', allowEmptyArchive: true
+            // Archive any generated test files and results
+            archiveArtifacts artifacts: 'tests/**/*,**/*.json', allowEmptyArchive: true
         }
     }
 }

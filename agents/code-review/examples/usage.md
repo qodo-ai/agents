@@ -78,7 +78,7 @@ qodo code_review \
 
 ### GitHub Actions Workflow
 ```yaml
-name: Code Review
+name: Code Review Agent
 on:
   pull_request:
     branches: [main, develop]
@@ -86,71 +86,31 @@ on:
 jobs:
   code-review:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+
+      - name: Run code review agent
+        uses: qodo-ai/qodo-gen-cli@v1
+        env:
+          QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          node-version: '18'
-          
-      - name: Install Qodo CLI
-        run: npm install -g @qodo/gen
-        
-      - name: Run code review
-        run: |
-          qodo -q --ci code_review \
-            --target_branch=${{ github.base_ref }} \
-            --severity_threshold=medium \
-            --focus_areas=security,performance \
-            --exclude_files="package-lock.json,*.md" \
-            > review-results.json
-            
-      - name: Display results
-        run: |
-          echo "Code review results:"
-          cat review-results.json | jq '.'
-          
-      - name: Check for critical issues
-        run: |
-          critical_issues=$(jq -r '.summary.critical_issues' review-results.json)
-          if [ "$critical_issues" -gt 0 ]; then
-            echo "❌ Critical issues found: $critical_issues"
-            exit 1
-          fi
-          
-      - name: Comment on PR
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const fs = require('fs');
-            const results = JSON.parse(fs.readFileSync('review-results.json', 'utf8'));
-            
-            let comment = `## 🔍 Code Review Results\n\n`;
-            comment += `**Overall Score:** ${results.summary.overall_score}/10\n`;
-            comment += `**Total Issues:** ${results.summary.total_issues}\n`;
-            comment += `**Files Reviewed:** ${results.summary.files_reviewed}\n\n`;
-            
-            if (results.summary.critical_issues > 0) {
-              comment += `⚠️ **${results.summary.critical_issues} Critical Issues Found**\n\n`;
-            }
-            
-            if (results.issues.length > 0) {
-              comment += `### Issues Found:\n`;
-              results.issues.forEach(issue => {
-                comment += `- **${issue.severity.toUpperCase()}** in \`${issue.file}:${issue.line}\`: ${issue.title}\n`;
-              });
-            }
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
+          prompt: code-review
+          agent-file: path/to/agent.toml
+          key-value-pairs: |
+            target_branch=${{ github.base_ref }}
+            severity_threshold=medium
+            focus_areas=security,performance
+            exclude_files=package-lock.json,*.md
+            include_suggestions=true
 ```
 
 ### GitLab CI Pipeline

@@ -1,4 +1,4 @@
-# Azure DevOps Pipeline for Code Review Agent
+# Azure DevOps Pipeline for Diff Test Suite Agent
 trigger:
   branches:
     include:
@@ -18,21 +18,21 @@ variables:
   - group: qodo-credentials
 
 stages:
-- stage: CodeReview
-  displayName: 'Code Review'
+- stage: TestGeneration
+  displayName: 'Test Generation'
   jobs:
-  - job: Review
-    displayName: 'Run Code Review'
+  - job: GenerateTests
+    displayName: 'Generate Tests'
     steps:
     - task: Docker@2
-      displayName: 'Run Code Review Agent'
+      displayName: 'Run Diff Test Suite Agent'
       inputs:
         command: 'run'
         image: 'qodo/qodo-gen-cli:latest'
         arguments: >
-          --prompt code-review
+          --prompt diff-test-suite
           --agent-file path/to/agent.toml
-          --key-value-pairs "target_branch=$(System.PullRequest.TargetBranch),severity_threshold=medium,focus_areas=security,performance,include_suggestions=true"
+          --key-value-pairs "base_branch=$(System.PullRequest.TargetBranch),files_to_ignore=package-lock.json,*.md,run_tests=true"
         envVars: |
           QODO_API_KEY=$(qodo-api-key)
           AZURE_TOKEN=$(System.AccessToken)

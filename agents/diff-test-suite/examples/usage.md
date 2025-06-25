@@ -76,7 +76,7 @@ qodo diff_test_suite \
 
 ### GitHub Actions Workflow
 ```yaml
-name: Auto Test Generation
+name: Diff Test Suite Agent
 on:
   pull_request:
     branches: [main, develop]
@@ -84,47 +84,28 @@ on:
 jobs:
   generate-tests:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+
+      - name: Run diff test suite agent
+        uses: qodo-ai/qodo-gen-cli@v1
+        env:
+          QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          node-version: '18'
-          
-      - name: Install Qodo CLI
-        run: npm install -g @qodo/gen
-        
-      - name: Generate tests
-        run: |
-          qodo -q --ci diff_test_suite \
-            --base_branch=${{ github.base_ref }} \
-            --files_to_ignore="package-lock.json,*.md" \
-            > test-results.json
-            
-      - name: Display results
-        run: |
-          echo "Test generation results:"
-          cat test-results.json | jq '.'
-          
-      - name: Check success
-        run: |
-          success=$(jq -r '.success' test-results.json)
-          if [ "$success" != "true" ]; then
-            echo "Test generation failed"
-            exit 1
-          fi
-          
-      - name: Commit generated tests
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add tests/ || true
-          git commit -m "Auto-generated tests for PR changes" || exit 0
-          git push
+          prompt: diff-test-suite
+          agent-file: path/to/agent.toml
+          key-value-pairs: |
+            base_branch=${{ github.base_ref }}
+            files_to_ignore=package-lock.json,*.md
+            run_tests=true
 ```
 
 ### GitLab CI Pipeline

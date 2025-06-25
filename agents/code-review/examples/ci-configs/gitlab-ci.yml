@@ -1,54 +1,18 @@
 # GitLab CI Configuration for Code Review Agent
 stages:
   - review
-  - security
-  - deploy
 
 code_review:
   stage: review
-  image: node:18
-  before_script:
-    - npm install -g @qodo/gen
+  image: qodo/qodo-gen-cli:latest
   script:
     - |
-      qodo -q --ci code_review \
-        --target_branch=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-main} \
-        --severity_threshold=medium \
-        --include_suggestions=true \
-        > review-results.json
-    - cat review-results.json
-  artifacts:
-    reports:
-      junit: review-results.json
-    paths:
-      - review-results.json
-    expire_in: 1 week
+      qodo-gen-cli \
+        --prompt code-review \
+        --agent-file path/to/agent.toml \
+        --key-value-pairs "target_branch=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-main},severity_threshold=medium,focus_areas=security,performance,include_suggestions=true"
+  variables:
+    QODO_API_KEY: $QODO_API_KEY
+    GITLAB_TOKEN: $CI_JOB_TOKEN
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-
-security_review:
-  stage: security
-  image: node:18
-  before_script:
-    - npm install -g @qodo/gen
-  script:
-    - |
-      qodo -q --ci code_review \
-        --focus_areas=security \
-        --severity_threshold=critical \
-        > security-results.json
-    - |
-      critical_issues=$(jq -r '.summary.critical_issues' security-results.json)
-      if [ "$critical_issues" -gt 0 ]; then
-        echo "Critical security issues found!"
-        exit 1
-      fi
-  artifacts:
-    paths:
-      - security-results.json
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - changes:
-        - "src/auth/**/*"
-        - "src/security/**/*"
-        - "src/api/**/*"

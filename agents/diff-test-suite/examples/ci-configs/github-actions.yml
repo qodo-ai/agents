@@ -1,15 +1,14 @@
-name: Code Review Agent
+name: Diff Test Suite Agent
 on:
   pull_request:
     branches: [main, develop]
 
 jobs:
-  code-review:
+  generate-tests:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
-      checks: write
 
     steps:
       - name: Checkout repository
@@ -17,17 +16,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run code review agent
+      - name: Run diff test suite agent
         uses: qodo-ai/qodo-gen-cli@v1
         env:
           QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          prompt: code-review
+          prompt: diff-test-suite
           agent-file: path/to/agent.toml
           key-value-pairs: |
-            target_branch=${{ github.base_ref }}
-            severity_threshold=medium
-            focus_areas=security,performance
-            exclude_files=package-lock.json,*.md
-            include_suggestions=true
+            base_branch=${{ github.base_ref }}
+            files_to_ignore=package-lock.json,*.md
+            run_tests=true

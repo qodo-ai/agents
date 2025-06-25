@@ -1,56 +1,53 @@
-# CI/CD Integration Configurations
+# CI/CD Configuration Examples
 
-This directory contains separate configuration files for different CI/CD platforms, split from the original `ci-integration.yml` file for better organization and easier maintenance.
+This directory contains example configurations for integrating the Code Review Agent with various CI/CD platforms.
 
 ## Available Configurations
 
-### 1. GitHub Actions (`github-actions.yml`)
-- Complete workflow for GitHub Actions
-- Includes code review job and security review job
-- Features PR commenting, artifact uploading, and status checks
-- Supports conditional security reviews based on labels
-
-### 2. GitLab CI (`gitlab-ci.yml`)
-- GitLab CI/CD pipeline configuration
-- Multi-stage pipeline with review and security stages
-- Includes artifact management and conditional execution
-- Supports merge request events and file change detection
-
-### 3. Jenkins Pipeline (`jenkins-pipeline.groovy`)
-- Declarative Jenkins pipeline
-- Includes setup, code review, and security check stages
-- Features HTML report publishing and email notifications
-- Supports conditional security checks based on file changes
-
-### 4. Azure DevOps (`azure-devops.yml`)
-- Azure DevOps Pipeline configuration
-- Supports both CI triggers and PR validation
-- Includes test result publishing and variable groups
-- Features Node.js setup and Qodo CLI integration
+- **[github-actions.yml](github-actions.yml)** - GitHub Actions workflow for automatic code review on pull requests
+- **[gitlab-ci.yml](gitlab-ci.yml)** - GitLab CI/CD pipeline configuration
+- **[azure-devops.yml](azure-devops.yml)** - Azure DevOps Pipeline configuration
+- **[jenkins-pipeline.groovy](jenkins-pipeline.groovy)** - Jenkins declarative pipeline
 
 ## Usage
 
-Choose the appropriate configuration file for your CI/CD platform:
+Choose the configuration file that matches your CI/CD platform and customize it according to your project's needs.
 
-- **GitHub**: Copy `github-actions.yml` to `.github/workflows/` in your repository
-- **GitLab**: Copy `gitlab-ci.yml` to your repository root as `.gitlab-ci.yml`
-- **Jenkins**: Use `jenkins-pipeline.groovy` in your Jenkins pipeline configuration
-- **Azure DevOps**: Use `azure-devops.yml` in your Azure DevOps pipeline setup
+### Required Secrets
 
-## Common Features
+All configurations require the following secrets to be set in your CI/CD platform:
 
-All configurations include:
-- Qodo CLI installation and setup
-- Code review execution with configurable parameters
-- Result artifact management
-- Security-focused reviews for sensitive changes
-- Conditional execution based on branch/PR context
+- `QODO_API_KEY` - Your Qodo API key (get one at [Qodo](https://qodo.ai))
+- Platform-specific tokens:
+  - GitHub: `GITHUB_TOKEN` (automatically provided in GitHub Actions)
+  - GitLab: `GITLAB_TOKEN` (automatically provided as `CI_JOB_TOKEN`)
+  - Azure DevOps: `AZURE_TOKEN` (System.AccessToken)
+  - Jenkins: `GITHUB_TOKEN` or relevant SCM token
 
-## Customization
+### Customization
 
-Each configuration can be customized by modifying:
-- Severity thresholds
-- Focus areas (security, performance, etc.)
-- File exclusion patterns
-- Target branches
-- Notification settings
+Each configuration can be customized by modifying the `key-value-pairs` section to match your project's requirements:
+
+- `target_branch` - The branch to compare against (default: main)
+- `severity_threshold` - Minimum severity to report (low/medium/high/critical)
+- `focus_areas` - Comma-separated focus areas (security, performance, maintainability)
+- `exclude_files` - File patterns to exclude from review
+- `include_suggestions` - Whether to include improvement suggestions
+
+## Platform-Specific Setup
+
+### GitHub Actions
+Copy `github-actions.yml` to `.github/workflows/` in your repository.
+
+### GitLab CI
+Copy `gitlab-ci.yml` to your repository root as `.gitlab-ci.yml`.
+
+### Azure DevOps
+Use `azure-devops.yml` in your Azure DevOps pipeline setup and ensure the `qodo-credentials` variable group is configured.
+
+### Jenkins
+Use `jenkins-pipeline.groovy` in your Jenkins pipeline configuration and ensure the required credentials are set up.
+
+## Contributing
+
+If you have configurations for other CI/CD platforms, please contribute them by following our [Contributing Guide](../../../CONTRIBUTING.md).

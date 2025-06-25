@@ -46,15 +46,17 @@ qodo diff_test_suite \
   --run_tests=true
 ```
 
-## Configuration Options
+## Configuration
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `files_to_ignore` | string | `""` | Comma-separated list of files to ignore |
-| `ignore_working_changes` | boolean | `false` | If true, compares current branch vs main instead of working changes |
-| `base_branch` | string | `main` | Branch to compare against |
-| `test_directory` | string | `""` | Directory for generated tests (auto-detected if empty) |
-| `run_tests` | boolean | `true` | Whether to run tests after generation |
+The agent accepts the following parameters:
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `files_to_ignore` | string | No | "" | Comma-separated list of files to ignore |
+| `ignore_working_changes` | boolean | No | false | If true, compares current branch vs main instead of working changes |
+| `base_branch` | string | No | "main" | Branch to compare against |
+| `test_directory` | string | No | "" | Directory for generated tests (auto-detected if empty) |
+| `run_tests` | boolean | No | true | Whether to run tests after generation |
 
 ## How It Works
 
@@ -130,41 +132,43 @@ The agent automatically detects and supports various testing frameworks:
 - **Ruby** - RSpec, Minitest
 - **PHP** - PHPUnit
 
-## Integration Examples
+## Usage
 
 ### GitHub Actions
 
+The most common way to use this agent is through GitHub Actions to automatically generate tests for pull requests:
+
 ```yaml
-name: Auto Test Generation
-on: [pull_request]
+name: Diff Test Suite Agent
+on:
+  pull_request:
+    branches: [main, develop]
 
 jobs:
   generate-tests:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Setup Qodo CLI
-        run: npm install -g @qodo/gen
-      - name: Generate Tests
-        run: |
-          qodo -q --ci diff_test_suite --base_branch=${{ github.base_ref }} > test-results.json
-          cat test-results.json
-      - name: Check Test Generation Success
-        run: |
-          success=$(jq -r '.success' test-results.json)
-          if [ "$success" != "true" ]; then
-            echo "Test generation failed"
-            exit 1
-          fi
-      - name: Commit Generated Tests
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add tests/
-          git commit -m "Auto-generated tests for PR changes" || exit 0
-          git push
+
+      - name: Run diff test suite agent
+        uses: qodo-ai/qodo-gen-cli@v1
+        env:
+          QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          prompt: diff-test-suite
+          agent-file: path/to/agent.toml
+          key-value-pairs: |
+            base_branch=${{ github.base_ref }}
+            files_to_ignore=package-lock.json,*.md
+            run_tests=true
 ```
 
 ### Pre-commit Hook
@@ -348,6 +352,22 @@ describe('validateEmail', () => {
     });
 });
 ```
+
+## Requirements
+
+- GitHub repository with appropriate permissions
+- `GITHUB_TOKEN` with write access to contents and pull requests
+- `QODO_API_KEY` for the Qodo platform, get one at [Qodo](https://qodo.ai)
+- Repository should have the agent configuration file accessible
+- Testing framework dependencies installed in the project
+
+## Examples
+
+See the [examples](examples/) directory for:
+- Different GitHub Actions configurations
+- Language-specific examples
+- Testing framework integrations
+- Custom agent configurations
 
 ## Contributing
 

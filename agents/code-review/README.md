@@ -47,15 +47,17 @@ qodo code_review \
   --include_suggestions=true
 ```
 
-## Configuration Options
+## Configuration
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `target_branch` | string | `main` | Branch to compare changes against |
-| `severity_threshold` | string | `medium` | Minimum severity to report (low/medium/high/critical) |
-| `include_suggestions` | boolean | `true` | Include improvement suggestions in output |
-| `focus_areas` | string | - | Comma-separated focus areas (security, performance, maintainability) |
-| `exclude_files` | string | - | File patterns to exclude from review |
+The agent accepts the following parameters:
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `target_branch` | string | No | "main" | Branch to compare changes against |
+| `severity_threshold` | string | No | "medium" | Minimum severity to report (low/medium/high/critical) |
+| `include_suggestions` | boolean | No | true | Include improvement suggestions in output |
+| `focus_areas` | string | No | - | Comma-separated focus areas (security, performance, maintainability) |
+| `exclude_files` | string | No | - | File patterns to exclude from review |
 
 ## Output Format
 
@@ -97,32 +99,46 @@ The agent returns structured JSON output:
 }
 ```
 
-## Integration Examples
+## Usage
 
 ### GitHub Actions
 
+The most common way to use this agent is through GitHub Actions to automatically review pull requests:
+
 ```yaml
-name: Code Review
-on: [pull_request]
+name: Code Review Agent
+on:
+  pull_request:
+    branches: [main, develop]
 
 jobs:
-  review:
+  code-review:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Qodo CLI
-        run: npm install -g @qodo/gen
-      - name: Run Code Review
-        run: |
-          qodo -q --ci code_review --target_branch=${{ github.base_ref }} > review.json
-          cat review.json
-      - name: Check if approved
-        run: |
-          approved=$(jq -r '.approved' review.json)
-          if [ "$approved" != "true" ]; then
-            echo "Code review failed - changes required"
-            exit 1
-          fi
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run code review agent
+        uses: qodo-ai/qodo-gen-cli@v1
+        env:
+          QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          prompt: code-review
+          agent-file: path/to/agent.toml
+          key-value-pairs: |
+            target_branch=${{ github.base_ref }}
+            severity_threshold=medium
+            focus_areas=security,performance
+            exclude_files=package-lock.json,*.md
+            include_suggestions=true
 ```
 
 ### Pre-commit Hook
@@ -211,6 +227,21 @@ qodo code_review --log=debug.log
 # Save output for analysis with silent mode to suppress console output other than final results
 qodo -q code_review > review-output.json 2> review-debug.log
 ```
+
+## Requirements
+
+- GitHub repository with appropriate permissions
+- `GITHUB_TOKEN` with read access to contents and write access to pull requests and checks
+- `QODO_API_KEY` for the Qodo platform, get one at [Qodo](https://qodo.ai)
+- Repository should have the agent configuration file accessible
+
+## Examples
+
+See the [examples](examples/) directory for:
+- Different GitHub Actions configurations
+- CI/CD platform integrations
+- IDE integration examples
+- Custom agent configurations
 
 ## Contributing
 

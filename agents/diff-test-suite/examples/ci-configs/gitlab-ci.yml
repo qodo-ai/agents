@@ -1,0 +1,18 @@
+# GitLab CI Configuration for Diff Test Suite Agent
+stages:
+  - test-generation
+
+generate_tests:
+  stage: test-generation
+  image: qodo/qodo-gen-cli:latest
+  script:
+    - |
+      qodo-gen-cli \
+        --prompt diff-test-suite \
+        --agent-file path/to/agent.toml \
+        --key-value-pairs "base_branch=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-main},files_to_ignore=package-lock.json,*.md,run_tests=true"
+  variables:
+    QODO_API_KEY: $QODO_API_KEY
+    GITLAB_TOKEN: $CI_JOB_TOKEN
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
