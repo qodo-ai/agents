@@ -14,7 +14,7 @@ pip install pre-commit
 
 ### 2. Copy Configuration Files
 
-Copy the `.pre-commit-config.yaml` and `agent.yaml` files from the `agents/qodo-merge-post-commit/` directory to the root of your repository. These files contain the configuration for the pre-commit hooks that will run after each commit.
+Copy the `.pre-commit-config.yaml` and `agent.toml` files from the `agents/qodo-merge-post-commit/` directory to the root of your repository. These files contain the configuration for the pre-commit hooks that will run after each commit.
 
 ### 3. Install the Post-Commit Hooks
 
