@@ -30,7 +30,7 @@ This command sets up the hooks to run automatically after each commit.
 
 Now, every time you make a commit, Qodo Merge will automatically run in the background. When it finishes (usually takes ~30 seconds), it will generate a file called `diff_review_post_commit.md` in the root of your repository, containing code suggestions for changes in your current branch compared to the main branch.
 
-![qodo_merge_post_commit](https://codium.ai/images/pr_agent/qodo_merge_post_commit.png){width=512}
+![qodo_merge_post_commit](https://codium.ai/images/pr_agent/qodo_merge_post_commit.png)
 
 
 During the run, another file called `diff_review_post_commit_log.txt` will be created, which contains the logs of the Agent execution.
