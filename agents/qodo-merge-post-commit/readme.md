@@ -4,19 +4,24 @@ This README explains how to **automatically** receive code suggestions from Qodo
 
 ## Setup Instructions
 
-### 1. Ensure `pre-commit` is Installed
+### 1. Setup Qodo Gen CLI
 
-Install `pre-commit` if you haven't already:
+See [here](https://github.com/qodo-ai/qodo-gen-cli?tab=readme-ov-file#installation) for instructions.
+
+
+### 2. Install `pre-commit` Pip Package
 
 ```bash
 pip install pre-commit
 ```
 
-### 2. Copy Configuration Files
+This package will enable running pre (and post) commits on your local IDE.
+
+### 3. Copy Configuration Files
 
 Copy the `.pre-commit-config.yaml` and `agent.toml` files from the `agents/qodo-merge-post-commit/` directory to the root of your repository. These files contain the configuration for the pre-commit hooks that will run after each commit.
 
-### 3. Install the Post-Commit Hooks
+### 4. Install the Post-Commit Hooks
 
 Run the following command in your terminal to install the hooks specified in your configuration file:
 
@@ -26,7 +31,7 @@ pre-commit install --hook-type post-commit
 
 This command sets up the hooks to run automatically after each commit.
 
-### 4. You're All Set!
+### 5. You're All Set!
 
 Now, every time you make a commit, Qodo Merge will automatically run in the background. When it finishes (usually takes ~30 seconds), it will generate a file called `diff_review_post_commit.md` in the root of your repository, containing code suggestions for changes in your current branch compared to the main branch.
 
