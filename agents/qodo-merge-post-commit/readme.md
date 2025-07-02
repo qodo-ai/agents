@@ -9,29 +9,25 @@ This README explains how to **automatically** receive code suggestions from Qodo
 See [here](https://github.com/qodo-ai/qodo-gen-cli?tab=readme-ov-file#installation) for instructions.
 
 
-### 2. Install `pre-commit` Pip Package
+### 2. Copy the `post-commit` Hook
+
+Copy the `post-commit` file from the `agents/qodo-merge-post-commit/` directory to your local `.git/hooks/` directory. 
+
+This file is a git hook that will run automatically after each commit.
+(Note that in macOS to see the `.git` directory you need to press `Cmd + Shift + .` )
+
+After copying, ensure the `post-commit` file is executable. You can do this by running the following command in your terminal:
 
 ```bash
-pip install pre-commit
+chmod 755 .git/hooks/post-commit
 ```
 
-This package will enable running pre (and post) commits on your local IDE.
+### 3. Copy the agent.toml file
 
-### 3. Copy Configuration Files
+Copy the `agent.toml` file from the `agents/qodo-merge-post-commit/` directory to your local directory. This file contains the prompt to run the Qodo Merge Agent.
 
-Copy the `.pre-commit-config.yaml` and `agent.toml` files from the `agents/qodo-merge-post-commit/` directory to the root of your repository. These files contain the configuration for the pre-commit hooks that will run after each commit.
 
-### 4. Install the Post-Commit Hooks
-
-Run the following command in your terminal to install the hooks specified in your configuration file:
-
-```bash
-pre-commit install --hook-type post-commit
-```
-
-This command sets up the hooks to run automatically after each commit.
-
-### 5. You're All Set!
+### 4. You're All Set!
 
 Now, every time you make a commit, Qodo Merge will automatically run in the background. When it finishes (usually takes ~30 seconds), it will generate a file called `diff_review_post_commit.md` in the root of your repository, containing code suggestions for changes in your current branch compared to the main branch.
 

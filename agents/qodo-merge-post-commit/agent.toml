@@ -1,15 +1,35 @@
 # Version of the agent configuration standard
 version = "1.0"
 
-
-
  [commands.diff_review_post_commit]
  description = "Review the latest commit and provide code suggestions via Qodo Merge"
  instructions = """
- 1) Get the git diff of all the commits that are in the current local branch, but are not present in the main branch
- 2) Use Qodo Merge 'improve' tool for generating the code suggestions from this latest git diff.
- 3) Take the exact output from the Qodo Merge 'improve' tool as a string
- 4) write this exact string to a local file named 'diff_review_post_commit.md' in the current directory.
+ Follow exactly the instructions below. There should be calls to only two tools ('improve' and 'write'), and that's it . Do no less and no more.
+ 1) Use Qodo Merge 'improve' tool for generating the code suggestions of all the commits that are in the current local branch, but are not present in the main branch
+ 2) Take the exact output from the Qodo Merge 'improve' tool as a string
+ 3) write this exact string to a local file named 'diff_review_post_commit.md' in the current directory.
  """
+execution_strategy = "act"
+available_tools = ["git", "filesystem", "qodo_merge"]
+
+#  qodo diff_review_against_main --ci
+ [commands.diff_review_against_main]
+ description = "Review all the latest local commits, and provide code suggestions via Qodo Merge"
+ instructions = """
+Follow exactly the instructions below. There should be calls to only one tool ('improve'), and that's it . Do no less and no more.
+1) Use Qodo Merge 'improve' tool for generating the code suggestions of all the commits that are in the current local branch, but are not present in the main branch
+2) Take the exact output from the Qodo Merge 'improve' tool as a string, and present it as rendered markdown in the chat
+"""
+execution_strategy = "act"
+available_tools = ["git", "filesystem", "qodo_merge"]
+
+#  qodo diff_review_last_commit --ci
+ [commands.diff_review_last_commit]
+ description = "Review all the latest local commits, and provide code suggestions via Qodo Merge"
+ instructions = """
+Follow exactly the instructions below. There should be calls to only one tool ('improve'), and that's it . Do no less and no more.
+1) Use Qodo Merge 'improve' tool for generating the code suggestions of the  git diff of the latest commit in the current local branch
+2) Take the exact output from the Qodo Merge 'improve' tool as a string, and present it as rendered markdown in the chat
+"""
 execution_strategy = "act"
 available_tools = ["git", "filesystem", "qodo_merge"]

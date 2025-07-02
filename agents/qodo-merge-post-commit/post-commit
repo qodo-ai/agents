@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Runs Qodo Merge auto diff review on diff between local branch to main branch
+
+bash -c "
+  echo 'Starting Qodo Merge auto diff review...' > diff_review_post_commit.md
+  echo 'Starting Qodo Merge auto diff review...' >&2
+  qodo --ci diff_review_post_commit > diff_review_post_commit_log.txt 2>&1 &
+"
