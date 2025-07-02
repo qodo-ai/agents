@@ -11,7 +11,9 @@ See [here](https://github.com/qodo-ai/qodo-gen-cli?tab=readme-ov-file#installati
 
 ### 2. Copy the `post-commit` Hook
 
-Copy the `post-commit` file from the `agents/qodo-merge-post-commit/` directory to your local `.git/hooks/` directory. This file is a git hook that will run automatically after each commit.
+Copy the `post-commit` file from the `agents/qodo-merge-post-commit/` directory to your local `.git/hooks/` directory. 
+
+This file is a git hook that will run automatically after each commit.
 (Note that in macOS to see the `.git` directory you need to press `Cmd + Shift + .` )
 
 After copying, ensure the `post-commit` file is executable. You can do this by running the following command in your terminal:
