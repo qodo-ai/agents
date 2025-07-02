@@ -1,4 +1,4 @@
-# Version of the agent configuration standa
+# Version of the agent configuration standart
 version = "1.0"
 
  [commands.diff_review_post_commit]
