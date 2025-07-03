@@ -57,7 +57,7 @@ run_qodo_merge_workflow() {
 # Run the entire workflow in the background with proper detachment
 (
     run_qodo_merge_workflow
-) </dev/null >&0 2>&1 &
+) </dev/null >/dev/null 2>&1 &
 
 # Disown the background process to fully detach it
 disown
