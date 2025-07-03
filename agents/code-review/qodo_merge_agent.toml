@@ -28,3 +28,30 @@ available_tools = ["qodo_merge", "git", "filesystem"]
 
 # Execution strategy: "act" for immediate execution, "plan" for multi-step planning
 execution_strategy = "act"
+
+
+
+# Code Review Agent Configuration
+version = "1.0"
+
+#  qodo diff_review --ui
+ [commands.diff_review]
+ description = "Review all the local commits in the local branch, and provide code suggestions via Qodo Merge"
+ instructions = """
+ 1) Get the git diff of all the commits that are in the current local branch, but are not present in the main branch
+ 2) Use Qodo Merge 'improve' tool to generate code suggestions from this git diff.
+ 3) Take the exact output from the Qodo Merge 'improve' tool as a string, and present it as rendered markdown in the chat
+ """
+execution_strategy = "act"
+available_tools = ["git", "filesystem", "qodo_merge"]
+
+#  qodo diff_review_last_commit --ui
+ [commands.diffreview_last_commit]
+ description = "Review my latest local commit in the local branch, and provide code suggestions via Qodo Merge"
+ instructions = """
+ 1) Get the git diff of the latest commit in the current local branch.
+ 2) Use Qodo Merge 'improve' tool to generate code suggestions from this git diff.
+ 3) Take the exact output from the Qodo Merge 'improve' tool as a string, and present it as rendered markdown in the chat
+ """
+execution_strategy = "act"
+available_tools = ["git", "filesystem", "qodo_merge"]
