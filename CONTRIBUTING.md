@@ -1,6 +1,6 @@
-# Contributing to Qodo CLI Agent Reference Implementations
+# Contributing to Qodo Command Agent Reference Implementations
 
-Thank you for your interest in contributing to the Qodo CLI Agent Reference Implementations! This repository serves as a collection of example agents and best practices for building AI-powered coding assistants.
+Thank you for your interest in contributing to the Qodo Command Agent Reference Implementations! This repository serves as a collection of example agents and best practices for building AI-powered coding assistants.
 
 ## Table of Contents
 
@@ -28,12 +28,12 @@ This project adheres to a code of conduct that we expect all contributors to fol
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/qodo-cli-agent-reference-implementations.git
-   cd qodo-cli-agent-reference-implementations
+   git clone https://github.com/YOUR_USERNAME/agents.git
+   cd agents
    ```
 3. **Set up the upstream remote**:
    ```bash
-   git remote add upstream https://github.com/qodo-dev/qodo-cli-agent-reference-implementations.git
+   git remote add upstream https://github.com/qodo-dev/agents.git
    ```
 
 ## How to Contribute

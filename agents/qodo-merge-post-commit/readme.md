@@ -4,9 +4,9 @@ This README explains how to **automatically** receive code suggestions from Qodo
 
 ## Setup Instructions
 
-### 1. Setup Qodo Gen CLI
+### 1. Setup Qodo Command
 
-See [here](https://github.com/qodo-ai/qodo-gen-cli?tab=readme-ov-file#installation) for instructions.
+See [here](https://github.com/qodo-ai/command?tab=readme-ov-file#installation) for instructions.
 
 
 ### 2. Copy the `post-commit` Hook

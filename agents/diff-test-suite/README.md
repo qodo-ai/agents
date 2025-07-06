@@ -158,7 +158,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run diff test suite agent
-        uses: qodo-ai/qodo-gen-cli@v1
+        uses: qodo-ai/command@v1
         env:
           QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

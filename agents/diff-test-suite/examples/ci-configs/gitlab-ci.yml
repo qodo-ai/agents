@@ -4,10 +4,10 @@ stages:
 
 generate_tests:
   stage: test-generation
-  image: qodo/qodo-gen-cli:latest
+  image: qodoai/command:latest
   script:
     - |
-      qodo-gen-cli \
+      command \
         --prompt diff-test-suite \
         --agent-file path/to/agent.toml \
         --key-value-pairs "base_branch=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-main},files_to_ignore=package-lock.json,*.md,run_tests=true"

@@ -28,7 +28,7 @@ stages:
       displayName: 'Run Code Review Agent'
       inputs:
         command: 'run'
-        image: 'qodo/qodo-gen-cli:latest'
+        image: 'qodoai/command:latest'
         arguments: >
           --prompt code-review
           --agent-file path/to/agent.toml
