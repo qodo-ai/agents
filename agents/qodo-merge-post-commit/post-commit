@@ -20,8 +20,7 @@ notify_completion() {
     local file_path="$(pwd)/diff_review_post_commit.md"
 
     # Show notification
-    show_notification "diff_review_post_commit.md was
-generated successfully." "High severity issue(s) were found!"
+    show_notification "Please review diff_review_post_commit.md." "High severity issue(s) were found by Qodo Merge."
 
     # Small delay to let notification appear first
     sleep 1
@@ -45,13 +44,6 @@ run_qodo_merge_workflow() {
         echo 'Starting Qodo Merge auto diff review...' >&2
         qodo --ci diff_review_post_commit > diff_review_post_commit_log.txt 2>&1
     "
-
-    # Show completion notification on macOS, but only if high severity issues found
-    if grep -q '<td align=center>High' diff_review_post_commit.md; then
-        if is_macos; then
-            notify_completion
-        fi
-    fi
 }
 
 # Run the entire workflow in the background with proper detachment
