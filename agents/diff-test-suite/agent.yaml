@@ -76,7 +76,7 @@ commands:
         }
       }
     
-    available_tools: ["git", "filesystem", "shell"]
+    tools: ["git", "filesystem", "shell"]
     execution_strategy: "act"
     
     output_schema: |

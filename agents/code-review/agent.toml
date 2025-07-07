@@ -34,7 +34,7 @@ arguments = [
 ]
 
 # Tools available to this agent
-available_tools = ["qodo_merge", "git", "filesystem"]
+tools = ["qodo_merge", "git", "filesystem"]
 
 # Execution strategy: "act" for immediate execution, "plan" for multi-step planning
 execution_strategy = "act"

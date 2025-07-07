@@ -12,7 +12,7 @@ arguments = [
     {name = "work_in_progress_updates", type = "boolean", required = false, default = true, description = "Post progress updates as comments on the issue"}
 ]
 
-available_tools = ["git", "filesystem", "shell"]
+tools = ["git", "filesystem", "shell"]
 
 execution_strategy = "plan"
 

@@ -48,7 +48,7 @@ commands:
         required: false
         description: "Comma-separated list of file patterns to exclude"
     
-    available_tools: ["qodo_merge", "git", "filesystem"]
+    tools: ["qodo_merge", "git", "filesystem"]
     execution_strategy: "act"
     
     output_schema: |

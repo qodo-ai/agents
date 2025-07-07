@@ -136,7 +136,7 @@ mcpServers = """
 """
 
 # Optional: Define available tools
-available_tools = ["filesystem", "git", "shell", "github"]
+tools = ["filesystem", "git", "shell", "github"]
 
 # Optional: Define execution strategy: "plan" for multi-step, "act" for direct execution
 execution_strategy = "act"
