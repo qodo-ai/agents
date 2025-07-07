@@ -40,7 +40,7 @@ commands:
         default: true
         description: "Post progress updates as comments on the issue"
     
-    available_tools:
+    tools:
       - git
       - filesystem
       - shell

@@ -63,7 +63,7 @@ mcpServers = """
 """
 
 # Tools available to this agent
-available_tools = ["git", "filesystem", "shell"]
+tools = ["git", "filesystem", "shell"]
 
 # Execution strategy: "act" for immediate execution, "plan" for multi-step planning
 execution_strategy = "act"
