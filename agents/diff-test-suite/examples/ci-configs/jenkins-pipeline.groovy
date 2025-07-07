@@ -13,9 +13,9 @@ pipeline {
                 script {
                     def baseBranch = env.CHANGE_TARGET ?: 'main'
                     
-                    docker.image('qodo/qodo-gen-cli:latest').inside {
+                    docker.image('qodoai/command:latest').inside {
                         sh """
-                            qodo-gen-cli \
+                            command \
                               --prompt diff-test-suite \
                               --agent-file path/to/agent.toml \
                               --key-value-pairs "base_branch=${baseBranch},files_to_ignore=package-lock.json,*.md,run_tests=true"

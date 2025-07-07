@@ -11,7 +11,7 @@ We actively maintain and provide security updates for the following versions:
 
 ## Reporting a Vulnerability
 
-The Qodo CLI Agent Reference Implementations team takes security seriously. We appreciate your efforts to responsibly disclose your findings.
+The Qodo Command Agent Reference Implementations team takes security seriously. We appreciate your efforts to responsibly disclose your findings.
 
 ### How to Report
 

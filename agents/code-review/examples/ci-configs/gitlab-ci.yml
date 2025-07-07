@@ -4,10 +4,10 @@ stages:
 
 code_review:
   stage: review
-  image: qodo/qodo-gen-cli:latest
+  image: qodoai/command:latest
   script:
     - |
-      qodo-gen-cli \
+      command \
         --prompt code-review \
         --agent-file path/to/agent.toml \
         --key-value-pairs "target_branch=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-main},severity_threshold=medium,focus_areas=security,performance,include_suggestions=true"

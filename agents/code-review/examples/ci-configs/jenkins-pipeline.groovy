@@ -13,9 +13,9 @@ pipeline {
                 script {
                     def targetBranch = env.CHANGE_TARGET ?: 'main'
                     
-                    docker.image('qodo/qodo-gen-cli:latest').inside {
+                    docker.image('qodoai/command:latest').inside {
                         sh """
-                            qodo-gen-cli \
+                            command \
                               --prompt code-review \
                               --agent-file path/to/agent.toml \
                               --key-value-pairs "target_branch=${targetBranch},severity_threshold=medium,focus_areas=security,performance,include_suggestions=true"

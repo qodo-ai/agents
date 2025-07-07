@@ -2,7 +2,7 @@
 
 > **🚧 PROJECT STATUS**: This repository is under active development. We welcome contributions to help build some cool agents!
 
-A curated collection of reference agent implementations for the [Qodo CLI](https://github.com/qodo-ai/qodo-gen-cli) framework, showcasing best practices and common patterns for building AI-powered development workflows.
+A curated collection of reference agent implementations for the [Qodo Command](https://github.com/qodo-ai/command) framework, showcasing best practices and common patterns for building AI-powered development workflows.
 
 ## What are Qodo Agents?
 
@@ -51,7 +51,7 @@ Community-contributed agents demonstrating various use cases and integrations.
 ## 🚀 Getting Started
 
 ### Prerequisites
-- [Qodo CLI](https://github.com/qodo-ai/qodo-gen-cli) installed
+- [Qodo Command](https://github.com/qodo-ai/command) installed
 - Node.js 18+ and npm
 - Git for version control
 
@@ -180,9 +180,9 @@ qodo my_agent --ci --input_file=test/sample.txt
 ## 📖 Documentation
 
 ### Agent Configuration Reference
-- [Basic Agent Tutorial](https://docs.qodo.ai/qodo-documentation/qodo-gen/cli/creating-and-managing-agents) ✅ - Creating and managing agents
+- [Basic Agent Tutorial](https://docs.qodo.ai/qodo-documentation/qodo-command/features/creating-and-managing-agents) ✅ - Creating and managing agents
 - [MCP Server Integration](https://modelcontextprotocol.io/introduction) ✅ - Model Context Protocol documentation
-- [CI/CD Integration](https://docs.qodo.ai/qodo-documentation/qodo-gen/cli/ci-and-automation) ✅ - CI and automation with Qodo CLI
+- [CI/CD Integration](https://docs.qodo.ai/qodo-documentation/qodo-command/features/ci-and-automation) ✅ - CI and automation with Qodo Command
 - [Output Schema Design](docs/output-schema.md) 🚧 *Not yet available*
 
 ### Best Practices
@@ -205,7 +205,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 - Follow the [Agent Development Guidelines](#agent-development-guidelines)
 - Include comprehensive tests and documentation
-- Ensure compatibility with latest Qodo CLI version
+- Ensure compatibility with latest Qodo Command version
 - Add your agent to the appropriate category in this README
 
 ## 📜 License
@@ -214,7 +214,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Related Projects
 
-- [Qodo CLI](https://github.com/qodo-ai/qodo-gen-cli) - The main Qodo CLI framework
+- [Qodo Command](https://github.com/qodo-ai/command) - The main Qodo Command framework
 - [Model Context Protocol](https://modelcontextprotocol.io/) - Protocol for AI tool integration
 - [MCP Servers](https://github.com/modelcontextprotocol/servers) - Reference MCP server implementations
 
@@ -222,7 +222,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [GitHub Discussions](https://github.com/qodo-ai/agents/discussions)
 - [Discord Server](https://discord.com/invite/SgSxuQ65GF)
-- [Documentation](https://docs.qodo.ai/qodo-documentation/qodo-gen/cli)
+- [Documentation](https://docs.qodo.ai/qodo-documentation/qodo-command)
 
 ## ⭐ Support
 
