@@ -40,20 +40,10 @@ During the run, another file called `diff_review_post_commit_log.txt` will be cr
 
 #### 5.1 Notification In Case of High Severity Issues (MacOS Only)
 
-The post commit hook utilizes MacOS system notifications as well as showing the generated file in Finder, whenever high severity issues are found in the generated file, 
-which is turned off by default.
-To enable this, simply add the following at the end of the `run_qodo_merge_workflow` function:
-
-```angular2html
-    # Show completion notification on macOS, but only if high severity issues found
-    if grep -q '<td align=center>High' diff_review_post_commit.md; then
-        if is_macos; then
-            notify_completion
-        fi
-    fi
-```
-
-Also, in case you want to open the generated file, rather than just show in Finder, you can replace `reveal` in the `notify_completion` function with `open` as follows:
+To enable system notifications as well as showing the generated file: `diff_review_post_commit.md` in Finder, whenever high severity issues are found, 
+simply overwrite `post-commit` with the contents of `post_commit_with_notification`.
+Also, in case you want to open the generated file, rather than just show in Finder, 
+you can replace `reveal` in the `notify_completion` function with `open` as follows:
 ```angular2html
 open POSIX file "$file_path"
 ```

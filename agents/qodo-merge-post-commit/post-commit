@@ -2,57 +2,8 @@
 
 # Runs Qodo Merge auto diff review on diff between local branch to main branch
 
-# Function to detect macOS
-is_macos() {
-    [[ "$OSTYPE" == "darwin"* ]]
-}
-
-# Function to show macOS notification
-show_notification() {
-    local message="$1"
-    local subtitle="$2"
-
-    osascript -e "display notification \"$message\" with title \"Qodo Merge Notifier\" subtitle \"$subtitle\" sound name \"Frog\""
-}
-
-# Function to show completion notification and reveal generated file in Finder
-notify_completion() {
-    local file_path="$(pwd)/diff_review_post_commit.md"
-
-    # Show notification
-    show_notification "Please review diff_review_post_commit.md." "High severity issue(s) were found by Qodo Merge."
-
-    # Small delay to let notification appear first
-    sleep 1
-
-    # Reveal file in Finder
-    osascript << EOF
-        tell application "Finder"
-            activate
-            reveal POSIX file "$file_path"
-            activate
-        end tell
-EOF
-
-}
-
-# Main function that runs the sequential tasks
-run_qodo_merge_workflow() {
-    # Run the qodo merge command
-    bash -c "
-        echo 'Starting Qodo Merge auto diff review...' > diff_review_post_commit.md
-        echo 'Starting Qodo Merge auto diff review...' >&2
-        qodo --ci diff_review_post_commit > diff_review_post_commit_log.txt 2>&1
-    "
-}
-
-# Run the entire workflow in the background with proper detachment
-(
-    run_qodo_merge_workflow
-) </dev/null >&0 2>&1 &
-
-# Disown the background process to fully detach it
-disown
-
-# Exit immediately so the commit operation completes
-exit 0
+bash -c "
+  echo 'Starting Qodo Merge auto diff review...' > diff_review_post_commit.md
+  echo 'Starting Qodo Merge auto diff review...' >&2
+  qodo --ci diff_review_post_commit > diff_review_post_commit_log.txt 2>&1 &
+"
