@@ -35,3 +35,17 @@ Now, every time you make a commit, Qodo Merge will automatically run in the back
 
 
 During the run, another file called `diff_review_post_commit_log.txt` will be created, which contains the logs of the Agent execution.
+
+
+## Further Enhancements
+
+### Notification In Case of High Severity Issues (MacOS Only)
+
+To enable system notifications as well as showing the generated file: `diff_review_post_commit.md` in Finder, whenever high severity issues are found, 
+simply overwrite `post-commit` with the contents of `post_commit_with_notification`.
+
+Also, in case you want to open the generated file, rather than just show in Finder, 
+you can replace `reveal` in the `notify_completion` function with `open` as follows:
+```angular2html
+open POSIX file "$file_path"
+```
