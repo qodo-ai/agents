@@ -32,7 +32,7 @@ To auto-run on push, save this as `.git/hooks/pre-push` and make executable:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
-qldocumentationwriter --arg input_file=./README.md --output ./README.md
+qodo documentation-writer
 if ! git diff --quiet -- README.md; then
   git add README.md && git commit -m "docs: auto-update README"
 fi

@@ -9,4 +9,4 @@ qodo documentation-writer
 # 2. Stage, commit, and push
 git add README.md
 git commit -m "docs: auto-update README before push"
-git push origin
+git push origin "$(git rev-parse --abbrev-ref HEAD)"
