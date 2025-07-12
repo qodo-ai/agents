@@ -1,0 +1,10 @@
+{
+    "mcpServers": {
+      "desktop-commander": {
+        "command": "npx.cmd",
+        "args": [
+          "@wonderwhy-er/desktop-commander@latest"
+        ]
+      }
+    }
+  }
