@@ -59,14 +59,3 @@ jobs:
             base_branch=${{ inputs.base_branch }}
             branch_prefix=${{ inputs.branch_prefix }}
       
-      - name: Summary
-        run: |
-          echo "## 📝 README Update Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **PR Processed**: #${{ inputs.pr_number }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Repository**: ${{ inputs.repo_owner }}/${{ inputs.repo_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Base Branch**: ${{ inputs.base_branch }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch Prefix**: ${{ inputs.branch_prefix }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The agent has analyzed the merged PR and updated the README Community Agents section accordingly." >> $GITHUB_STEP_SUMMARY
-          echo "Check the repository for the new documentation PR that was created." >> $GITHUB_STEP_SUMMARY
