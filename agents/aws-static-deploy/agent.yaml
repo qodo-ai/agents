@@ -1,0 +1,49 @@
+version: "1.0"
+model: "claude-4-sonnet"
+
+commands:
+  deploy-static:
+    description: "Deploy static Webflow export to AWS S3 and CloudFront with profile validation"
+    instructions: |
+      1. Ensure AWS CLI is installed (`aws --version`) and configured. Fail early if missing.
+      2. List AWS CLI profiles and use `profile` argument to select the active profile.
+      3. Create S3 bucket (if not exists) and set it for static hosting.
+      4. Sync the local folder to the S3 bucket.
+      5. Create or update a CloudFront distribution with Origin Access Identity/OAC.
+      6. Verify the OAC is configured correctly.
+      7. Invalidate CloudFront cache for updated files.
+      8. Test the deployment by visiting the CloudFront distribution domain.
+        
+    arguments:
+      - name: folder
+        type: string
+        required: true
+        description: "Directory of Webflow-exported static files"
+      - name: bucket
+        type: string
+        required: false
+        description: "Target S3 bucket name"
+      - name: profile
+        type: string
+        required: false
+        description: "AWS CLI profile to use (uses AWS_PROFILE or default if omitted)"
+
+    available_tools: ["filesystem", "desktop-commander"]
+
+    execution_strategy: "act"
+
+    output_schema: |
+      {
+        "type": "object",
+        "properties": {
+          "profileInUse": { "type": "string" },
+          "bucket": { "type": "string" },
+          "distributionId": { "type": "string" },
+          "distributionDomain": { "type": "string" },
+          "invalidatedPaths": {
+            "type": "array", "items": { "type": "string" }
+          },
+          "syncSummary": { "type": "string" }
+        },
+        "required": ["profileInUse", "bucket", "distributionId", "distributionDomain", "invalidatedPaths", "syncSummary"]
+      }
