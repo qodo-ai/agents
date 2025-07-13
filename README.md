@@ -29,6 +29,9 @@ Community-contributed agents demonstrating various use cases and integrations.
 
 > **Note:** Community agents are maintained by their respective authors and should be used at your own discretion.
 
+### Security & Compliance
+- **[OpenSSF Scorecard Fixer](agents/openssf-scorecard-fixer/)** - Automatically fixes security issues identified by OpenSSF Scorecard to improve repository security posture *(contributed by [@lirantal](https://github.com/lirantal))*
+
 
 ---
 
