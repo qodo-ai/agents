@@ -164,13 +164,10 @@ exit_expression = "success"
 
 ```bash
 # Test with sample data
-qodo my_agent --input_file=test/sample.txt --threshold=0.9
-
-# Validate output schema
-qodo my_agent --input_file=test/sample.txt | jq '.success'
+qodo my_agent --set input1=0.9 --set input2="test"
 
 # CI/CD integration test
-qodo my_agent --ci --input_file=test/sample.txt
+qodo my_agent --ci --set input1=0.9 --set input2="test"
 ```
 
 ## 📖 Documentation
