@@ -1,6 +1,8 @@
-# Qodo Agent Reference Implementations
+# Qodo Agents
 
-A curated collection of reference agent implementations for the [Qodo Command](https://github.com/qodo-ai/command) framework, showcasing best practices and common patterns for building AI-powered development workflows.
+This repository contains agents implementations examples, to be used with [Qodo Command](https://github.com/qodo-ai/command), showcasing best practices and common patterns for building AI-powered development workflows.
+
+See [the Qodo Command docs](https://docs.qodo.ai/qodo-documentation/qodo-command/) to learn more about using agents with Qodo Command.
 
 ## What are Qodo Agents?
 
@@ -12,85 +14,47 @@ Qodo Agents are configurable AI workflows that combine:
 - **Output Schema**: Structured output format for integration
 - **Exit Expressions**: Success/failure conditions for CI/CD
 
-## 🌟 Reference Agents
-
-These agents demonstrate core patterns and best practices for the Qodo framework.
-
-### Development Workflow Agents
-- **[Code Review](agents/code-review/)** - Comprehensive code review with Qodo Merge integration
-- **[Diff Test Generation](agents/diff-test-suite/)** - Automated test suite creation and validation of code changes
-- **[GitHub Issue Handler](agents/github-issue-handler/)** - Automatically processes GitHub issues by analyzing content, answering questions, implementing fixes, and creating pull requests
-
-## 🤝 Community Agents
-
-Community-contributed agents demonstrating various use cases and integrations.
-
-> **Note:** Community agents are maintained by their respective authors and should be used at your own discretion.
-
-### Security & Compliance
-- **[OpenSSF Scorecard Fixer](agents/openssf-scorecard-fixer/)** - Automatically fixes security issues identified by OpenSSF Scorecard to improve repository security posture *(contributed by [@lirantal](https://github.com/lirantal))*
-
-
 ---
 
-## 📚 Agent Categories
-
-### By Execution Strategy
-- **Planning Agents** - Multi-step strategic approaches
-- **Action Agents** - Direct execution patterns
-
-### By Integration Type
-- **MCP-Based** - Leveraging Model Context Protocol servers
-- **API-Based** - Direct API integrations
-- **Tool-Based** - Command-line tool integrations
-
-### By Output Type
-- **Structured Data** - JSON/YAML output for automation
-- **Reports** - Human-readable analysis
-- **Actions** - Direct system modifications
-
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - [Qodo Command](https://docs.qodo.ai/qodo-documentation/qodo-command) installed
 - Node.js 18+ and npm
 - Git for version control
 
-### Quick Start
+## Quickstart
 
-1. **Clone this repository:**
-   ```bash
-   git clone https://github.com/qodo-ai/agents.git
-   cd agents
-   ```
+[See the Qodo Command Quickstart and setup documentation](https://app.gitbook.com/o/boG3YxFuOFSBwIB9vwaz/s/E9WGt1PJng9hG0nmGaiF/getting-started/setup-and-quickstart) to learn how to setup Qodo Command and start using agents.
 
-2. **Choose an agent:**
-   ```bash
-   # Copy a reference agent to your project
-   cp -r src/code-review/ /path/to/your/project/agents/
-   ```
+## How to Use an Existing Agent
 
-3. **Configure the agent:**
-   ```bash
-   # Edit the agent configuration
-   vim /path/to/your/project/agents/code-review/agent.toml
-   ```
+All agents in this repository reside in the `agents` folder.
 
-4. **Run the agent:**
-   ```bash
-   cd /path/to/your/project
-   qodo code-review --agent-file=agents/code-review/agent.toml
-   ```
+You can specify a custom agent configuration file in two ways: Remote or Local. Both methods allow you to customize agent behavior without modifying core logic.
 
-### Using Reference Agents
+### Remote Agent File
 
-Each reference agent includes:
-- **Configuration file** (`agent.toml` or `agent.yaml`)
-- **README** with usage instructions and examples
-- **Test cases** demonstrating expected behavior
-- **Integration examples** for common scenarios
+Use a remote URL to point to an agent configuration file with the flag:
 
-## 🛠️ Creating Your Own Agent
+```bash
+--agent-file=URL
+```
+
+Example:
+
+```bash
+my-tool --agent-file=https://example.com/agents/my-agent.toml
+```
+
+### Local Agent File
+
+Download or create a local agent `.toml` file and specify its path.
+
+[See the Qodo Command documentation to learn how to write an customized agent `.toml` file.
+](https://docs.qodo.ai/qodo-documentation/qodo-command/features/creating-and-managing-agents)
+
+## How to Create an Agent
 
 ### Basic Agent Structure
 
@@ -170,20 +134,9 @@ qodo my_agent --set input1=0.9 --set input2="test"
 qodo my_agent --ci --set input1=0.9 --set input2="test"
 ```
 
-## 📖 Documentation
+---
 
-### Agent Configuration Reference
-- [Basic Agent Tutorial](https://docs.qodo.ai/qodo-documentation/qodo-command/features/creating-and-managing-agents) ✅ - Creating and managing agents
-- [MCP Server Integration](https://modelcontextprotocol.io/introduction) ✅ - Model Context Protocol documentation
-- [CI/CD Integration](https://docs.qodo.ai/qodo-documentation/qodo-command/features/ci-and-automation) ✅ - CI and automation with Qodo Command
-- [Output Schema Design](docs/output-schema.md) 🚧 *Not yet available*
-
-### Best Practices
-- [Agent Design Patterns](docs/design-patterns.md) 🚧 *Not yet available*
-- [Performance Optimization](docs/performance.md) 🚧 *Not yet available*
-- [Security Considerations](docs/security.md) 🚧 *Not yet available*
-
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
@@ -201,29 +154,19 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 - Ensure compatibility with latest Qodo Command version
 - Add your agent to the appropriate category in this README
 
-## 📜 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Related Projects
+## Related Projects
 
 - [Qodo Command](https://github.com/qodo-ai/command) - The main Qodo Command framework
 - [Model Context Protocol](https://modelcontextprotocol.io/) - Protocol for AI tool integration
 - [MCP Servers](https://github.com/modelcontextprotocol/servers) - Reference MCP server implementations
 
-## 💬 Community
+## Learn More
 
-- [GitHub Discussions](https://github.com/qodo-ai/agents/discussions)
-- [Discord Server](https://discord.com/invite/SgSxuQ65GF)
-- [Documentation](https://docs.qodo.ai/qodo-documentation/qodo-command)
-
-## ⭐ Support
-
-If you find these agent implementations useful, please consider:
-- Starring this repository
-- Contributing your own agents
-- Sharing feedback and suggestions
-- Helping improve documentation
+[Go to the Qodo Command docs](https://docs.qodo.ai/qodo-documentation/qodo-command/) to learn more about using agents with Qodo Command.
 
 ---
 
