@@ -41,47 +41,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-      
-      - name: Install Qodo Command
-        run: |
-          npm install -g @qodo/command
-          qodo --version
-      
-      - name: Setup Python for MCP servers
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      
-      - name: Install MCP dependencies
-        run: |
-          pip install uvx
-          uvx --version
-      
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      
       - name: Run PR README Updater Agent
+        uses: qodo-ai/command@v1
         env:
+          QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
           GITHUB_PERSONAL_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cd agents/pr-readme-updater
-          qodo pr-readme-updater \
-            --pr_number=${{ inputs.pr_number }} \
-            --repo_owner=${{ inputs.repo_owner }} \
-            --repo_name=${{ inputs.repo_name }} \
-            --base_branch=${{ inputs.base_branch }} \
-            --branch_prefix=${{ inputs.branch_prefix }}
+        with:
+          prompt: pr-readme-updater
+          agent-file: agents/pr-readme-updater/agent.toml
+          key-value-pairs: |
+            pr_number=${{ inputs.pr_number }}
+            repo_owner=${{ inputs.repo_owner }}
+            repo_name=${{ inputs.repo_name }}
+            base_branch=${{ inputs.base_branch }}
+            branch_prefix=${{ inputs.branch_prefix }}
       
       - name: Summary
         run: |
