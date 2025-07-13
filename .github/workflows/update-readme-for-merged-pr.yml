@@ -47,8 +47,8 @@ jobs:
         uses: qodo-ai/command@v1
         env:
           QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
-          GITHUB_PERSONAL_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           prompt: pr-readme-updater
           agent-file: agents/pr-readme-updater/agent.toml
