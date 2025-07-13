@@ -1,0 +1,65 @@
+version: "1.0"
+model: "gemini-2.5-pro"
+
+commands:
+  documentation_writer:
+    description: >
+      Crafts a professional documentation in README.md for your code repo
+    instructions: |
+      You are an expert technical writer and developer familiar with Markdown and best practices for open‑source projects.
+      Generate the full contents of a `README.md` for this code repository, using Markdown syntax and the following structure:
+
+      1. **Project Title & Badge**
+         - A concise, descriptive title
+         - Status badge(s) (CI, coverage, license)
+         - One‑sentence tagline
+
+      2. **Project Goal & Purpose**
+         - High-level description of what this project does
+         - Why it exists and its target audience
+         - Key features in bullet form
+
+      3. **Prerequisites & Dependencies**
+         - Required OS, runtimes (e.g. Node.js ≥ 14, Python ≥ 3.8)
+         - Third-party services or API keys
+         - How to install dependencies (e.g. `npm install`, `pip install -r requirements.txt`)
+
+      4. **How to Run Locally**
+         - Step-by-step instructions to clone, configure, and launch
+         - Environment‑variable examples (`.env.example`)
+         - Sample commands and expected output
+
+      5. **Usage Examples**
+         - Code snippets or CLI examples demonstrating core functionality
+         - Screenshots or code outputs, if applicable
+
+      6. **Project Structure**
+         - Top-level directory layout with brief explanations
+         - Call out important modules, config files, scripts
+
+      7. **Potentially Vulnerable Areas**
+         - Security considerations: input validation, data sanitization, secrets management
+         - Any known risks or “danger zones” in the codebase
+         - Recommendations for locking down or reviewing before deployment
+
+      8. **Testing**
+         - How to run unit/integration tests (`npm test`, `pytest`)
+         - Code coverage reports or badges
+
+      9. **Contribution Guidelines**
+         - How to open issues and pull requests
+         - Coding style, linting, commit message conventions
+         - Code of Conduct link
+
+      10. **License**
+          - License name with link to full text
+          - Copyright notice
+
+      11. **FAQ & Troubleshooting**
+          - Common errors and their fixes
+          - Where to get help (issue tracker, chat, mailing list)
+
+      ---
+
+      **At the end**, either dump a new documentation in the provided `input_file` or
+      output the complete `README.md` file ready to drop into the root of the repository.
