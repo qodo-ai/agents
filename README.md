@@ -1,7 +1,5 @@
 # Qodo Agent Reference Implementations
 
-> **🚧 PROJECT STATUS**: This repository is under active development. We welcome contributions to help build some cool agents!
-
 A curated collection of reference agent implementations for the [Qodo Command](https://github.com/qodo-ai/command) framework, showcasing best practices and common patterns for building AI-powered development workflows.
 
 ## What are Qodo Agents?
@@ -62,8 +60,8 @@ Community-contributed agents demonstrating various use cases and integrations.
 
 1. **Clone this repository:**
    ```bash
-   git clone https://github.com/qodo-ai/agent-reference-implementations.git
-   cd agent-reference-implementations
+   git clone https://github.com/qodo-ai/agents.git
+   cd agents
    ```
 
 2. **Choose an agent:**
