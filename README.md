@@ -27,6 +27,9 @@ Community-contributed agents demonstrating various use cases and integrations.
 
 > **Note:** Community agents are maintained by their respective authors and should be used at your own discretion.
 
+### Development Workflow
+- **[Documentation Writer](agents/documentation-writer/)** - Automatically generates and updates professional README.md files with comprehensive project documentation, including Git hooks for automated updates *(contributed by [@Max77788](https://github.com/Max77788))*
+
 ### Security & Compliance
 - **[OpenSSF Scorecard Fixer](agents/openssf-scorecard-fixer/)** - Automatically fixes security issues identified by OpenSSF Scorecard to improve repository security posture *(contributed by [@lirantal](https://github.com/lirantal))*
 
