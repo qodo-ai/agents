@@ -52,7 +52,7 @@ Community-contributed agents demonstrating various use cases and integrations.
 ## 🚀 Getting Started
 
 ### Prerequisites
-- [Qodo Command](https://github.com/qodo-ai/command) installed
+- [Qodo Command](https://docs.qodo.ai/qodo-documentation/qodo-command) installed
 - Node.js 18+ and npm
 - Git for version control
 
