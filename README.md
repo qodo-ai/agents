@@ -33,6 +33,9 @@ Community-contributed agents demonstrating various use cases and integrations.
 ### Security & Compliance
 - **[OpenSSF Scorecard Fixer](agents/openssf-scorecard-fixer/)** - Automatically fixes security issues identified by OpenSSF Scorecard to improve repository security posture *(contributed by [@lirantal](https://github.com/lirantal))*
 
+### Infrastructure & DevOps
+- **[AWS Static Deploy](agents/aws-static-deploy/)** - Automates deployment of static websites to AWS S3 and CloudFront with proper configuration, cache invalidation, and deployment validation *(contributed by [@gpavlov2016](https://github.com/gpavlov2016))*
+
 
 ---
 
