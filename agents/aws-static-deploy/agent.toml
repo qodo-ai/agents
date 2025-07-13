@@ -41,4 +41,3 @@ output_schema = """
 }
 """
 
-exit_expression = "success"

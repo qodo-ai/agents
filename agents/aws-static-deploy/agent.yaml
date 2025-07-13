@@ -21,7 +21,7 @@ commands:
         description: "Directory of Webflow-exported static files"
       - name: bucket
         type: string
-        required: true
+        required: false
         description: "Target S3 bucket name"
       - name: profile
         type: string
@@ -47,5 +47,3 @@ commands:
         },
         "required": ["profileInUse", "bucket", "distributionId", "distributionDomain", "invalidatedPaths", "syncSummary"]
       }
-
-    exit_expression: "true"
