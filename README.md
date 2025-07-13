@@ -123,15 +123,10 @@ mcpServers = """
       }
     },
     "github": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "ghcr.io/github/github-mcp-server"
-      ]
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+      "Authorization": "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
     }
 }
 """
