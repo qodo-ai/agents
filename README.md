@@ -136,6 +136,33 @@ qodo my_agent --ci --set input1=0.9 --set input2="test"
 
 ---
 
+## Example Agents
+
+These agents demonstrate core patterns and best practices for the Qodo framework.
+
+### Development Workflow Agents
+- **[Code Review](agents/code-review/)** - Comprehensive code review with Qodo Merge integration
+- **[Diff Test Generation](agents/diff-test-suite/)** - Automated test suite creation and validation of code changes
+- **[GitHub Issue Handler](agents/github-issue-handler/)** - Automatically processes GitHub issues by analyzing content, answering questions, implementing fixes, and creating pull requests
+
+## 🤝 Community Agents
+
+Community-contributed agents demonstrating various use cases and integrations.
+
+> **Note:** Community agents are maintained by their respective authors and should be used at your own discretion.
+
+### Development Workflow
+- **[Documentation Writer](agents/documentation-writer/)** - Automatically generates and updates professional README.md files with comprehensive project documentation, including Git hooks for automated updates *(contributed by [@Max77788](https://github.com/Max77788))*
+
+### Security & Compliance
+- **[OpenSSF Scorecard Fixer](agents/openssf-scorecard-fixer/)** - Automatically fixes security issues identified by OpenSSF Scorecard to improve repository security posture *(contributed by [@lirantal](https://github.com/lirantal))*
+
+### Infrastructure & DevOps
+- **[AWS Static Deploy](agents/aws-static-deploy/)** - Automates deployment of static websites to AWS S3 and CloudFront with proper configuration, cache invalidation, and deployment validation *(contributed by [@gpavlov2016](https://github.com/gpavlov2016))*
+
+
+---
+
 ## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
