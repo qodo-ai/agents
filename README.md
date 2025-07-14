@@ -39,22 +39,6 @@ Community-contributed agents demonstrating various use cases and integrations.
 
 ---
 
-## 📚 Agent Categories
-
-### By Execution Strategy
-- **Planning Agents** - Multi-step strategic approaches
-- **Action Agents** - Direct execution patterns
-
-### By Integration Type
-- **MCP-Based** - Leveraging Model Context Protocol servers
-- **API-Based** - Direct API integrations
-- **Tool-Based** - Command-line tool integrations
-
-### By Output Type
-- **Structured Data** - JSON/YAML output for automation
-- **Reports** - Human-readable analysis
-- **Actions** - Direct system modifications
-
 ## 🚀 Getting Started
 
 ### Prerequisites
