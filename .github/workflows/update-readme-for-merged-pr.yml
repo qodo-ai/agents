@@ -1,0 +1,60 @@
+name: Update README for Merged PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to process for README update'
+        required: true
+        type: number
+      repo_owner:
+        description: 'Repository owner'
+        required: false
+        default: 'qodo-ai'
+        type: string
+      repo_name:
+        description: 'Repository name'
+        required: false
+        default: 'agents'
+        type: string
+      base_branch:
+        description: 'Base branch to create feature branch from'
+        required: false
+        default: 'main'
+        type: string
+      branch_prefix:
+        description: 'Prefix for the new branch name'
+        required: false
+        default: 'docs/update-readme'
+        type: string
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Run PR README Updater Agent
+        uses: qodo-ai/command@v1
+        env:
+          QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          prompt: pr-readme-updater
+          agent-file: agents/pr-readme-updater/agent.toml
+          key-value-pairs: |
+            pr_number=${{ inputs.pr_number }}
+            repo_owner=${{ inputs.repo_owner }}
+            repo_name=${{ inputs.repo_name }}
+            base_branch=${{ inputs.base_branch }}
+            branch_prefix=${{ inputs.branch_prefix }}
+      

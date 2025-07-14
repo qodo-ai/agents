@@ -46,6 +46,7 @@ commands:
       - filesystem
       - shell
       - github
+      - web_search
 
     execution_strategy: plan
     
@@ -60,22 +61,10 @@ commands:
               "ALLOW_COMMANDS": "scorecard,docker,env,ls,cat,pwd,rg,wc,touch,find,mkdir,rm,cp,mv,npm,npx,jest,mocha,ts-node,tsc,node,jq,echo,test,diff,sed,awk,git,cd,exit,yarn,grep,gh,base64,curl,python3,python,pip,pip3,which,whoami,id,uname,date,head,tail,sort,uniq,tr,cut,xargs,sleep"
             }
           },
-          "fetch": {
-            "command": "docker",
-            "args": ["run", "-i", "--rm", "mcp/fetch"]
-          },
           "github": {
-            "command": "docker",
-            "args": [
-              "run",
-              "-i",
-              "--rm",
-              "-e",
-              "GITHUB_PERSONAL_ACCESS_TOKEN",
-              "ghcr.io/github/github-mcp-server"
-            ],
-            "env": {
-              "GITHUB_PERSONAL_ACCESS_TOKEN": "<YOR_TOKEN>"
+            "url": "https://api.githubcopilot.com/mcp/",
+            "headers": {
+              "Authorization": "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}"
             }
           }
       }
@@ -91,7 +80,7 @@ commands:
          - For all GitHub operations, prefer using the GitHub CLI (`gh`) commands over the GitHub MCP server when encountering API limitations
          - If GitHub MCP server operations fail, clone the repository locally using `git clone` and work with local files
          - To run the OpenSSF Scorecard tool, use: `scorecard --repo=<INSERT REPO> --show-details` (replace with the repository from the `repo` argument)
-         - You can get information from URLs using the fetch tool
+         - You can get information from URLs using the web_fetch tool
          - For base64 decoding, use: `echo "<base64_string>" | base64 -d` or Node.js: `node -e "console.log(Buffer.from('<base64>', 'base64').toString())"`
          - Always verify GitHub CLI authentication with `gh auth status` before attempting operations
          - Use `gh api` for direct GitHub API calls when the MCP server fails
