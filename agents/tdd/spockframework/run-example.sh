@@ -4,7 +4,7 @@
 echo "Step 1: Verifying JDK installation..."
 echo "------------------------------------"
 if command -v java &> /dev/null; then
-    JAVA_VERSION=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
+    JAVA_VERSION=$(java -version 2>&1 | head -n 1 | awk -F'"' '{print $2}' | awk -F'.' '{if($1 == 1) print $2; else print $1}')
     echo "Java version detected: $(java -version 2>&1 | head -n 1)"
 
     # Check if version is numeric and at least 21
