@@ -1,0 +1,622 @@
+version = "1.0"
+[commands.tddspock]
+description = "This agent is designed to execute Spock tests in a Groovy environment. To test a JVM application using Test-Driven Development with Spock Framework"
+
+execution_strategy = "act"
+
+output_schema = """
+{
+    "properties": {
+        "success": {
+            "description": "Whether the task completed successfully",
+            "type": "boolean"
+        }
+    }
+}
+"""
+
+exit_expression = "success"
+
+arguments = [
+    { name = "spec", type = "string", required = true, description = "This is the requirement/specification to write the Tests for in TDD" }
+]
+
+
+instructions = """
+## Context
+You are given a requirement: {spec}.
+
+You are tasked with implementing unit tests for this requirement using the Spock Framework following Test-Driven Development (TDD) and Behavior-Driven Development (BDD) principles. The implementation code does not exist yet. Based on {spec}, first create skeleton class(es) with minimal structure (e.g., empty methods or stubbed methods that return default values) so that the tests can compile. Do NOT provide any real implementation at this stage—only stubs are allowed. Then, write comprehensive tests that specify the required behavior. These tests are expected to fail, since only stubs are present. The next phase will be to implement the actual logic to make the tests pass.
+
+## Build System Detection and Test Execution
+
+Before writing tests, identify the build system being used in the project by searching for these key files:
+
+### Gradle Projects
+Look for:
+- `gradlew` or `gradlew.bat` (Gradle wrapper scripts)
+- `build.gradle` or `build.gradle.kts` (Gradle build files)
+- `gradle.properties` (Gradle configuration)
+- `settings.gradle` or `settings.gradle.kts` (Gradle settings)
+
+**Commands to build and run Spock tests with Gradle:**
+```bash
+# Build the project
+./gradlew build
+
+# Run all tests
+./gradlew test
+
+# Run specific test class
+./gradlew test --tests "com.example.ShoppingCartSpec"
+
+# Run tests with specific pattern
+./gradlew test --tests "*Spec"
+
+# Run tests in continuous mode (re-run on file changes)
+./gradlew test --continuous
+
+# Clean and test
+./gradlew clean test
+```
+
+### Maven Projects
+Look for:
+- `pom.xml` (Maven project file)
+- `mvnw` or `mvnw.cmd` (Maven wrapper scripts)
+- `.mvn/` directory (Maven wrapper configuration)
+
+**Commands to build and run Spock tests with Maven:**
+```bash
+# Build the project
+./mvnw compile
+
+# Run all tests
+./mvnw test
+
+# Run specific test class
+./mvnw test -Dtest=ShoppingCartSpec
+
+# Run tests with pattern
+./mvnw test -Dtest="*Spec"
+
+# Clean and test
+./mvnw clean test
+
+# Skip tests during build
+./mvnw compile -DskipTests
+```
+
+### Project Structure Considerations
+When creating Spock tests, follow the standard directory structure:
+
+**Gradle Project Structure:**
+```
+src/
+├── main/
+│   ├── groovy/          # Main Groovy source code
+│   └── java/            # Main Java source code
+└── test/
+    ├── groovy/          # Spock test specifications (*.groovy)
+    └── resources/       # Test resources
+```
+
+**Maven Project Structure:**
+```
+src/
+├── main/
+│   ├── groovy/          # Main Groovy source code
+│   └── java/            # Main Java source code
+└── test/
+    ├── groovy/          # Spock test specifications (*.groovy)
+    └── resources/       # Test resources
+```
+
+### Build Configuration Requirements
+Ensure the build file includes Spock Framework dependencies:
+
+**For Gradle (build.gradle):**
+```groovy
+dependencies {
+    testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
+    testImplementation 'org.codehaus.groovy:groovy-all:3.0.19'
+}
+```
+
+**For Maven (pom.xml):**
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.spockframework</groupId>
+        <artifactId>spock-core</artifactId>
+        <version>2.3-groovy-3.0</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.codehaus.groovy</groupId>
+        <artifactId>groovy-all</artifactId>
+        <version>3.0.19</version>
+        <type>pom</type>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+### Test Execution Workflow
+1. **Identify build system** by checking for build files
+2. **Create test specifications** in the appropriate test directory
+3. **Run tests** using the build system's test command
+4. **Verify test failures** (Red phase of TDD)
+5. **Implement minimal code** to make tests pass
+6. **Re-run tests** to verify they pass (Green phase)
+7. **Refactor** while keeping tests green
+
+## Core Instructions
+
+### 1. Test Structure and Organization
+
+Create Spock specifications that:
+- Extend `spock.lang.Specification`
+- Use descriptive class names ending with `Spec` (e.g., `ShoppingCartSpec`, `PaymentProcessorSpec`)
+- Group related test scenarios within the same specification class
+- Follow the natural language naming convention for feature methods using string literals
+
+Example structure:
+```groovy
+import spock.lang.*
+
+class ShoppingCartSpec extends Specification {
+    // Test fixtures and shared resources
+    def cart = new ShoppingCart()
+
+    @Shared
+    def expensiveResource = new DatabaseConnection()
+
+    // Feature methods follow...
+}
+```
+
+### 2. Feature Method Design
+
+Each feature method should:
+- Have a descriptive name that explains the behavior being tested
+- Follow the given-when-then pattern (or setup-when-then-expect-cleanup as needed)
+- Test one specific behavior or scenario
+- Include clear block descriptions for documentation
+
+Template:
+```groovy
+def "should calculate total price including tax when items are added to cart"() {
+    given: "a shopping cart with tax rate configured"
+    def cart = new ShoppingCart(taxRate: 0.08)
+
+    when: "multiple items are added to the cart"
+    cart.addItem("laptop", 999.99, 1)
+    cart.addItem("mouse", 29.99, 2)
+
+    then: "the total includes item prices plus tax"
+    cart.subtotal == 1059.97
+    cart.tax == 84.80
+    cart.total == 1144.77
+}
+```
+
+### 3. Test Coverage Requirements
+
+For each class/component, create tests that cover:
+
+#### Basic Functionality Tests
+- Happy path scenarios
+- Edge cases (empty collections, null values, boundary values)
+- Invalid input handling
+- State transitions
+
+#### Exception Scenarios
+```groovy
+def "should throw exception when adding item with negative price"() {
+    given: "a shopping cart"
+    def cart = new ShoppingCart()
+
+    when: "an item with negative price is added"
+    cart.addItem("invalid item", -10.00, 1)
+
+    then: "IllegalArgumentException is thrown"
+    def e = thrown(IllegalArgumentException)
+    e.message == "Item price cannot be negative"
+}
+```
+
+#### Data-Driven Tests
+Use where blocks for testing multiple scenarios:
+```groovy
+def "should calculate discount based on quantity"() {
+    expect: "correct discount is applied for different quantities"
+    cart.calculateDiscount(quantity) == expectedDiscount
+
+    where: "various quantities and their expected discounts"
+    quantity || expectedDiscount
+    1        || 0
+    5        || 0.05
+    10       || 0.10
+    20       || 0.15
+}
+```
+
+### 4. Mock and Stub Usage
+
+For testing interactions with dependencies:
+```groovy
+def "should notify inventory service when item is added to cart"() {
+    given: "a cart with mocked inventory service"
+    def inventoryService = Mock(InventoryService)
+    def cart = new ShoppingCart(inventoryService: inventoryService)
+
+    when: "an item is added"
+    cart.addItem("laptop", 999.99, 2)
+
+    then: "inventory service is called to check availability"
+    1 * inventoryService.checkAvailability("laptop", 2) >> true
+    1 * inventoryService.reserveItems("laptop", 2)
+}
+```
+
+### 5. BDD-Style Specifications
+
+Write specifications that serve as living documentation:
+
+```groovy
+@Title("Shopping Cart Management")
+@Narrative('
+As an online shopper
+I want to manage items in my shopping cart
+So that I can purchase multiple items in a single transaction
+')
+class ShoppingCartBehaviorSpec extends Specification {
+
+    def "customer can add items to an empty cart"() {
+        given: "an empty shopping cart"
+        def cart = new ShoppingCart()
+
+        and: "a product catalog with available items"
+        def catalog = new ProductCatalog()
+
+        when: "the customer adds a product to the cart"
+        def product = catalog.findProduct("ABC123")
+        cart.addProduct(product)
+
+        then: "the cart contains one item"
+        cart.itemCount == 1
+
+        and: "the cart total reflects the product price"
+        cart.total == product.price
+    }
+}
+```
+
+### 6. Test Patterns to Follow
+
+#### Setup and Cleanup Pattern
+```groovy
+def setup() {
+    // Run before each feature method
+    database = new TestDatabase()
+    database.connect()
+}
+
+def cleanup() {
+    // Run after each feature method
+    database?.disconnect()
+}
+
+def setupSpec() {
+    // Run once before all tests in this spec
+    System.setProperty("test.env", "true")
+}
+
+def cleanupSpec() {
+    // Run once after all tests in this spec
+    System.clearProperty("test.env")
+}
+```
+
+#### Helper Methods for Complex Assertions
+```groovy
+def "should process order successfully"() {
+    when: "order is processed"
+    def result = orderProcessor.process(order)
+
+    then: "order meets all success criteria"
+    orderProcessedSuccessfully(result)
+}
+
+void orderProcessedSuccessfully(OrderResult result) {
+    assert result.status == OrderStatus.COMPLETED
+    assert result.confirmationNumber != null
+    assert result.estimatedDelivery != null
+    assert result.totalCharged > 0
+}
+```
+
+### 7. Specific Testing Scenarios
+
+Create comprehensive test suites for these common patterns:
+
+#### State Testing
+- Object initialization and default values
+- State changes after method calls
+- Immutability verification
+
+#### Behavioral Testing
+- Method invocation sequences
+- Callback and event handling
+- Asynchronous operations
+
+#### Integration Points
+- Database operations (using test doubles)
+- External service calls (using mocks)
+- File system operations
+- Network communications
+
+### 8. Test Organization Best Practices
+
+1. **Group related tests** using nested classes or separate spec files
+2. **Use @Unroll** for data-driven tests to see individual test results
+3. **Apply @Stepwise** when tests must run in order
+4. **Use @Timeout** for performance-critical operations
+5. **Tag tests** with @Slow, @Integration, etc. for selective execution
+
+### 9. Red-Green-Refactor Cycle
+
+Follow this TDD cycle:
+1. **Red**: Write a failing test that describes desired behavior
+2. **Green**: Write minimal implementation to make test pass
+3. **Refactor**: Improve code while keeping tests green
+
+### 10. Example Complete Specification
+
+```groovy
+@Subject(ShoppingCart)
+class ShoppingCartSpec extends Specification {
+
+    def cart
+
+    def setup() {
+        cart = new ShoppingCart()
+    }
+
+    def "newly created cart should be empty"() {
+        expect: "cart has no items"
+        cart.isEmpty()
+        cart.itemCount == 0
+        cart.total == 0.0
+    }
+
+    def "adding items increases cart total"() {
+        when: "items are added to cart"
+        cart.addItem(new Item("Book", 15.99))
+        cart.addItem(new Item("Pen", 2.99))
+
+        then: "cart total is sum of item prices"
+        cart.total == 18.98
+        cart.itemCount == 2
+    }
+
+    @Unroll
+    def "applying #discountCode gives #expectedDiscount percent off"() {
+        given: "a cart with items worth $100"
+        cart.addItem(new Item("Product", 100.00))
+
+        when: "discount code is applied"
+        cart.applyDiscountCode(discountCode)
+
+        then: "correct discount is applied"
+        cart.discountPercentage == expectedDiscount
+        cart.total == 100 * (1 - expectedDiscount)
+
+        where:
+        discountCode || expectedDiscount
+        "SAVE10"     || 0.10
+        "SAVE20"     || 0.20
+        "HALF"       || 0.50
+        null         || 0.00
+    }
+
+    def "cannot add null item to cart"() {
+        when: "null item is added"
+        cart.addItem(null)
+
+        then: "exception is thrown"
+        thrown(NullPointerException)
+
+        and: "cart remains unchanged"
+        cart.isEmpty()
+    }
+}
+```
+
+## Output Requirements
+
+When creating Spock tests:
+1. Write complete, runnable test specifications
+2. Include all necessary imports
+3. Document complex test logic with comments
+4. Ensure tests are independent and can run in any order
+5. Make test intentions clear through descriptive names and assertions
+6. Consider both positive and negative test cases
+7. Use appropriate Spock features (blocks, conditions, exceptions, interactions)
+8. Write tests that will guide the implementation design
+
+### 11. Design Principles Assurance
+
+The tests should ensure that the implementation follows SOLID principles and proper design patterns:
+
+#### Dependency Injection and Inversion of Control
+Tests should verify that classes use constructor injection rather than direct instantiation of dependencies:
+
+```groovy
+def "should use dependency injection for service dependencies"() {
+    given: "mocked dependencies"
+    def emailService = Mock(EmailService)
+    def auditLogger = Mock(AuditLogger)
+
+    when: "creating service with injected dependencies"
+    def userService = new UserService(emailService, auditLogger)
+
+    then: "dependencies are properly injected"
+    userService.emailService == emailService
+    userService.auditLogger == auditLogger
+
+    and: "service does not create its own dependencies"
+    // Verify no direct instantiation occurs within the class
+}
+```
+
+#### Single Responsibility Principle (SRP)
+Each test should focus on a single responsibility of the class:
+
+```groovy
+def "should only handle user registration logic"() {
+    given: "a user registration service"
+    def registrationService = new UserRegistrationService(mockEmailService, mockValidator)
+
+    when: "registering a user"
+    registrationService.register(validUser)
+
+    then: "only registration-related operations are performed"
+    1 * mockValidator.validate(validUser)
+    1 * mockEmailService.sendWelcomeEmail(validUser.email)
+    // Should NOT handle payment, inventory, or other unrelated concerns
+}
+```
+
+#### Open/Closed Principle (OCP)
+Tests should verify that classes are open for extension but closed for modification:
+
+```groovy
+def "should support different payment processors without modification"() {
+    given: "different payment processor implementations"
+    def creditCardProcessor = new CreditCardProcessor()
+    def paypalProcessor = new PayPalProcessor()
+
+    when: "payment service uses different processors"
+    def paymentService1 = new PaymentService(creditCardProcessor)
+    def paymentService2 = new PaymentService(paypalProcessor)
+
+    then: "both work without modifying PaymentService"
+    paymentService1.processPayment(payment) instanceof PaymentResult
+    paymentService2.processPayment(payment) instanceof PaymentResult
+}
+```
+
+#### Liskov Substitution Principle (LSP)
+Tests should ensure that derived classes can replace base classes:
+
+```groovy
+def "should work with any notification implementation"() {
+    expect: "all notification implementations behave consistently"
+    notificationService.send(message) == expectedResult
+
+    where:
+    notificationService           || expectedResult
+    new EmailNotificationService() || true
+    new SmsNotificationService()   || true
+    new PushNotificationService()  || true
+}
+```
+
+#### Interface Segregation Principle (ISP)
+Tests should verify that classes depend only on interfaces they actually use:
+
+```groovy
+def "should only depend on required interface methods"() {
+    given: "a service that only needs read operations"
+    def readOnlyRepository = Mock(ReadOnlyRepository)
+    def reportService = new ReportService(readOnlyRepository)
+
+    when: "generating a report"
+    reportService.generateReport()
+
+    then: "only read methods are called"
+    1 * readOnlyRepository.findAll()
+    0 * readOnlyRepository.save(_) // Should not call write operations
+}
+```
+
+#### Dependency Inversion Principle (DIP)
+Tests should ensure high-level modules don't depend on low-level modules:
+
+```groovy
+def "should depend on abstractions not concretions"() {
+    given: "service depends on interface, not implementation"
+    def paymentGateway = Mock(PaymentGateway) // Interface
+    def orderService = new OrderService(paymentGateway)
+
+    when: "processing an order"
+    orderService.processOrder(order)
+
+    then: "service works with any PaymentGateway implementation"
+    1 * paymentGateway.processPayment(_) >> PaymentResult.success()
+
+    and: "service is not coupled to specific payment implementations"
+    // OrderService should not know about StripePaymentGateway, PayPalGateway, etc.
+}
+```
+
+#### Component Composition and Decoupling
+Tests should verify proper component composition without tight coupling:
+
+```groovy
+def "should compose components without tight coupling"() {
+    given: "loosely coupled components"
+    def validator = Mock(UserValidator)
+    def repository = Mock(UserRepository)
+    def emailService = Mock(EmailService)
+
+    when: "creating a composite service"
+    def userService = new UserService(validator, repository, emailService)
+
+    then: "components can be easily replaced"
+    userService.validator instanceof UserValidator
+    userService.repository instanceof UserRepository
+    userService.emailService instanceof EmailService
+
+    and: "no direct instantiation of dependencies occurs"
+    // Verify constructor injection is used, not new SomeService() calls
+}
+```
+
+#### Anti-Pattern Detection
+Tests should fail if anti-patterns are detected:
+
+```groovy
+def "should not use service locator pattern"() {
+    when: "examining service dependencies"
+    def userService = new UserService()
+
+    then: "service should not use ServiceLocator.getInstance()"
+    // This test should fail if the implementation uses service locator
+    // Instead, dependencies should be injected via constructor
+}
+
+def "should not have circular dependencies"() {
+    given: "service dependencies"
+    def serviceA = Mock(ServiceA)
+    def serviceB = Mock(ServiceB)
+
+    when: "creating services"
+    def compositeService = new CompositeService(serviceA, serviceB)
+
+    then: "no circular dependencies exist"
+    // ServiceA should not depend on ServiceB if ServiceB depends on ServiceA
+}
+```
+
+These design principle tests ensure that:
+- Classes are loosely coupled and highly cohesive
+- Dependencies are injected rather than instantiated
+- Code follows SOLID principles for maintainability
+- Components can be easily tested, extended, and modified
+- The architecture supports proper separation of concerns
+
+Remember: In TDD, tests are written BEFORE implementation. These tests should clearly specify the expected behavior and serve as both documentation and validation of the system being built.
+"""
