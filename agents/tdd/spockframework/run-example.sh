@@ -27,7 +27,10 @@ echo ""
 
 
 # 2. Clone the target repo
-git clone git@github.com:davidparry/groovy-spock.git
-
+if [ ! -d "groovy-spock" ]; then
+    git clone https://github.com/davidparry/groovy-spock.git
+else
+    cd groovy-spock && git pull origin main && cd ..
+fi
 # 3. Invoke the tddspock agent
 qodo tddspock --set spec="Implement the OddEvenCamp interface requirements from the javadoc for this interface" -y -s
