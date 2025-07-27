@@ -1,0 +1,10 @@
+repos:
+  - repo: local
+    hooks:
+      - id: license-compliance
+        name: License Compliance Check
+        entry: qodo --agent-file=qodo-agent.toml -y --set directory=./src
+        language: system
+        pass_filenames: false
+        always_run: true
+        verbose: true

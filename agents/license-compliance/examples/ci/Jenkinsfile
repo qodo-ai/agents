@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('License Compliance') {
+            steps {
+                sh '''
+                    curl -fsSL https://install.qodo.ai | sh
+                    qodo --agent-file=qodo-agent.toml -y --set directory=./src
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'license-report.json', allowEmptyArchive: true
+                }
+                failure {
+                    emailext (
+                        subject: "License Compliance Check Failed - ${env.JOB_NAME} - ${env.BUILD_NUMBER}",
+                        body: "License compliance check failed. Please review the attached report.",
+                        to: "${env.CHANGE_AUTHOR_EMAIL}"
+                    )
+                }
+            }
+        }
+    }
+}
