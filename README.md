@@ -25,7 +25,7 @@ Qodo Agents are configurable AI workflows that combine:
 
 ## Quickstart
 
-[See the Qodo Command Quickstart and setup documentation](https://app.gitbook.com/o/boG3YxFuOFSBwIB9vwaz/s/E9WGt1PJng9hG0nmGaiF/getting-started/setup-and-quickstart) to learn how to setup Qodo Command and start using agents.
+[See the Qodo Command Quickstart and setup documentation](https://docs.qodo.ai/qodo-documentation/qodo-command/getting-started/setup-and-quickstart) to learn how to setup Qodo Command and start using agents.
 
 ## How to Use an Existing Agent
 
