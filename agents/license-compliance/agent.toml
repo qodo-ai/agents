@@ -80,21 +80,7 @@ arguments = [
     { name = "ignore_dev_dependencies", type = "boolean", required = false, description = "Skip license checking for development-only dependencies", default = true }
 ]
 
-mcpServers = """
-{
-  "mcpServers": {
-    "shell": {
-      "command": "uvx",
-      "args": [
-        "mcp-shell-server"
-      ],
-      "env": {
-        "ALLOW_COMMANDS": "git,npm,pip,cargo,go,mvn,gradle,cat,grep,find,curl,jq,ls,head,tail,sort,uniq"
-      }
-    }
-  }
-}
-"""
+mcpServers = """{}"""
 
 tools = ["git", "filesystem", "shell"]
 
