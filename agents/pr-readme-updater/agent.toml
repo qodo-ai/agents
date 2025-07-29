@@ -17,15 +17,6 @@ execution_strategy = "plan"
 
 mcpServers = """
 {
-    "shell": {
-      "command": "uvx",
-      "args": [
-        "mcp-shell-server"
-      ],
-      "env": {
-        "ALLOW_COMMANDS": "git,gh,echo,cat,ls,pwd,grep,sed,awk,jq,curl,node,npm"
-      }
-    },
     "github": {
       "url": "https://api.githubcopilot.com/mcp/",
       "headers": {
