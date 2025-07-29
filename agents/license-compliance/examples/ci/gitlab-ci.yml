@@ -1,0 +1,15 @@
+license_compliance:
+  stage: test
+  image: ubuntu:latest
+  before_script:
+    - apt-get update && apt-get install -y curl jq
+    - curl -fsSL https://install.qodo.ai | sh
+  script:
+    - qodo --agent-file=qodo-agent.toml -y --set directory=./src
+  artifacts:
+    reports:
+      junit: license-report.xml
+    when: always
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

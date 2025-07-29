@@ -1,0 +1,43 @@
+name: License Compliance Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+jobs:
+  license-compliance:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        curl -fsSL https://install.qodo.ai | sh
+        sudo apt-get update && sudo apt-get install -y jq
+    
+    - name: Run License Compliance Check
+      run: |
+        qodo --agent-file=qodo-agent.toml -y --set directory=./src
+      
+    - name: Upload compliance report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: license-compliance-report
+        path: license-report.json
+        
+    - name: Comment PR with results
+      if: github.event_name == 'pull_request' && failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '⚠️ License compliance check failed. Please review the license-compliance-report artifact for details.'
+          })
