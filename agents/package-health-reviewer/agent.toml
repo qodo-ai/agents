@@ -9,7 +9,7 @@ arguments = [
     { name = "include_details", type = "boolean", required = false, default = true, description = "Include detailed metrics in the output" }
 ]
 
-tools = ["shell", "playwright"]
+tools = ["playwright"]
 
 execution_strategy = "act"
 
