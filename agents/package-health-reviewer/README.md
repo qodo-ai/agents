@@ -13,6 +13,7 @@ Analyze the security, maintenance, and community health of software packages to 
 - **🎯 Smart Scoring**: Returns clear health ratings: "healthy", "sustainable", or "risky"
 - **🤖 Bot-Resistant**: Uses Playwright MCP server for reliable web automation
 - **📋 Detailed Reports**: Comprehensive metrics and actionable recommendations
+- **🚫 No File Creation**: Returns JSON directly without creating files on disk
 
 ## Quick Start
 

@@ -9,7 +9,7 @@ arguments = [
     { name = "include_details", type = "boolean", required = false, default = true, description = "Include detailed metrics in the output" }
 ]
 
-tools = ["filesystem", "shell", "playwright"]
+tools = ["shell", "playwright"]
 
 execution_strategy = "act"
 
@@ -144,6 +144,8 @@ Handle the following scenarios gracefully:
 
 ### 6. OUTPUT REQUIREMENTS
 
+**IMPORTANT**: Return the assessment results as JSON output only. Do NOT create any files on disk during the analysis process. The agent should only return the structured JSON response.
+
 Generate a comprehensive assessment report including:
 
 #### Required Fields:
@@ -226,6 +228,15 @@ Before returning results:
 3. Validate that recommendations are relevant and helpful
 4. Check that URLs and references are accessible
 5. Confirm output schema compliance
+
+## Final Output Instructions
+
+**CRITICAL**: 
+- Return ONLY the JSON assessment result
+- Do NOT write any files to disk (no .json files, no temporary files)
+- Do NOT use filesystem tools to create output files
+- The assessment should be returned directly as the agent's response
+- Clean up any temporary browser data using browser_close
 
 Remember: This tool helps developers make informed decisions about package dependencies. Accuracy and reliability are paramount for maintaining trust and preventing security issues in downstream projects.
 """
