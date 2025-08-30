@@ -1,0 +1,156 @@
+# Pre-commit configuration for Package Health Review
+# Place this in .pre-commit-config.yaml in your repository root
+
+repos:
+  - repo: local
+    hooks:
+      - id: package-health-check
+        name: Package Health Check
+        description: Check health of packages before commit
+        entry: bash
+        language: system
+        files: ^package\.json$
+        args:
+          - -c
+          - |
+            echo "🔍 Checking package health..."
+            
+            # Download agent if not present
+            if [ ! -f "package-health-agent.toml" ]; then
+              echo "Downloading Package Health Reviewer agent..."
+              curl -s -o package-health-agent.toml \
+                https://raw.githubusercontent.com/qodo-ai/agents/main/agents/package-health-reviewer/agent.toml
+            fi
+            
+            # Check if package.json was modified
+            if git diff --cached --name-only | grep -q "package.json"; then
+              echo "package.json modified - checking new dependencies..."
+              
+              # Extract dependencies (simplified approach)
+              NEW_DEPS=$(jq -r '.dependencies // {}, .devDependencies // {} | keys[]' package.json 2>/dev/null | head -5)
+              
+              risky_found=false
+              
+              for dep in $NEW_DEPS; do
+                if [ -n "$dep" ]; then
+                  echo "Checking: $dep"
+                  
+                  result=$(qodo --agent-file=package-health-agent.toml -y \
+                    --set package_name="$dep" \
+                    --set include_details=false \
+                    2>/dev/null || echo '{"health_score":"error"}')
+                  
+                  health_score=$(echo "$result" | jq -r '.health_score // "error"')
+                  
+                  case $health_score in
+                    "healthy")
+                      echo "✅ $dep: Healthy"
+                      ;;
+                    "sustainable")
+                      echo "⚠️ $dep: Sustainable (review recommended)"
+                      ;;
+                    "risky")
+                      echo "❌ $dep: Risky package detected!"
+                      risky_found=true
+                      ;;
+                    "error")
+                      echo "🔍 $dep: Could not analyze"
+                      ;;
+                  esac
+                  
+                  sleep 1
+                fi
+              done
+              
+              if [ "$risky_found" = true ]; then
+                echo ""
+                echo "⚠️ Risky packages detected in dependencies!"
+                echo "Consider reviewing these packages before committing."
+                echo "To bypass this check, use: git commit --no-verify"
+                exit 1
+              fi
+            fi
+            
+            echo "✅ Package health check passed"
+
+  - repo: local
+    hooks:
+      - id: package-health-audit
+        name: Full Package Health Audit
+        description: Comprehensive health audit of all dependencies
+        entry: bash
+        language: system
+        pass_filenames: false
+        manual: true  # Only run when explicitly called
+        args:
+          - -c
+          - |
+            echo "🔍 Running comprehensive package health audit..."
+            
+            # Download agent if not present
+            if [ ! -f "package-health-agent.toml" ]; then
+              curl -s -o package-health-agent.toml \
+                https://raw.githubusercontent.com/qodo-ai/agents/main/agents/package-health-reviewer/agent.toml
+            fi
+            
+            # Extract all dependencies
+            ALL_DEPS=$(jq -r '.dependencies // {}, .devDependencies // {} | keys[]' package.json 2>/dev/null | sort -u)
+            
+            healthy_count=0
+            sustainable_count=0
+            risky_count=0
+            error_count=0
+            
+            echo "Analyzing $(echo "$ALL_DEPS" | wc -l) dependencies..."
+            echo ""
+            
+            for dep in $ALL_DEPS; do
+              if [ -n "$dep" ]; then
+                result=$(qodo --agent-file=package-health-agent.toml -y \
+                  --set package_name="$dep" \
+                  --set include_details=false \
+                  2>/dev/null || echo '{"health_score":"error"}')
+                
+                health_score=$(echo "$result" | jq -r '.health_score // "error"')
+                overall_score=$(echo "$result" | jq -r '.overall_score // 0')
+                
+                case $health_score in
+                  "healthy")
+                    echo "✅ $dep (Score: $overall_score/100)"
+                    ((healthy_count++))
+                    ;;
+                  "sustainable")
+                    echo "⚠️ $dep (Score: $overall_score/100)"
+                    ((sustainable_count++))
+                    ;;
+                  "risky")
+                    echo "❌ $dep (Score: $overall_score/100)"
+                    ((risky_count++))
+                    ;;
+                  "error")
+                    echo "🔍 $dep (Analysis failed)"
+                    ((error_count++))
+                    ;;
+                esac
+                
+                sleep 1
+              fi
+            done
+            
+            echo ""
+            echo "📊 AUDIT SUMMARY"
+            echo "================"
+            echo "✅ Healthy: $healthy_count"
+            echo "⚠️ Sustainable: $sustainable_count"
+            echo "❌ Risky: $risky_count"
+            echo "🔍 Errors: $error_count"
+            
+            if [ $risky_count -gt 0 ]; then
+              echo ""
+              echo "⚠️ Consider reviewing risky packages for security implications"
+            fi
+
+# Usage instructions:
+# 1. Install pre-commit: pip install pre-commit
+# 2. Install hooks: pre-commit install
+# 3. Run manual audit: pre-commit run package-health-audit --all-files

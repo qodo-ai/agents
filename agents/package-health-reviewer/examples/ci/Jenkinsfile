@@ -1,0 +1,309 @@
+// Jenkins Pipeline for Package Health Review
+// Place this in your repository as Jenkinsfile
+
+pipeline {
+    agent any
+    
+    environment {
+        NODE_VERSION = '18'
+        AGENT_URL = 'https://raw.githubusercontent.com/qodo-ai/agents/main/agents/package-health-reviewer/agent.toml'
+    }
+    
+    stages {
+        stage('Setup') {
+            steps {
+                script {
+                    echo '🔧 Setting up environment...'
+                    
+                    // Install Node.js if not available
+                    sh '''
+                        # Check if Node.js is available
+                        if ! command -v node &> /dev/null; then
+                            echo "Installing Node.js..."
+                            curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | sudo -E bash -
+                            sudo apt-get install -y nodejs
+                        fi
+                        
+                        node --version
+                        npm --version
+                    '''
+                    
+                    // Install Qodo Command (adjust based on actual installation method)
+                    sh '''
+                        echo "Installing Qodo Command..."
+                        npm install -g @qodo/command || echo "Qodo Command installation failed - using alternative method"
+                    '''
+                    
+                    // Install system dependencies for Playwright
+                    // The Playwright MCP server will install browsers automatically
+                    sh '''
+                        echo "Installing system dependencies for Playwright..."
+                        sudo apt-get update
+                        sudo apt-get install -y \\
+                            libnss3 \\
+                            libatk-bridge2.0-0 \\
+                            libdrm2 \\
+                            libxkbcommon0 \\
+                            libxcomposite1 \\
+                            libxdamage1 \\
+                            libxrandr2 \\
+                            libgbm1 \\
+                            libxss1 \\
+                            libasound2
+                    '''
+                    
+                    // Download agent configuration
+                    sh '''
+                        echo "Downloading Package Health Reviewer agent..."
+                        curl -o agent.toml "${AGENT_URL}"
+                    '''
+                }
+            }
+        }
+        
+        stage('Extract Dependencies') {
+            when {
+                anyOf {
+                    changeset "package.json"
+                    changeset "package-lock.json"
+                    changeset "yarn.lock"
+                }
+            }
+            steps {
+                script {
+                    echo '📦 Extracting dependencies from package.json...'
+                    
+                    // Extract dependencies and store in environment variable
+                    def dependencies = sh(
+                        script: '''
+                            if [ -f "package.json" ]; then
+                                jq -r '.dependencies // {}, .devDependencies // {} | keys[]' package.json | sort -u
+                            else
+                                echo ""
+                            fi
+                        ''',
+                        returnStdout: true
+                    ).trim()
+                    
+                    if (dependencies) {
+                        env.DEPENDENCIES = dependencies
+                        echo "Found dependencies to analyze:"
+                        echo dependencies
+                    } else {
+                        echo "No dependencies found or package.json not present"
+                        env.DEPENDENCIES = ""
+                    }
+                }
+            }
+        }
+        
+        stage('Package Health Analysis') {
+            when {
+                expression { env.DEPENDENCIES != "" }
+            }
+            steps {
+                script {
+                    echo '🔍 Analyzing package health...'
+                    
+                    def healthResults = [:]
+                    def riskyCounts = 0
+                    def sustainableCounts = 0
+                    def healthyCounts = 0
+                    def errorCounts = 0
+                    
+                    // Split dependencies and analyze each one
+                    def depList = env.DEPENDENCIES.split('\n')
+                    
+                    for (dep in depList) {
+                        if (dep.trim()) {
+                            echo "Analyzing: ${dep}"
+                            
+                            try {
+                                def result = sh(
+                                    script: """
+                                        qodo --agent-file=agent.toml -y \\
+                                            --set package_name="${dep}" \\
+                                            --set include_details=false \\
+                                            --ci 2>/dev/null || echo '{"health_score":"error","package_name":"${dep}","error":"Analysis failed"}'
+                                    """,
+                                    returnStdout: true
+                                ).trim()
+                                
+                                // Parse JSON result
+                                def jsonResult = readJSON text: result
+                                def healthScore = jsonResult.health_score ?: 'error'
+                                def overallScore = jsonResult.overall_score ?: 0
+                                
+                                healthResults[dep] = [
+                                    health_score: healthScore,
+                                    overall_score: overallScore,
+                                    analysis_summary: jsonResult.analysis_summary ?: 'No summary available'
+                                ]
+                                
+                                switch (healthScore) {
+                                    case 'healthy':
+                                        echo "✅ HEALTHY: ${dep} (Score: ${overallScore}/100)"
+                                        healthyCounts++
+                                        break
+                                    case 'sustainable':
+                                        echo "⚠️ SUSTAINABLE: ${dep} (Score: ${overallScore}/100)"
+                                        sustainableCounts++
+                                        break
+                                    case 'risky':
+                                        echo "❌ RISKY: ${dep} (Score: ${overallScore}/100)"
+                                        riskyCounts++
+                                        break
+                                    default:
+                                        echo "🔍 ERROR: Could not analyze ${dep}"
+                                        errorCounts++
+                                }
+                                
+                                // Rate limiting
+                                sleep(2)
+                                
+                            } catch (Exception e) {
+                                echo "❌ Failed to analyze ${dep}: ${e.getMessage()}"
+                                healthResults[dep] = [
+                                    health_score: 'error',
+                                    overall_score: 0,
+                                    error: e.getMessage()
+                                ]
+                                errorCounts++
+                            }
+                        }
+                    }
+                    
+                    // Store results for reporting
+                    env.HEALTH_RESULTS = writeJSON returnText: true, json: healthResults
+                    env.HEALTHY_COUNT = healthyCounts.toString()
+                    env.SUSTAINABLE_COUNT = sustainableCounts.toString()
+                    env.RISKY_COUNT = riskyCounts.toString()
+                    env.ERROR_COUNT = errorCounts.toString()
+                    
+                    // Print summary
+                    echo ""
+                    echo "📊 HEALTH CHECK SUMMARY"
+                    echo "======================="
+                    echo "✅ Healthy packages: ${healthyCounts}"
+                    echo "⚠️ Sustainable packages: ${sustainableCounts}"
+                    echo "❌ Risky packages: ${riskyCounts}"
+                    echo "🔍 Analysis errors: ${errorCounts}"
+                    
+                    // Fail build if risky packages found
+                    if (riskyCounts > 0) {
+                        echo ""
+                        echo "⚠️ RISKY PACKAGES DETECTED!"
+                        echo "This build will fail due to security or maintenance concerns."
+                        
+                        // List risky packages
+                        for (dep in healthResults.keySet()) {
+                            if (healthResults[dep].health_score == 'risky') {
+                                echo "❌ ${dep}: ${healthResults[dep].analysis_summary}"
+                            }
+                        }
+                        
+                        error("Build failed due to risky package dependencies")
+                    }
+                }
+            }
+        }
+        
+        stage('Generate Report') {
+            when {
+                expression { env.DEPENDENCIES != "" }
+            }
+            steps {
+                script {
+                    echo '📋 Generating health report...'
+                    
+                    // Create detailed report
+                    def reportContent = """
+# Package Health Analysis Report
+
+**Project**: ${env.JOB_NAME}
+**Build**: ${env.BUILD_NUMBER}
+**Date**: ${new Date()}
+**Branch**: ${env.BRANCH_NAME ?: 'unknown'}
+
+## Summary
+
+| Status | Count | Percentage |
+|--------|-------|------------|
+| ✅ Healthy | ${env.HEALTHY_COUNT} | ${Math.round((env.HEALTHY_COUNT.toInteger() * 100) / (env.HEALTHY_COUNT.toInteger() + env.SUSTAINABLE_COUNT.toInteger() + env.RISKY_COUNT.toInteger() + env.ERROR_COUNT.toInteger()))}% |
+| ⚠️ Sustainable | ${env.SUSTAINABLE_COUNT} | ${Math.round((env.SUSTAINABLE_COUNT.toInteger() * 100) / (env.HEALTHY_COUNT.toInteger() + env.SUSTAINABLE_COUNT.toInteger() + env.RISKY_COUNT.toInteger() + env.ERROR_COUNT.toInteger()))}% |
+| ❌ Risky | ${env.RISKY_COUNT} | ${Math.round((env.RISKY_COUNT.toInteger() * 100) / (env.HEALTHY_COUNT.toInteger() + env.SUSTAINABLE_COUNT.toInteger() + env.RISKY_COUNT.toInteger() + env.ERROR_COUNT.toInteger()))}% |
+| 🔍 Errors | ${env.ERROR_COUNT} | ${Math.round((env.ERROR_COUNT.toInteger() * 100) / (env.HEALTHY_COUNT.toInteger() + env.SUSTAINABLE_COUNT.toInteger() + env.RISKY_COUNT.toInteger() + env.ERROR_COUNT.toInteger()))}% |
+
+## Detailed Results
+
+"""
+                    
+                    // Add detailed results
+                    def healthResults = readJSON text: env.HEALTH_RESULTS
+                    for (dep in healthResults.keySet()) {
+                        def result = healthResults[dep]
+                        def icon = result.health_score == 'healthy' ? '✅' : 
+                                  result.health_score == 'sustainable' ? '⚠️' : 
+                                  result.health_score == 'risky' ? '❌' : '🔍'
+                        
+                        reportContent += "### ${icon} ${dep}\n"
+                        reportContent += "- **Health Score**: ${result.health_score}\n"
+                        reportContent += "- **Overall Score**: ${result.overall_score}/100\n"
+                        reportContent += "- **Summary**: ${result.analysis_summary}\n\n"
+                    }
+                    
+                    // Write report to file
+                    writeFile file: 'package-health-report.md', text: reportContent
+                    
+                    echo "📄 Report generated: package-health-report.md"
+                }
+            }
+            post {
+                always {
+                    // Archive the report
+                    archiveArtifacts artifacts: 'package-health-report.md', fingerprint: true
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            // Clean up
+            sh '''
+                rm -f agent.toml
+                rm -rf node_modules
+            '''
+        }
+        
+        success {
+            echo '✅ Package health check completed successfully!'
+        }
+        
+        failure {
+            echo '❌ Package health check failed!'
+            
+            // Send notification (customize as needed)
+            script {
+                if (env.RISKY_COUNT && env.RISKY_COUNT.toInteger() > 0) {
+                    // Could send email, Slack notification, etc.
+                    echo "Notification: ${env.RISKY_COUNT} risky packages detected in ${env.JOB_NAME} build ${env.BUILD_NUMBER}"
+                }
+            }
+        }
+        
+        unstable {
+            echo '⚠️ Package health check completed with warnings'
+        }
+    }
+}
+
+// Helper function to determine build status based on health results
+def shouldFailBuild(healthResults) {
+    for (dep in healthResults.keySet()) {
+        if (healthResults[dep].health_score == 'risky') {
+            return true
+        }
+    }
+    return false
+}

@@ -1,0 +1,286 @@
+# GitHub Actions workflow for Package Health Review
+# Place this file in .github/workflows/package-health-check.yml
+
+name: Package Health Check
+
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'yarn.lock'
+  workflow_dispatch:
+    inputs:
+      package_name:
+        description: 'Package name to analyze'
+        required: true
+        type: string
+
+jobs:
+  package-health-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install Qodo Command
+        run: |
+          # Install Qodo Command (adjust based on actual installation method)
+          npm install -g @qodo/command
+          
+      - name: Setup system dependencies for Playwright
+        run: |
+          # The Playwright MCP server will install browsers automatically
+          # We just need to ensure system dependencies are available
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 \
+            libatk-bridge2.0-0 \
+            libdrm2 \
+            libxkbcommon0 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxrandr2 \
+            libgbm1 \
+            libxss1 \
+            libasound2
+            
+      - name: Download Package Health Reviewer Agent
+        run: |
+          curl -o agent.toml https://raw.githubusercontent.com/qodo-ai/agents/main/agents/package-health-reviewer/agent.toml
+          
+      - name: Analyze specific package (manual trigger)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "Analyzing package: ${{ github.event.inputs.package_name }}"
+          
+          result=$(qodo --agent-file=agent.toml -y \
+            --set package_name="${{ github.event.inputs.package_name }}" \
+            --ci)
+          
+          echo "Analysis Result:"
+          echo "$result" | jq '.'
+          
+          health_score=$(echo "$result" | jq -r '.health_score')
+          overall_score=$(echo "$result" | jq -r '.overall_score')
+          
+          echo "Health Score: $health_score ($overall_score/100)"
+          
+          if [ "$health_score" = "risky" ]; then
+            echo "❌ RISKY package detected!"
+            echo "$result" | jq -r '.recommendations[]'
+            exit 1
+          elif [ "$health_score" = "sustainable" ]; then
+            echo "⚠️ SUSTAINABLE package - review recommended"
+            echo "$result" | jq -r '.recommendations[]'
+          else
+            echo "✅ HEALTHY package"
+          fi
+          
+      - name: Extract dependencies from package.json changes
+        if: github.event_name == 'pull_request'
+        id: extract-deps
+        run: |
+          # Get changed files
+          git fetch origin ${{ github.base_ref }}
+          
+          # Check if package.json was modified
+          if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -q "package.json"; then
+            echo "package.json was modified"
+            
+            # Extract new dependencies (this is a simplified approach)
+            # In practice, you might want to use a more sophisticated diff
+            NEW_DEPS=$(jq -r '.dependencies // {} | keys[]' package.json 2>/dev/null || echo "")
+            DEV_DEPS=$(jq -r '.devDependencies // {} | keys[]' package.json 2>/dev/null || echo "")
+            
+            # Combine and deduplicate
+            ALL_DEPS=$(echo -e "$NEW_DEPS\n$DEV_DEPS" | sort -u | grep -v '^$' || echo "")
+            
+            echo "dependencies<<EOF" >> $GITHUB_OUTPUT
+            echo "$ALL_DEPS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            
+            echo "Found dependencies to check:"
+            echo "$ALL_DEPS"
+          else
+            echo "No package.json changes detected"
+            echo "dependencies=" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Check health of dependencies
+        if: github.event_name == 'pull_request' && steps.extract-deps.outputs.dependencies != ''
+        run: |
+          echo "Checking health of dependencies..."
+          
+          # Read dependencies from previous step
+          dependencies="${{ steps.extract-deps.outputs.dependencies }}"
+          
+          risky_packages=()
+          sustainable_packages=()
+          healthy_packages=()
+          
+          # Process each dependency
+          while IFS= read -r dep; do
+            if [ -n "$dep" ]; then
+              echo ""
+              echo "🔍 Analyzing: $dep"
+              echo "-------------------"
+              
+              # Run health check
+              result=$(qodo --agent-file=agent.toml -y \
+                --set package_name="$dep" \
+                --set include_details=false \
+                --ci 2>/dev/null || echo '{"health_score":"error","error":"Analysis failed"}')
+              
+              health_score=$(echo "$result" | jq -r '.health_score // "error"')
+              overall_score=$(echo "$result" | jq -r '.overall_score // 0')
+              
+              case $health_score in
+                "healthy")
+                  echo "✅ HEALTHY: $dep (Score: $overall_score/100)"
+                  healthy_packages+=("$dep")
+                  ;;
+                "sustainable")
+                  echo "⚠️ SUSTAINABLE: $dep (Score: $overall_score/100)"
+                  sustainable_packages+=("$dep")
+                  ;;
+                "risky")
+                  echo "❌ RISKY: $dep (Score: $overall_score/100)"
+                  risky_packages+=("$dep")
+                  ;;
+                "error")
+                  echo "🔍 ERROR: Could not analyze $dep"
+                  ;;
+              esac
+              
+              # Add delay to be respectful to Snyk Advisor
+              sleep 2
+            fi
+          done <<< "$dependencies"
+          
+          # Summary
+          echo ""
+          echo "📊 HEALTH CHECK SUMMARY"
+          echo "======================="
+          echo "✅ Healthy packages: ${#healthy_packages[@]}"
+          echo "⚠️ Sustainable packages: ${#sustainable_packages[@]}"
+          echo "❌ Risky packages: ${#risky_packages[@]}"
+          
+          # Report details
+          if [ ${#healthy_packages[@]} -gt 0 ]; then
+            echo ""
+            echo "Healthy packages:"
+            printf '%s\n' "${healthy_packages[@]}"
+          fi
+          
+          if [ ${#sustainable_packages[@]} -gt 0 ]; then
+            echo ""
+            echo "Sustainable packages (review recommended):"
+            printf '%s\n' "${sustainable_packages[@]}"
+          fi
+          
+          if [ ${#risky_packages[@]} -gt 0 ]; then
+            echo ""
+            echo "⚠️ RISKY PACKAGES DETECTED:"
+            printf '%s\n' "${risky_packages[@]}"
+            echo ""
+            echo "These packages have security or maintenance concerns."
+            echo "Consider using alternatives or reviewing their risks carefully."
+            
+            # Fail the workflow if risky packages are found
+            exit 1
+          fi
+          
+      - name: Comment on PR with results
+        if: github.event_name == 'pull_request' && steps.extract-deps.outputs.dependencies != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // This would contain the actual results from the previous step
+            // For now, we'll create a simple comment
+            const comment = `
+            ## 📦 Package Health Check Results
+            
+            The package health analysis has completed for this PR.
+            
+            - ✅ Check the workflow logs for detailed results
+            - ⚠️ Any risky packages will cause the workflow to fail
+            - 🔍 Review sustainable packages for potential improvements
+            
+            For more information, see the [Package Health Reviewer documentation](https://github.com/qodo-ai/agents/tree/main/agents/package-health-reviewer).
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # Optional: Scheduled health check for existing dependencies
+  scheduled-health-audit:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: |
+          npm install -g @qodo/command
+          npm install playwright
+          npx playwright install chromium
+          
+      - name: Download agent
+        run: |
+          curl -o agent.toml https://raw.githubusercontent.com/qodo-ai/agents/main/agents/package-health-reviewer/agent.toml
+          
+      - name: Audit all dependencies
+        run: |
+          echo "🔍 Running scheduled package health audit..."
+          
+          # Extract all dependencies
+          deps=$(jq -r '.dependencies // {}, .devDependencies // {} | keys[]' package.json | sort -u)
+          
+          risky_count=0
+          
+          for dep in $deps; do
+            result=$(qodo --agent-file=agent.toml -y \
+              --set package_name="$dep" \
+              --set include_details=false \
+              --ci 2>/dev/null || echo '{"health_score":"error"}')
+            
+            health_score=$(echo "$result" | jq -r '.health_score // "error"')
+            
+            if [ "$health_score" = "risky" ]; then
+              echo "❌ RISKY: $dep"
+              ((risky_count++))
+            fi
+            
+            sleep 1
+          done
+          
+          if [ $risky_count -gt 0 ]; then
+            echo "⚠️ Found $risky_count risky packages in dependencies"
+            # Could create an issue or send notification here
+          fi
+
+# Uncomment to enable scheduled audits
+# on:
+#   schedule:
+#     - cron: '0 9 * * 1'  # Weekly on Monday at 9 AM UTC
