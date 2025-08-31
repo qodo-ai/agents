@@ -156,6 +156,7 @@ Community-contributed agents demonstrating various use cases and integrations.
 
 ### Security & Compliance
 - **[OpenSSF Scorecard Fixer](agents/openssf-scorecard-fixer/)** - Automatically fixes security issues identified by OpenSSF Scorecard to improve repository security posture *(contributed by [@lirantal](https://github.com/lirantal))*
+- **[Package Health Reviewer](agents/package-health-reviewer/)** - Automated package health assessment using Snyk Advisor data to analyze security, maintenance, and community metrics of software dependencies *(contributed by [@lirantal](https://github.com/lirantal))*
 - **[License Compliance Agent](agents/license-compliance/)** - Automated license compliance checking for multi-language projects with configurable policies and CI/CD integration *(contributed by [@agamm](https://github.com/agamm))*
 
 ### Infrastructure & DevOps
