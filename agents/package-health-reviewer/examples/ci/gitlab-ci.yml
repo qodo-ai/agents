@@ -1,0 +1,316 @@
+# GitLab CI configuration for Package Health Review
+# Place this in your .gitlab-ci.yml file
+
+stages:
+  - health-check
+  - report
+
+variables:
+  NODE_VERSION: "18"
+  PLAYWRIGHT_BROWSERS_PATH: "/opt/playwright"
+
+# Cache for faster builds
+cache:
+  paths:
+    - node_modules/
+    - /opt/playwright/
+
+before_script:
+  - apt-get update -qq
+  - apt-get install -y curl jq bc
+
+package-health-check:
+  stage: health-check
+  image: node:${NODE_VERSION}
+  
+  before_script:
+    - !reference [.install_dependencies]
+    
+  script:
+    - echo "🔍 Starting package health analysis..."
+    
+    # Download the agent configuration
+    - curl -o agent.toml https://raw.githubusercontent.com/qodo-ai/agents/main/agents/package-health-reviewer/agent.toml
+    
+    # Extract dependencies from package.json
+    - |
+      if [ -f "package.json" ]; then
+        echo "📦 Extracting dependencies from package.json..."
+        
+        # Get production dependencies
+        PROD_DEPS=$(jq -r '.dependencies // {} | keys[]' package.json 2>/dev/null || echo "")
+        
+        # Get dev dependencies (optional check)
+        DEV_DEPS=$(jq -r '.devDependencies // {} | keys[]' package.json 2>/dev/null || echo "")
+        
+        # Combine all dependencies
+        ALL_DEPS=$(echo -e "$PROD_DEPS\n$DEV_DEPS" | sort -u | grep -v '^$' || echo "")
+        
+        echo "Found $(echo "$ALL_DEPS" | wc -l) unique dependencies to analyze"
+        
+        # Initialize counters
+        healthy_count=0
+        sustainable_count=0
+        risky_count=0
+        error_count=0
+        
+        # Create results file
+        echo "# Package Health Analysis Report" > health_report.md
+        echo "Generated on: $(date)" >> health_report.md
+        echo "" >> health_report.md
+        
+        # Analyze each dependency
+        for dep in $ALL_DEPS; do
+          if [ -n "$dep" ]; then
+            echo ""
+            echo "🔍 Analyzing: $dep"
+            echo "-------------------"
+            
+            # Run health check with timeout
+            timeout 60s qodo --agent-file=agent.toml -y \
+              --set package_name="$dep" \
+              --set include_details=false \
+              --ci > "result_${dep}.json" 2>/dev/null || echo '{"health_score":"error","package_name":"'$dep'","error":"Analysis timeout or failed"}' > "result_${dep}.json"
+            
+            # Parse results
+            health_score=$(jq -r '.health_score // "error"' "result_${dep}.json")
+            overall_score=$(jq -r '.overall_score // 0' "result_${dep}.json")
+            
+            case $health_score in
+              "healthy")
+                echo "✅ HEALTHY: $dep (Score: $overall_score/100)"
+                echo "- ✅ **$dep**: Healthy (Score: $overall_score/100)" >> health_report.md
+                ((healthy_count++))
+                ;;
+              "sustainable")
+                echo "⚠️ SUSTAINABLE: $dep (Score: $overall_score/100)"
+                echo "- ⚠️ **$dep**: Sustainable (Score: $overall_score/100)" >> health_report.md
+                ((sustainable_count++))
+                ;;
+              "risky")
+                echo "❌ RISKY: $dep (Score: $overall_score/100)"
+                echo "- ❌ **$dep**: Risky (Score: $overall_score/100)" >> health_report.md
+                
+                # Add recommendations if available
+                recommendations=$(jq -r '.recommendations[]? // empty' "result_${dep}.json")
+                if [ -n "$recommendations" ]; then
+                  echo "  - Recommendations:" >> health_report.md
+                  echo "$recommendations" | while read -r rec; do
+                    echo "    - $rec" >> health_report.md
+                  done
+                fi
+                
+                # Add alternatives if available
+                alternatives=$(jq -r '.alternatives[]? // empty' "result_${dep}.json")
+                if [ -n "$alternatives" ]; then
+                  echo "  - Alternatives:" >> health_report.md
+                  echo "$alternatives" | while read -r alt; do
+                    echo "    - $alt" >> health_report.md
+                  done
+                fi
+                
+                ((risky_count++))
+                ;;
+              "error")
+                echo "🔍 ERROR: Could not analyze $dep"
+                echo "- 🔍 **$dep**: Analysis failed" >> health_report.md
+                ((error_count++))
+                ;;
+            esac
+            
+            # Clean up individual result file
+            rm -f "result_${dep}.json"
+            
+            # Rate limiting - be respectful to Snyk Advisor
+            sleep 2
+          fi
+        done
+        
+        # Generate summary
+        echo ""
+        echo "📊 HEALTH CHECK SUMMARY"
+        echo "======================="
+        echo "✅ Healthy packages: $healthy_count"
+        echo "⚠️ Sustainable packages: $sustainable_count"
+        echo "❌ Risky packages: $risky_count"
+        echo "🔍 Analysis errors: $error_count"
+        
+        # Add summary to report
+        echo "" >> health_report.md
+        echo "## Summary" >> health_report.md
+        echo "- ✅ Healthy packages: $healthy_count" >> health_report.md
+        echo "- ⚠️ Sustainable packages: $sustainable_count" >> health_report.md
+        echo "- ❌ Risky packages: $risky_count" >> health_report.md
+        echo "- 🔍 Analysis errors: $error_count" >> health_report.md
+        
+        # Export results for next stage
+        echo "HEALTHY_COUNT=$healthy_count" >> health_summary.env
+        echo "SUSTAINABLE_COUNT=$sustainable_count" >> health_summary.env
+        echo "RISKY_COUNT=$risky_count" >> health_summary.env
+        echo "ERROR_COUNT=$error_count" >> health_summary.env
+        
+        # Fail if risky packages found
+        if [ $risky_count -gt 0 ]; then
+          echo ""
+          echo "⚠️ RISKY PACKAGES DETECTED!"
+          echo "This pipeline will fail due to security or maintenance concerns."
+          echo "Review the risky packages and consider alternatives."
+          exit 1
+        fi
+        
+      else
+        echo "❌ No package.json found in repository"
+        exit 1
+      fi
+      
+  artifacts:
+    reports:
+      # GitLab can display this as a downloadable artifact
+      junit: health_report.xml
+    paths:
+      - health_report.md
+      - health_summary.env
+    expire_in: 1 week
+    when: always
+    
+  only:
+    changes:
+      - package.json
+      - package-lock.json
+      - yarn.lock
+      
+  # Allow manual triggering
+  when: manual
+  allow_failure: false
+
+# Generate detailed report
+generate-report:
+  stage: report
+  image: alpine:latest
+  
+  dependencies:
+    - package-health-check
+    
+  before_script:
+    - apk add --no-cache curl jq
+    
+  script:
+    - echo "📋 Generating detailed health report..."
+    
+    # Load summary data
+    - source health_summary.env
+    
+    # Create detailed report
+    - |
+      cat << EOF > detailed_health_report.md
+      # Package Health Analysis - Detailed Report
+      
+      **Repository**: $CI_PROJECT_NAME  
+      **Branch**: $CI_COMMIT_REF_NAME  
+      **Commit**: $CI_COMMIT_SHA  
+      **Pipeline**: $CI_PIPELINE_URL  
+      **Generated**: $(date)
+      
+      ## Executive Summary
+      
+      | Status | Count | Percentage |
+      |--------|-------|------------|
+      | ✅ Healthy | $HEALTHY_COUNT | $(echo "scale=1; $HEALTHY_COUNT * 100 / ($HEALTHY_COUNT + $SUSTAINABLE_COUNT + $RISKY_COUNT + $ERROR_COUNT)" | bc)% |
+      | ⚠️ Sustainable | $SUSTAINABLE_COUNT | $(echo "scale=1; $SUSTAINABLE_COUNT * 100 / ($HEALTHY_COUNT + $SUSTAINABLE_COUNT + $RISKY_COUNT + $ERROR_COUNT)" | bc)% |
+      | ❌ Risky | $RISKY_COUNT | $(echo "scale=1; $RISKY_COUNT * 100 / ($HEALTHY_COUNT + $SUSTAINABLE_COUNT + $RISKY_COUNT + $ERROR_COUNT)" | bc)% |
+      | 🔍 Errors | $ERROR_COUNT | $(echo "scale=1; $ERROR_COUNT * 100 / ($HEALTHY_COUNT + $SUSTAINABLE_COUNT + $RISKY_COUNT + $ERROR_COUNT)" | bc)% |
+      
+      ## Recommendations
+      
+      EOF
+      
+    # Add recommendations based on results
+    - |
+      if [ $RISKY_COUNT -gt 0 ]; then
+        echo "### 🚨 Immediate Action Required" >> detailed_health_report.md
+        echo "- $RISKY_COUNT risky packages detected" >> detailed_health_report.md
+        echo "- Review alternatives for risky packages" >> detailed_health_report.md
+        echo "- Consider security implications before deployment" >> detailed_health_report.md
+        echo "" >> detailed_health_report.md
+      fi
+      
+      if [ $SUSTAINABLE_COUNT -gt 0 ]; then
+        echo "### ⚠️ Review Recommended" >> detailed_health_report.md
+        echo "- $SUSTAINABLE_COUNT sustainable packages found" >> detailed_health_report.md
+        echo "- Monitor for updates and security patches" >> detailed_health_report.md
+        echo "- Consider migration planning for long-term maintenance" >> detailed_health_report.md
+        echo "" >> detailed_health_report.md
+      fi
+      
+      if [ $HEALTHY_COUNT -gt 0 ]; then
+        echo "### ✅ Good Practices" >> detailed_health_report.md
+        echo "- $HEALTHY_COUNT healthy packages - excellent choices!" >> detailed_health_report.md
+        echo "- Keep these packages updated to maintain security" >> detailed_health_report.md
+        echo "" >> detailed_health_report.md
+      fi
+    
+    # Append original report
+    - echo "## Detailed Analysis" >> detailed_health_report.md
+    - cat health_report.md >> detailed_health_report.md
+    
+    # Create GitLab Pages content if enabled
+    - mkdir -p public
+    - cp detailed_health_report.md public/index.md
+    
+  artifacts:
+    paths:
+      - detailed_health_report.md
+      - public/
+    expire_in: 30 days
+    
+  only:
+    - main
+    - master
+    - develop
+
+# Hidden job for reusable installation steps
+.install_dependencies:
+  - echo "🔧 Installing dependencies..."
+  
+  # Install Qodo Command (adjust based on actual installation method)
+  - npm install -g @qodo/command
+  
+  # Install system dependencies for Playwright
+  # The Playwright MCP server will install browsers automatically
+  - apt-get install -y \
+      libnss3 \
+      libatk-bridge2.0-0 \
+      libdrm2 \
+      libxkbcommon0 \
+      libxcomposite1 \
+      libxdamage1 \
+      libxrandr2 \
+      libgbm1 \
+      libxss1 \
+      libasound2
+
+# Optional: Scheduled health audit
+scheduled-audit:
+  stage: health-check
+  extends: package-health-check
+  
+  only:
+    - schedules
+    
+  script:
+    - echo "🕐 Running scheduled package health audit..."
+    - !reference [package-health-check, script]
+    
+  # Don't fail on risky packages for scheduled runs (just report)
+  allow_failure: true
+
+# Variables for different environments
+variables:
+  # Fail pipeline on risky packages (set to "false" for warnings only)
+  FAIL_ON_RISKY: "true"
+  
+  # Include dev dependencies in analysis
+  INCLUDE_DEV_DEPS: "true"
+  
+  # Maximum analysis time per package (seconds)
+  ANALYSIS_TIMEOUT: "60"

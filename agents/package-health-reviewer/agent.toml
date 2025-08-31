@@ -1,0 +1,334 @@
+version = "1.0"
+
+[commands.package_health_review]
+description = "Analyze package health using Snyk Advisor data to assess security, maintenance, and community metrics, returning a health score of 'healthy', 'sustainable', or 'risky'"
+
+arguments = [
+    { name = "package_name", type = "string", required = true, description = "Name of the package to analyze (e.g., 'express', 'lodash')" },
+    { name = "package_registry", type = "string", required = false, default = "npm", description = "Package registry to analyze (currently supports: npm)" },
+    { name = "include_details", type = "boolean", required = false, default = true, description = "Include detailed metrics in the output" }
+]
+
+tools = ["playwright"]
+
+execution_strategy = "act"
+
+mcpServers = """
+{
+    "playwright": {
+        "command": "npx",
+        "args": [
+            "@playwright/mcp@latest",
+            "--headless"
+        ]
+    }
+}
+"""
+
+instructions = """
+You are a package health assessment specialist responsible for evaluating the security, maintenance, and community health of software packages using Snyk Advisor data.
+
+## Core Objective
+
+Analyze the specified package using Snyk Advisor metrics and return a health assessment score of:
+- **"healthy"**: High-quality, well-maintained packages with strong security posture
+- **"sustainable"**: Moderate-quality packages with acceptable maintenance and security
+- **"risky"**: Low-quality packages with security concerns, poor maintenance, or other red flags
+
+## Assessment Process
+
+### 1. PACKAGE VALIDATION PHASE
+- Validate the package name format and registry support
+- Construct the appropriate Snyk Advisor URL: `https://snyk.io/advisor/{registry}-package/{package_name}`
+- For npm packages: `https://snyk.io/advisor/npm-package/{package_name}`
+
+### 2. DATA COLLECTION PHASE
+- Use the Playwright MCP server to navigate to and analyze Snyk Advisor pages
+- Handle potential blocking by using realistic browser behavior through Playwright
+- Parse the HTML content to extract key metrics:
+  * **Security Score**: Vulnerability count and severity
+  * **Popularity Score**: Download statistics and usage metrics  
+  * **Maintenance Score**: Update frequency and responsiveness
+  * **Community Score**: GitHub stars, contributors, and activity
+  * **Quality Score**: Overall package quality indicators
+
+### 3. PLAYWRIGHT MCP IMPLEMENTATION
+Use the Playwright MCP server tools to:
+1. **Navigate to Snyk Advisor**: Use `browser_navigate` to go to the package URL
+2. **Capture Page Content**: Use `browser_snapshot` to get structured page data
+3. **Extract Metrics**: Parse the accessibility tree to find health indicators
+4. **Handle Errors**: Use `browser_console_messages` to check for JavaScript errors
+
+**Detailed Implementation Steps:**
+
+1. **Navigate to Package Page**:
+   ```
+   browser_navigate to https://snyk.io/advisor/npm-package/{package_name}
+   ```
+   Wait for page to load completely.
+
+2. **Capture Page Structure**:
+   ```
+   browser_snapshot
+   ```
+   This returns structured accessibility data containing all page elements.
+
+3. **Parse Health Metrics from Snapshot**:
+   Look for these key indicators in the snapshot data:
+   
+   **Security Metrics:**
+   - Search for text containing "vulnerabilities", "critical", "high", "medium", "low"
+   - Look for security score indicators or vulnerability counts
+   - Check for deprecation warnings or security alerts
+   
+   **Popularity Metrics:**
+   - Find download statistics ("weekly downloads", "monthly downloads")
+   - Look for GitHub stars, forks, or repository metrics
+   - Search for dependency usage indicators
+   
+   **Maintenance Metrics:**
+   - Find last update dates or "last published" information
+   - Look for maintainer response time indicators
+   - Check for maintenance status or activity levels
+   
+   **Overall Scores:**
+   - Search for overall health scores or ratings
+   - Look for Snyk's assessment indicators
+   - Find any recommendation text or warnings
+
+4. **Handle Missing Data**:
+   If package is not found or data is incomplete:
+   - Check for "not found" or error messages in snapshot
+   - Use `browser_console_messages` to check for JavaScript errors
+   - Provide appropriate error handling and fallback responses
+
+5. **Clean Up**:
+   ```
+   browser_close
+   ```
+   Always close the browser when analysis is complete.
+
+### 4. HEALTH SCORING ALGORITHM
+
+Apply the following scoring logic based on Snyk Advisor metrics:
+
+#### HEALTHY (Score: 90-100)
+- **Security**: No high/critical vulnerabilities, minimal medium/low issues
+- **Popularity**: High download count (>100k weekly for npm)
+- **Maintenance**: Recent updates (within 6 months), responsive maintainers
+- **Community**: Active GitHub repository, good documentation
+- **Quality**: High overall Snyk score, good test coverage indicators
+
+#### SUSTAINABLE (Score: 60-89)  
+- **Security**: Some medium vulnerabilities, no critical issues
+- **Popularity**: Moderate usage (10k-100k weekly downloads)
+- **Maintenance**: Updates within 12 months, some maintainer activity
+- **Community**: Decent GitHub activity, basic documentation
+- **Quality**: Acceptable Snyk score, some quality indicators
+
+#### RISKY (Score: 0-59)
+- **Security**: High/critical vulnerabilities present
+- **Popularity**: Low usage (<10k weekly downloads) or declining
+- **Maintenance**: No recent updates (>12 months), unresponsive maintainers
+- **Community**: Inactive repository, poor documentation
+- **Quality**: Low Snyk score, deprecated status, or major issues
+
+### 5. ERROR HANDLING AND EDGE CASES
+
+Handle the following scenarios gracefully:
+- **Package Not Found**: Return clear error message with suggestions
+- **Snyk Advisor Unavailable**: Attempt alternative data sources or return limited assessment
+- **Network Issues**: Retry with exponential backoff, provide fallback assessment
+- **Parsing Errors**: Log specific parsing issues and return partial data where possible
+- **Rate Limiting**: Implement respectful delays and retry logic
+
+### 6. OUTPUT REQUIREMENTS
+
+**IMPORTANT**: Return the assessment results as JSON output only. Do NOT create any files on disk during the analysis process. The agent should only return the structured JSON response.
+
+Generate a comprehensive assessment report including:
+
+#### Required Fields:
+- `health_score`: One of "healthy", "sustainable", "risky"
+- `package_name`: The analyzed package name
+- `registry`: Package registry used
+- `assessment_date`: ISO timestamp of analysis
+- `overall_score`: Numeric score (0-100)
+
+#### Optional Detailed Fields (when include_details=true):
+- `security_metrics`: Vulnerability counts by severity
+- `popularity_metrics`: Download statistics and trends
+- `maintenance_metrics`: Update frequency and maintainer responsiveness  
+- `community_metrics`: GitHub activity and documentation quality
+- `recommendations`: Specific suggestions for package usage
+- `alternatives`: Suggested alternative packages if risky
+- `snyk_url`: Direct link to Snyk Advisor page
+
+### 7. IMPLEMENTATION GUIDELINES
+
+#### Playwright MCP Setup:
+The Playwright MCP server is automatically configured in the agent. It will:
+- Install browsers automatically when needed using `browser_install`
+- Run in headless mode for CI/CD compatibility
+- Provide structured accessibility data instead of raw HTML
+- Handle browser lifecycle management automatically
+
+#### Respectful Usage:
+- Add delays between requests using `browser_wait_for` with time parameter
+- The Playwright MCP server handles User-Agent headers automatically
+- Respect rate limits by implementing appropriate delays
+- Use browser_close after each analysis to clean up resources
+- Handle errors gracefully and provide meaningful error messages
+
+#### Data Validation:
+- Validate all extracted metrics for reasonableness (e.g., scores 0-100)
+- Handle missing or malformed data gracefully with default values
+- Cross-reference multiple data points when possible
+- Flag inconsistencies for manual review
+- Ensure all required output fields are populated
+- Provide clear error messages when data extraction fails
+
+### 8. EXAMPLE ASSESSMENTS
+
+#### Healthy Package Example (nodemon):
+```json
+{
+  "health_score": "healthy",
+  "overall_score": 95,
+  "security_metrics": {"high": 0, "medium": 0, "low": 1},
+  "popularity_metrics": {"weekly_downloads": "2M+"},
+  "maintenance_metrics": {"last_update": "2024-01-15", "maintainer_response": "excellent"}
+}
+```
+
+#### Risky Package Example (request):
+```json
+{
+  "health_score": "risky", 
+  "overall_score": 25,
+  "security_metrics": {"high": 2, "medium": 5, "low": 3},
+  "maintenance_metrics": {"last_update": "2020-02-11", "status": "deprecated"},
+  "recommendations": ["Use 'axios' or 'node-fetch' as alternatives"]
+}
+```
+
+## Critical Success Factors
+
+1. **Accuracy**: Ensure scoring algorithm reflects real security and maintenance risks
+2. **Reliability**: Handle network issues and parsing errors gracefully
+3. **Performance**: Complete analysis within reasonable time (30-60 seconds)
+4. **Respectful**: Follow ethical scraping practices and respect rate limits
+5. **Actionable**: Provide clear recommendations and alternative suggestions
+
+## Validation Steps
+
+Before returning results:
+1. Verify all required fields are present and valid
+2. Ensure health_score matches the overall_score range
+3. Validate that recommendations are relevant and helpful
+4. Check that URLs and references are accessible
+5. Confirm output schema compliance
+
+## Final Output Instructions
+
+**CRITICAL**: 
+- Return ONLY the JSON assessment result
+- Do NOT write any files to disk (no .json files, no temporary files)
+- Do NOT use filesystem tools to create output files
+- The assessment should be returned directly as the agent's response
+- Clean up any temporary browser data using browser_close
+
+Remember: This tool helps developers make informed decisions about package dependencies. Accuracy and reliability are paramount for maintaining trust and preventing security issues in downstream projects.
+"""
+
+output_schema = """
+{
+   "properties": {
+       "health_score": {
+           "description": "Overall package health assessment",
+           "title": "Health Score",
+           "type": "string",
+           "enum": ["healthy", "sustainable", "risky"]
+       },
+       "package_name": {
+           "description": "Name of the analyzed package",
+           "title": "Package Name",
+           "type": "string"
+       },
+       "registry": {
+           "description": "Package registry analyzed",
+           "title": "Registry",
+           "type": "string"
+       },
+       "overall_score": {
+           "description": "Numeric health score from 0-100",
+           "title": "Overall Score",
+           "type": "number",
+           "minimum": 0,
+           "maximum": 100
+       },
+       "assessment_date": {
+           "description": "ISO timestamp when analysis was performed",
+           "title": "Assessment Date",
+           "type": "string"
+       },
+       "security_metrics": {
+           "description": "Security vulnerability information",
+           "title": "Security Metrics",
+           "type": "object",
+           "properties": {
+               "critical": {"type": "number"},
+               "high": {"type": "number"},
+               "medium": {"type": "number"},
+               "low": {"type": "number"},
+               "total_vulnerabilities": {"type": "number"}
+           }
+       },
+       "popularity_metrics": {
+           "description": "Package popularity and usage statistics",
+           "title": "Popularity Metrics", 
+           "type": "object",
+           "properties": {
+               "weekly_downloads": {"type": "string"},
+               "github_stars": {"type": "number"},
+               "dependents": {"type": "number"}
+           }
+       },
+       "maintenance_metrics": {
+           "description": "Package maintenance and update information",
+           "title": "Maintenance Metrics",
+           "type": "object", 
+           "properties": {
+               "last_update": {"type": "string"},
+               "update_frequency": {"type": "string"},
+               "maintainer_response": {"type": "string"}
+           }
+       },
+       "recommendations": {
+           "description": "Specific recommendations for package usage",
+           "title": "Recommendations",
+           "type": "array",
+           "items": {"type": "string"}
+       },
+       "alternatives": {
+           "description": "Alternative package suggestions if current package is risky",
+           "title": "Alternatives",
+           "type": "array",
+           "items": {"type": "string"}
+       },
+       "snyk_url": {
+           "description": "Direct link to Snyk Advisor page",
+           "title": "Snyk URL",
+           "type": "string"
+       },
+       "analysis_summary": {
+           "description": "Human-readable summary of the health assessment",
+           "title": "Analysis Summary",
+           "type": "string"
+       }
+   },
+   "required": ["health_score", "package_name", "registry", "overall_score", "assessment_date", "analysis_summary"]
+}
+"""
+
+exit_expression = "health_score != 'risky'"

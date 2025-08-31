@@ -1,0 +1,29 @@
+{
+  "name": "package-health-reviewer-scripts",
+  "version": "1.0.0",
+  "description": "Helper scripts for the Package Health Reviewer agent",
+  "main": "snyk-advisor-scraper.js",
+  "scripts": {
+    "test": "node snyk-advisor-scraper.js express",
+    "install-playwright": "npx playwright install chromium",
+    "test-healthy": "node snyk-advisor-scraper.js express",
+    "test-risky": "node snyk-advisor-scraper.js request",
+    "test-sustainable": "node snyk-advisor-scraper.js lodash"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "package-health",
+    "security",
+    "snyk",
+    "playwright",
+    "scraping"
+  ],
+  "author": "Qodo AI",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

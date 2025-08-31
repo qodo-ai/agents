@@ -1,0 +1,81 @@
+{
+  "health_score": "healthy",
+  "package_name": "express",
+  "registry": "npm",
+  "assessment_date": "2025-01-27T10:44:00Z",
+  "overall_score": 90,
+  "security_metrics": {
+    "overall_status": "No known security issues",
+    "current_version_vulnerabilities": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    "historical_vulnerabilities": {
+      "v3.21.2": {
+        "critical": 0,
+        "high": 0,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    "license": "MIT",
+    "security_policy": true
+  },
+  "popularity_metrics": {
+    "weekly_downloads": 47025314,
+    "download_classification": "Key ecosystem project",
+    "github_stars": 67610,
+    "github_forks": 20450,
+    "contributors": 310,
+    "usage_ranking": "TOP 5%"
+  },
+  "maintenance_metrics": {
+    "status": "Sustainable",
+    "last_release": "5 months ago",
+    "last_commit": "8 days ago",
+    "open_issues": 105,
+    "open_pull_requests": 88,
+    "version_release_cadence": "Positive - at least one new version in past 12 months",
+    "community_interaction": "Active - regular PR and issue interactions"
+  },
+  "community_metrics": {
+    "status": "Active",
+    "github_activity": "High",
+    "maintainer_responsiveness": "Good",
+    "documentation_quality": "Comprehensive"
+  },
+  "recommendations": [
+    "Express is a highly recommended package for Node.js web applications",
+    "Excellent security posture with no known vulnerabilities in current versions",
+    "Strong community support and active maintenance",
+    "Consider staying on the latest stable version (v5.1.0) for best security",
+    "Monitor for updates as the project is actively maintained"
+  ],
+  "alternatives": [],
+  "snyk_url": "https://snyk.io/advisor/npm-package/express",
+  "detailed_analysis": {
+    "security_assessment": {
+      "score": 95,
+      "rationale": "No known security issues in current versions. Historical vulnerabilities in v3.x have been resolved. MIT license is permissive and safe. Security policy is in place."
+    },
+    "popularity_assessment": {
+      "score": 98,
+      "rationale": "Exceptional popularity with 47M+ weekly downloads. Classified as 'Key ecosystem project'. Top 5% usage ranking. Strong GitHub metrics with 67K+ stars."
+    },
+    "maintenance_assessment": {
+      "score": 85,
+      "rationale": "Sustainable maintenance with recent commits (8 days ago). Last release 5 months ago is reasonable for a mature project. Active community with 105 open issues and 88 PRs."
+    },
+    "community_assessment": {
+      "score": 90,
+      "rationale": "Active community with 310 contributors. Strong GitHub presence. Good documentation and examples available."
+    }
+  },
+  "risk_factors": [
+    "Mature project with slower release cycles - not necessarily a negative",
+    "High number of open issues (105) but proportional to project size and popularity"
+  ],
+  "summary": "Express is a healthy, well-maintained package that is safe to use in production applications. It demonstrates excellent security practices, massive popularity, sustainable maintenance, and an active community. The package is a cornerstone of the Node.js ecosystem and continues to be actively developed and supported."
+}
