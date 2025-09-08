@@ -70,8 +70,8 @@ jobs:
       - name: Run Qodo Coverage Bot
         uses: qodo-ai/command@v1
         with:
-          prompt: "qodo-test-gen"
-          agent-file: "${{ github.workspace }}/.qodo/agents/test-gen.toml"
+          prompt: "qodo-cover"
+          agent-file: "${{ github.workspace }}/.qodo/agents/qodo-cover.toml"
           key-value-pairs: |
             desired_coverage=80
         env:

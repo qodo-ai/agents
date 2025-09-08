@@ -1,4 +1,4 @@
-[commands.qodo-test-gen]
+[commands.qodo-cover]
 description = "Test Generator(gen) - Automated test coverage bot for GitHub PRs - analyzes changes, generates meaningful passing tests, and creates follow-up PRs"
 
 # Available tools for this command
