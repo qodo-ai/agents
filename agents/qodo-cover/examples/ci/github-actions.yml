@@ -1,0 +1,56 @@
+name: Test Generative Bot
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - labeled
+      - synchronize
+      - reopened
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  coverage:
+    # Only run if:
+    # 1. PR was just labeled with 'qodo-cover', OR
+    # 2. PR was synchronized (new commits) and has 'qodo-cover' label, OR
+    # 3. PR was reopened and has 'qodo-cover' label
+    # 4. PR is open (not closed or draft)
+    if: |
+      (
+        (github.event.action == 'labeled' && contains(github.event.label.name, 'qodo-cover')) ||
+        (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'qodo-cover')) ||
+        (github.event.action == 'reopened' && contains(github.event.pull_request.labels.*.name, 'qodo-cover'))
+      ) &&
+      github.event.pull_request.state == 'open' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Checkout the PR branch, not the merge commit
+          ref: ${{ github.event.pull_request.head.sha }}
+          # Fetch full history for proper diff analysis
+          fetch-depth: 0
+        
+      - name: Run Qodo Coverage Bot
+        uses: qodo-ai/command@v1
+        with:
+          prompt: "qodo-cover"
+          agent-file: "${{ github.workspace }}/.qodo/agents/qodo-cover.toml"
+          key-value-pairs: |
+            desired_coverage=80
+          # 100% is often difficult to get
+        env:
+          QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
