@@ -1,0 +1,739 @@
+version = "1.0"
+[commands.tdd]
+description = "This agent is designed to execute JUnit5 tests in a Java environment. To test a JVM application using Test-Driven Development with JUnit5 Framework"
+
+execution_strategy = "act"
+
+output_schema = """
+{
+    "properties": {
+        "success": {
+            "description": "Whether the task completed successfully",
+            "type": "boolean"
+        }
+    }
+}
+"""
+
+exit_expression = "success"
+
+arguments = [
+    { name = "pageid", type = "string", required = true, description = "This is the page id for the Atlassian Confluence page that will be used for the requirements" }
+]
+
+
+instructions = """
+## Context
+You must use the mcpServer confluence with tool conf_get_page using this page id :{pageid}.
+
+You are tasked with implementing unit tests for this requirement using JUnit5 following Test-Driven Development (TDD) and Behavior-Driven Development (BDD) principles. The implementation code does not exist yet. Based on the confluence page with page id:{pageid} that you retrieved using the mcp tool conf_get_page, first create skeleton class(es) with minimal structure (e.g., empty methods or stubbed methods that return default values) so that the tests can compile. Do NOT provide any real implementation at this stage—only stubs are allowed. Then, write comprehensive tests that specify the required behavior. These tests are expected to fail, since only stubs are present. The next phase will be to implement the actual logic to make the tests pass.
+
+## Build System Detection and Test Execution
+
+Before writing tests, identify the build system being used in the project by searching for these key files:
+
+### Gradle Projects
+Look for:
+- `gradlew` or `gradlew.bat` (Gradle wrapper scripts)
+- `build.gradle` or `build.gradle.kts` (Gradle build files)
+- `gradle.properties` (Gradle configuration)
+- `settings.gradle` or `settings.gradle.kts` (Gradle settings)
+
+**Commands to build and run JUnit5 tests with Gradle:**
+```bash
+# Build the project
+./gradlew build
+
+# Run all tests
+./gradlew test
+
+# Run specific test class
+./gradlew test --tests "com.example.ShoppingCartTest"
+
+# Run tests with specific pattern
+./gradlew test --tests "*Test"
+
+# Run tests in continuous mode (re-run on file changes)
+./gradlew test --continuous
+
+# Clean and test
+./gradlew clean test
+```
+
+### Maven Projects
+Look for:
+- `pom.xml` (Maven project file)
+- `mvnw` or `mvnw.cmd` (Maven wrapper scripts)
+- `.mvn/` directory (Maven wrapper configuration)
+
+**Commands to build and run JUnit5 tests with Maven:**
+```bash
+# Build the project
+./mvnw compile
+
+# Run all tests
+./mvnw test
+
+# Run specific test class
+./mvnw test -Dtest=ShoppingCartTest
+
+# Run tests with pattern
+./mvnw test -Dtest="*Test"
+
+# Clean and test
+./mvnw clean test
+
+# Skip tests during build
+./mvnw compile -DskipTests
+```
+
+### Project Structure Considerations
+When creating JUnit5 tests, follow the standard directory structure:
+
+**Gradle Project Structure:**
+```
+src/
+├── main/
+│   └── java/            # Main Java source code
+└── test/
+    ├���─ java/            # JUnit5 test classes (*.java)
+    └── resources/       # Test resources
+```
+
+**Maven Project Structure:**
+```
+src/
+├── main/
+│   └── java/            # Main Java source code
+└── test/
+    ├── java/            # JUnit5 test classes (*.java)
+    └── resources/       # Test resources
+```
+
+### Build Configuration Requirements
+Ensure the build file includes JUnit5 dependencies:
+
+**For Gradle (build.gradle):**
+```groovy
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testImplementation 'org.mockito:mockito-core:5.15.2'
+    testImplementation 'org.assertj:assertj-core:3.27.3'
+}
+
+test {
+    useJUnitPlatform()
+}
+```
+
+**For Maven (pom.xml):**
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>5.11.4</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>5.15.2</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-junit-jupiter</artifactId>
+        <version>5.15.2</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>3.27.3</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+### Test Execution Workflow
+1. **Identify build system** by checking for build files
+2. **Create test classes** in the appropriate test directory
+3. **Run tests** using the build system's test command
+4. **Verify test failures** (Red phase of TDD)
+5. **Implement minimal code** to make tests pass
+6. **Re-run tests** to verify they pass (Green phase)
+7. **Refactor** while keeping tests green
+
+## Core Instructions
+
+### 1. Test Structure and Organization
+
+Create JUnit5 test classes that:
+- Use descriptive class names ending with `Test` (e.g., `ShoppingCartTest`, `PaymentProcessorTest`)
+- Group related test scenarios within the same test class
+- Use `@DisplayName` annotations for descriptive test names
+- Organize tests using `@Nested` classes for logical grouping
+
+Example structure:
+```java
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import static org.junit.jupiter.api.Assertions.*;
+
+@DisplayName("Shopping Cart Tests")
+class ShoppingCartTest {
+    
+    private ShoppingCart cart;
+    
+    @BeforeEach
+    void setUp() {
+        cart = new ShoppingCart();
+    }
+    
+    @Nested
+    @DisplayName("When cart is empty")
+    class EmptyCartTests {
+        // Empty cart test methods
+    }
+    
+    @Nested
+    @DisplayName("When adding items")
+    class AddItemTests {
+        // Add item test methods
+    }
+}
+```
+
+### 2. Test Method Design
+
+Each test method should:
+- Have a descriptive name that explains the behavior being tested
+- Follow the Arrange-Act-Assert (AAA) pattern
+- Test one specific behavior or scenario
+- Use `@DisplayName` for clear documentation
+
+Template:
+```java
+@Test
+@DisplayName("Should calculate total price including tax when items are added to cart")
+void shouldCalculateTotalPriceIncludingTaxWhenItemsAreAddedToCart() {
+    // Arrange
+    ShoppingCart cart = new ShoppingCart(0.08); // 8% tax rate
+    
+    // Act
+    cart.addItem("laptop", 999.99, 1);
+    cart.addItem("mouse", 29.99, 2);
+    
+    // Assert
+    assertEquals(1059.97, cart.getSubtotal(), 0.01);
+    assertEquals(84.80, cart.getTax(), 0.01);
+    assertEquals(1144.77, cart.getTotal(), 0.01);
+}
+```
+
+### 3. Test Coverage Requirements
+
+For each class/component, create tests that cover:
+
+#### Basic Functionality Tests
+- Happy path scenarios
+- Edge cases (empty collections, null values, boundary values)
+- Invalid input handling
+- State transitions
+
+#### Exception Scenarios
+```java
+@Test
+@DisplayName("Should throw exception when adding item with negative price")
+void shouldThrowExceptionWhenAddingItemWithNegativePrice() {
+    // Arrange
+    ShoppingCart cart = new ShoppingCart();
+    
+    // Act & Assert
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> cart.addItem("invalid item", -10.00, 1)
+    );
+    
+    assertEquals("Item price cannot be negative", exception.getMessage());
+}
+```
+
+#### Parameterized Tests
+Use `@ParameterizedTest` for testing multiple scenarios:
+```java
+@ParameterizedTest
+@DisplayName("Should calculate discount based on quantity")
+@CsvSource({
+    "1, 0.0",
+    "5, 0.05",
+    "10, 0.10",
+    "20, 0.15"
+})
+void shouldCalculateDiscountBasedOnQuantity(int quantity, double expectedDiscount) {
+    // Arrange
+    ShoppingCart cart = new ShoppingCart();
+    
+    // Act
+    double actualDiscount = cart.calculateDiscount(quantity);
+    
+    // Assert
+    assertEquals(expectedDiscount, actualDiscount, 0.001);
+}
+```
+
+### 4. Mock and Stub Usage with Mockito
+
+For testing interactions with dependencies:
+```java
+@ExtendWith(MockitoExtension.class)
+class ShoppingCartTest {
+    
+    @Mock
+    private InventoryService inventoryService;
+    
+    @InjectMocks
+    private ShoppingCart cart;
+    
+    @Test
+    @DisplayName("Should notify inventory service when item is added to cart")
+    void shouldNotifyInventoryServiceWhenItemIsAddedToCart() {
+        // Arrange
+        when(inventoryService.checkAvailability("laptop", 2)).thenReturn(true);
+        
+        // Act
+        cart.addItem("laptop", 999.99, 2);
+        
+        // Assert
+        verify(inventoryService).checkAvailability("laptop", 2);
+        verify(inventoryService).reserveItems("laptop", 2);
+    }
+}
+```
+
+### 5. BDD-Style Test Organization
+
+Write tests that serve as living documentation using nested classes:
+
+```java
+@DisplayName("Shopping Cart Management")
+class ShoppingCartBehaviorTest {
+    
+    @Nested
+    @DisplayName("Given an empty shopping cart")
+    class GivenEmptyShoppingCart {
+        
+        private ShoppingCart cart;
+        
+        @BeforeEach
+        void setUp() {
+            cart = new ShoppingCart();
+        }
+        
+        @Nested
+        @DisplayName("When customer adds a product")
+        class WhenCustomerAddsProduct {
+            
+            @Test
+            @DisplayName("Then cart should contain one item")
+            void thenCartShouldContainOneItem() {
+                // Arrange
+                Product product = new Product("ABC123", "Laptop", 999.99);
+                
+                // Act
+                cart.addProduct(product);
+                
+                // Assert
+                assertEquals(1, cart.getItemCount());
+                assertEquals(product.getPrice(), cart.getTotal());
+            }
+        }
+    }
+}
+```
+
+### 6. Test Lifecycle Management
+
+#### Setup and Cleanup Pattern
+```java
+class ShoppingCartTest {
+    
+    private TestDatabase database;
+    private ShoppingCart cart;
+    
+    @BeforeAll
+    static void setUpClass() {
+        // Run once before all tests in this class
+        System.setProperty("test.env", "true");
+    }
+    
+    @AfterAll
+    static void tearDownClass() {
+        // Run once after all tests in this class
+        System.clearProperty("test.env");
+    }
+    
+    @BeforeEach
+    void setUp() {
+        // Run before each test method
+        database = new TestDatabase();
+        database.connect();
+        cart = new ShoppingCart();
+    }
+    
+    @AfterEach
+    void tearDown() {
+        // Run after each test method
+        if (database != null) {
+            database.disconnect();
+        }
+    }
+}
+```
+
+#### Helper Methods for Complex Assertions
+```java
+@Test
+@DisplayName("Should process order successfully")
+void shouldProcessOrderSuccessfully() {
+    // Arrange
+    Order order = createValidOrder();
+    
+    // Act
+    OrderResult result = orderProcessor.process(order);
+    
+    // Assert
+    assertOrderProcessedSuccessfully(result);
+}
+
+private void assertOrderProcessedSuccessfully(OrderResult result) {
+    assertAll("Order processing validation",
+        () -> assertEquals(OrderStatus.COMPLETED, result.getStatus()),
+        () -> assertNotNull(result.getConfirmationNumber()),
+        () -> assertNotNull(result.getEstimatedDelivery()),
+        () -> assertTrue(result.getTotalCharged() > 0)
+    );
+}
+```
+
+### 7. Specific Testing Scenarios
+
+Create comprehensive test suites for these common patterns:
+
+#### State Testing
+- Object initialization and default values
+- State changes after method calls
+- Immutability verification
+
+#### Behavioral Testing
+- Method invocation sequences
+- Callback and event handling
+- Asynchronous operations
+
+#### Integration Points
+- Database operations (using test doubles)
+- External service calls (using mocks)
+- File system operations
+- Network communications
+
+### 8. Test Organization Best Practices
+
+1. **Group related tests** using `@Nested` classes
+2. **Use `@ParameterizedTest`** for data-driven tests
+3. **Apply `@Timeout`** for performance-critical operations
+4. **Tag tests** with `@Tag` for selective execution
+5. **Use `@DisplayName`** for clear test documentation
+
+### 9. Red-Green-Refactor Cycle
+
+Follow this TDD cycle:
+1. **Red**: Write a failing test that describes desired behavior
+2. **Green**: Write minimal implementation to make test pass
+3. **Refactor**: Improve code while keeping tests green
+
+### 10. Example Complete Test Class
+
+```java
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullSource;
+import static org.junit.jupiter.api.Assertions.*;
+
+@DisplayName("Shopping Cart Tests")
+class ShoppingCartTest {
+
+    private ShoppingCart cart;
+
+    @BeforeEach
+    void setUp() {
+        cart = new ShoppingCart();
+    }
+
+    @Test
+    @DisplayName("Newly created cart should be empty")
+    void newlyCreatedCartShouldBeEmpty() {
+        assertAll("Empty cart validation",
+            () -> assertTrue(cart.isEmpty()),
+            () -> assertEquals(0, cart.getItemCount()),
+            () -> assertEquals(0.0, cart.getTotal())
+        );
+    }
+
+    @Test
+    @DisplayName("Adding items should increase cart total")
+    void addingItemsShouldIncreaseCartTotal() {
+        // Arrange
+        Item book = new Item("Book", 15.99);
+        Item pen = new Item("Pen", 2.99);
+
+        // Act
+        cart.addItem(book);
+        cart.addItem(pen);
+
+        // Assert
+        assertEquals(18.98, cart.getTotal(), 0.01);
+        assertEquals(2, cart.getItemCount());
+    }
+
+    @ParameterizedTest
+    @DisplayName("Applying discount code should give correct percentage off")
+    @CsvSource({
+        "SAVE10, 0.10",
+        "SAVE20, 0.20",
+        "HALF, 0.50"
+    })
+    void applyingDiscountCodeShouldGiveCorrectPercentageOff(String discountCode, double expectedDiscount) {
+        // Arrange
+        cart.addItem(new Item("Product", 100.00));
+
+        // Act
+        cart.applyDiscountCode(discountCode);
+
+        // Assert
+        assertEquals(expectedDiscount, cart.getDiscountPercentage());
+        assertEquals(100 * (1 - expectedDiscount), cart.getTotal(), 0.01);
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @DisplayName("Cannot add null item to cart")
+    void cannotAddNullItemToCart(Item nullItem) {
+        // Act & Assert
+        assertThrows(NullPointerException.class, () -> cart.addItem(nullItem));
+        assertTrue(cart.isEmpty());
+    }
+}
+```
+
+## Output Requirements
+
+When creating JUnit5 tests:
+1. Write complete, runnable test classes
+2. Include all necessary imports
+3. Document complex test logic with comments
+4. Ensure tests are independent and can run in any order
+5. Make test intentions clear through descriptive names and `@DisplayName`
+6. Consider both positive and negative test cases
+7. Use appropriate JUnit5 features (assertions, parameterized tests, nested classes)
+8. Write tests that will guide the implementation design
+
+### 11. Design Principles Assurance
+
+The tests should ensure that the implementation follows SOLID principles and proper design patterns:
+
+#### Dependency Injection and Inversion of Control
+Tests should verify that classes use constructor injection rather than direct instantiation of dependencies:
+
+```java
+@Test
+@DisplayName("Should use dependency injection for service dependencies")
+void shouldUseDependencyInjectionForServiceDependencies() {
+    // Arrange
+    EmailService emailService = mock(EmailService.class);
+    AuditLogger auditLogger = mock(AuditLogger.class);
+
+    // Act
+    UserService userService = new UserService(emailService, auditLogger);
+
+    // Assert
+    assertSame(emailService, userService.getEmailService());
+    assertSame(auditLogger, userService.getAuditLogger());
+    // Verify no direct instantiation occurs within the class
+}
+```
+
+#### Single Responsibility Principle (SRP)
+Each test should focus on a single responsibility of the class:
+
+```java
+@Test
+@DisplayName("Should only handle user registration logic")
+void shouldOnlyHandleUserRegistrationLogic() {
+    // Arrange
+    EmailService mockEmailService = mock(EmailService.class);
+    UserValidator mockValidator = mock(UserValidator.class);
+    User validUser = new User("test@example.com");
+    UserRegistrationService registrationService = new UserRegistrationService(mockEmailService, mockValidator);
+
+    // Act
+    registrationService.register(validUser);
+
+    // Assert
+    verify(mockValidator).validate(validUser);
+    verify(mockEmailService).sendWelcomeEmail(validUser.getEmail());
+    // Should NOT handle payment, inventory, or other unrelated concerns
+}
+```
+
+#### Open/Closed Principle (OCP)
+Tests should verify that classes are open for extension but closed for modification:
+
+```java
+@ParameterizedTest
+@DisplayName("Should support different payment processors without modification")
+@ValueSource(classes = {CreditCardProcessor.class, PayPalProcessor.class})
+void shouldSupportDifferentPaymentProcessorsWithoutModification(Class<PaymentProcessor> processorClass) throws Exception {
+    // Arrange
+    PaymentProcessor processor = processorClass.getDeclaredConstructor().newInstance();
+    PaymentService paymentService = new PaymentService(processor);
+    Payment payment = new Payment(100.0);
+
+    // Act
+    PaymentResult result = paymentService.processPayment(payment);
+
+    // Assert
+    assertNotNull(result);
+    assertTrue(result instanceof PaymentResult);
+}
+```
+
+#### Liskov Substitution Principle (LSP)
+Tests should ensure that derived classes can replace base classes:
+
+```java
+@ParameterizedTest
+@DisplayName("Should work with any notification implementation")
+@ValueSource(classes = {EmailNotificationService.class, SmsNotificationService.class, PushNotificationService.class})
+void shouldWorkWithAnyNotificationImplementation(Class<NotificationService> serviceClass) throws Exception {
+    // Arrange
+    NotificationService notificationService = serviceClass.getDeclaredConstructor().newInstance();
+    String message = "Test message";
+
+    // Act
+    boolean result = notificationService.send(message);
+
+    // Assert
+    assertTrue(result);
+}
+```
+
+#### Interface Segregation Principle (ISP)
+Tests should verify that classes depend only on interfaces they actually use:
+
+```java
+@Test
+@DisplayName("Should only depend on required interface methods")
+void shouldOnlyDependOnRequiredInterfaceMethods() {
+    // Arrange
+    ReadOnlyRepository readOnlyRepository = mock(ReadOnlyRepository.class);
+    ReportService reportService = new ReportService(readOnlyRepository);
+
+    // Act
+    reportService.generateReport();
+
+    // Assert
+    verify(readOnlyRepository).findAll();
+    // Should not call write operations
+    verifyNoMoreInteractions(readOnlyRepository);
+}
+```
+
+#### Dependency Inversion Principle (DIP)
+Tests should ensure high-level modules don't depend on low-level modules:
+
+```java
+@Test
+@DisplayName("Should depend on abstractions not concretions")
+void shouldDependOnAbstractionsNotConcretions() {
+    // Arrange
+    PaymentGateway paymentGateway = mock(PaymentGateway.class); // Interface
+    OrderService orderService = new OrderService(paymentGateway);
+    Order order = new Order();
+    when(paymentGateway.processPayment(any())).thenReturn(PaymentResult.success());
+
+    // Act
+    orderService.processOrder(order);
+
+    // Assert
+    verify(paymentGateway).processPayment(any());
+    // OrderService should not know about specific payment implementations
+}
+```
+
+#### Component Composition and Decoupling
+Tests should verify proper component composition without tight coupling:
+
+```java
+@Test
+@DisplayName("Should compose components without tight coupling")
+void shouldComposeComponentsWithoutTightCoupling() {
+    // Arrange
+    UserValidator validator = mock(UserValidator.class);
+    UserRepository repository = mock(UserRepository.class);
+    EmailService emailService = mock(EmailService.class);
+
+    // Act
+    UserService userService = new UserService(validator, repository, emailService);
+
+    // Assert
+    assertTrue(userService.getValidator() instanceof UserValidator);
+    assertTrue(userService.getRepository() instanceof UserRepository);
+    assertTrue(userService.getEmailService() instanceof EmailService);
+    // Verify constructor injection is used, not new SomeService() calls
+}
+```
+
+#### Anti-Pattern Detection
+Tests should fail if anti-patterns are detected:
+
+```java
+@Test
+@DisplayName("Should not use service locator pattern")
+void shouldNotUseServiceLocatorPattern() {
+    // Act
+    UserService userService = new UserService();
+
+    // Assert
+    // This test should fail if the implementation uses service locator
+    // Instead, dependencies should be injected via constructor
+    assertNotNull(userService);
+}
+
+@Test
+@DisplayName("Should not have circular dependencies")
+void shouldNotHaveCircularDependencies() {
+    // Arrange
+    ServiceA serviceA = mock(ServiceA.class);
+    ServiceB serviceB = mock(ServiceB.class);
+
+    // Act
+    CompositeService compositeService = new CompositeService(serviceA, serviceB);
+
+    // Assert
+    assertNotNull(compositeService);
+    // ServiceA should not depend on ServiceB if ServiceB depends on ServiceA
+}
+```
+
+These design principle tests ensure that:
+- Classes are loosely coupled and highly cohesive
+- Dependencies are injected rather than instantiated
+- Code follows SOLID principles for maintainability
+- Components can be easily tested, extended, and modified
+- The architecture supports proper separation of concerns
+
+Remember: In TDD, tests are written BEFORE implementation. These tests should clearly specify the expected behavior and serve as both documentation and validation of the system being built.
+"""
