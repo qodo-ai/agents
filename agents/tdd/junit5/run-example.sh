@@ -28,9 +28,13 @@ echo ""
 
 # 2. Clone the target repo
 if [ ! -d "tdd-agent-junit" ]; then
-    git clone git@github.com:davidparry/tdd-agent-junit.git
+  git clone git@github.com:davidparry/tdd-agent-junit.git
 else
-    cd tdd-agent-junit && git pull origin main && cd ..
+  cd tdd-agent-junit && git pull origin main && cd ..
 fi
-# 3. Invoke the tddspock agent
-qodo tdd --set pageid="52985865" -y -q
+echo ""
+echo "Running Agents"
+# 3. Invoke the tdd agent
+qodo chain "tdd -y -q --set pageid=52985865 > dev -y -q"
+
+

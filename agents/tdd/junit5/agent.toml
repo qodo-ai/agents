@@ -1,4 +1,5 @@
 version = "1.0"
+
 [commands.tdd]
 description = "This agent is designed to execute JUnit5 tests in a Java environment. To test a JVM application using Test-Driven Development with JUnit5 Framework"
 
@@ -10,7 +11,12 @@ output_schema = """
         "success": {
             "description": "Whether the task completed successfully",
             "type": "boolean"
+        },
+        "filepaths": {
+            "description": "List of java files that were created based on the instructions.",
+            "type": "array"
         }
+
     }
 }
 """
@@ -20,7 +26,6 @@ exit_expression = "success"
 arguments = [
     { name = "pageid", type = "string", required = true, description = "This is the page id for the Atlassian Confluence page that will be used for the requirements" }
 ]
-
 
 instructions = """
 ## Context
@@ -184,20 +189,20 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Shopping Cart Tests")
 class ShoppingCartTest {
-    
+
     private ShoppingCart cart;
-    
+
     @BeforeEach
     void setUp() {
         cart = new ShoppingCart();
     }
-    
+
     @Nested
     @DisplayName("When cart is empty")
     class EmptyCartTests {
         // Empty cart test methods
     }
-    
+
     @Nested
     @DisplayName("When adding items")
     class AddItemTests {
@@ -221,11 +226,11 @@ Template:
 void shouldCalculateTotalPriceIncludingTaxWhenItemsAreAddedToCart() {
     // Arrange
     ShoppingCart cart = new ShoppingCart(0.08); // 8% tax rate
-    
+
     // Act
     cart.addItem("laptop", 999.99, 1);
     cart.addItem("mouse", 29.99, 2);
-    
+
     // Assert
     assertEquals(1059.97, cart.getSubtotal(), 0.01);
     assertEquals(84.80, cart.getTax(), 0.01);
@@ -250,13 +255,13 @@ For each class/component, create tests that cover:
 void shouldThrowExceptionWhenAddingItemWithNegativePrice() {
     // Arrange
     ShoppingCart cart = new ShoppingCart();
-    
+
     // Act & Assert
     IllegalArgumentException exception = assertThrows(
         IllegalArgumentException.class,
         () -> cart.addItem("invalid item", -10.00, 1)
     );
-    
+
     assertEquals("Item price cannot be negative", exception.getMessage());
 }
 ```
@@ -275,10 +280,10 @@ Use `@ParameterizedTest` for testing multiple scenarios:
 void shouldCalculateDiscountBasedOnQuantity(int quantity, double expectedDiscount) {
     // Arrange
     ShoppingCart cart = new ShoppingCart();
-    
+
     // Act
     double actualDiscount = cart.calculateDiscount(quantity);
-    
+
     // Assert
     assertEquals(expectedDiscount, actualDiscount, 0.001);
 }
@@ -290,22 +295,22 @@ For testing interactions with dependencies:
 ```java
 @ExtendWith(MockitoExtension.class)
 class ShoppingCartTest {
-    
+
     @Mock
     private InventoryService inventoryService;
-    
+
     @InjectMocks
     private ShoppingCart cart;
-    
+
     @Test
     @DisplayName("Should notify inventory service when item is added to cart")
     void shouldNotifyInventoryServiceWhenItemIsAddedToCart() {
         // Arrange
         when(inventoryService.checkAvailability("laptop", 2)).thenReturn(true);
-        
+
         // Act
         cart.addItem("laptop", 999.99, 2);
-        
+
         // Assert
         verify(inventoryService).checkAvailability("laptop", 2);
         verify(inventoryService).reserveItems("laptop", 2);
@@ -320,31 +325,31 @@ Write tests that serve as living documentation using nested classes:
 ```java
 @DisplayName("Shopping Cart Management")
 class ShoppingCartBehaviorTest {
-    
+
     @Nested
     @DisplayName("Given an empty shopping cart")
     class GivenEmptyShoppingCart {
-        
+
         private ShoppingCart cart;
-        
+
         @BeforeEach
         void setUp() {
             cart = new ShoppingCart();
         }
-        
+
         @Nested
         @DisplayName("When customer adds a product")
         class WhenCustomerAddsProduct {
-            
+
             @Test
             @DisplayName("Then cart should contain one item")
             void thenCartShouldContainOneItem() {
                 // Arrange
                 Product product = new Product("ABC123", "Laptop", 999.99);
-                
+
                 // Act
                 cart.addProduct(product);
-                
+
                 // Assert
                 assertEquals(1, cart.getItemCount());
                 assertEquals(product.getPrice(), cart.getTotal());
@@ -359,22 +364,22 @@ class ShoppingCartBehaviorTest {
 #### Setup and Cleanup Pattern
 ```java
 class ShoppingCartTest {
-    
+
     private TestDatabase database;
     private ShoppingCart cart;
-    
+
     @BeforeAll
     static void setUpClass() {
         // Run once before all tests in this class
         System.setProperty("test.env", "true");
     }
-    
+
     @AfterAll
     static void tearDownClass() {
         // Run once after all tests in this class
         System.clearProperty("test.env");
     }
-    
+
     @BeforeEach
     void setUp() {
         // Run before each test method
@@ -382,7 +387,7 @@ class ShoppingCartTest {
         database.connect();
         cart = new ShoppingCart();
     }
-    
+
     @AfterEach
     void tearDown() {
         // Run after each test method
@@ -400,10 +405,10 @@ class ShoppingCartTest {
 void shouldProcessOrderSuccessfully() {
     // Arrange
     Order order = createValidOrder();
-    
+
     // Act
     OrderResult result = orderProcessor.process(order);
-    
+
     // Assert
     assertOrderProcessedSuccessfully(result);
 }
@@ -736,4 +741,178 @@ These design principle tests ensure that:
 - The architecture supports proper separation of concerns
 
 Remember: In TDD, tests are written BEFORE implementation. These tests should clearly specify the expected behavior and serve as both documentation and validation of the system being built.
+"""
+
+[commands.dev]
+description = "This agent implements the GREEN phase of Test-Driven Development by writing minimal Java code to make all existing unit tests pass without modifying any test files, transitioning from failing tests to a fully functional implementation while following Java best practices."
+
+execution_strategy = "act"
+
+output_schema = """
+{
+    "properties": {
+        "success": {
+            "description": "Whether the task completed successfully",
+            "type": "boolean"
+        }
+    }
+}
+"""
+
+exit_expression = "success"
+
+
+instructions = """
+# Test-Driven Development (TDD) Implementation Task
+
+## Context
+Based on the prior agent's work, a comprehensive TDD project has been established in the RED phase. The project contains:
+- 91 comprehensive unit tests covering all functional and non-functional requirements
+- Skeleton implementation classes that compile but intentionally fail tests
+- Complete build system configuration with JUnit 5, Mockito, and AssertJ
+- Proper project structure following Java best practices
+
+## Current Status: RED → GREEN Transition
+- ✅ RED PHASE COMPLETE: All tests are written and failing as expected (84 failing, 7 passing)
+- 🎯 TARGET: GREEN PHASE - Implement minimal logic to make all tests pass
+- ⏳ FUTURE: REFACTOR PHASE - Improve code while maintaining green tests
+
+## Primary Objective
+Implement the actual business logic in the stubbed source files to make ALL unit tests pass. You are STRICTLY FORBIDDEN from modifying any test files - only implement logic in the `src/main/java` source files.
+
+## Key Implementation Requirements
+
+### 1. Core Business Logic (OddEvenCampImpl.java)
+The main implementation file `/tdd-agent-junit/src/main/java/com/davidparry/junit/OddEvenCampImpl.java` contains a stubbed `check()` method that currently returns `-1`. You must implement:
+
+```java
+@Override
+public int check(int number) {
+    // 1. Validate input using the injected validator
+    validator.validate(number);
+    
+    // 2. Return 1 for even numbers, 0 for odd numbers
+    return (number % 2 == 0) ? 1 : 0;
+}
+```
+
+### 2. Validation Logic Requirements
+- Use the existing `validator.validate(number)` call to handle input validation
+- The validator will throw `NegativeNumberException` for zero and negative numbers
+- Do NOT implement validation logic directly in the check method - delegate to the validator
+
+### 3. Expected Test Results After Implementation
+- All 91 tests should pass (currently 84 failing + 7 passing)
+- No compilation errors
+- 100% code coverage on implemented methods
+- All performance tests should pass (processing 10,000 numbers within 1 second)
+
+## Java Development Best Practices to Follow
+
+### Code Quality Standards
+1. **Clean Code Principles**
+   - Write self-documenting code with clear variable names
+   - Keep methods small and focused on single responsibility
+   - Use meaningful comments only when necessary
+   - Follow consistent formatting and indentation
+
+2. **SOLID Principles Compliance**
+   - Single Responsibility: Each class has one reason to change
+   - Open/Closed: Open for extension, closed for modification
+   - Liskov Substitution: Subtypes must be substitutable for base types
+   - Interface Segregation: Depend on abstractions, not concretions
+   - Dependency Inversion: High-level modules should not depend on low-level modules
+
+3. **Exception Handling**
+   - Let the validator handle input validation and exception throwing
+   - Do not catch and suppress exceptions unnecessarily
+   - Maintain the existing exception propagation pattern
+
+### Performance Considerations
+1. **Efficiency**
+   - Use simple modulo operation (%) for even/odd determination
+   - Avoid unnecessary object creation in hot paths
+   - Ensure the implementation can process 10,000+ numbers within 1 second
+
+2. **Thread Safety**
+   - The current implementation is stateless and thread-safe
+   - Do not introduce mutable state that could cause concurrency issues
+   - Maintain immutability where possible
+
+### Testing Integration
+1. **Test-Driven Approach**
+   - Implement only the minimal code needed to make tests pass
+   - Do not add functionality not covered by tests
+   - Use tests as living documentation of requirements
+
+2. **Dependency Injection Support**
+   - Maintain the existing constructor injection pattern
+   - Support both default constructor (uses NegativeChecker) and parameterized constructor
+   - Ensure the `getValidator()` method remains accessible for testing
+
+## Implementation Strategy
+
+### Step 1: Analyze Current Test Failures
+Run the tests to understand which specific assertions are failing:
+```bash
+cd tdd-agent-junit && ./gradlew test
+```
+
+### Step 2: Implement Core Logic
+Focus on the `check()` method in `OddEvenCampImpl.java`:
+- Add input validation call
+- Implement even/odd logic using modulo operation
+- Ensure proper return values (1 for even, 0 for odd)
+
+### Step 3: Verify Implementation
+After implementation, all tests should pass:
+```bash
+cd tdd-agent-junit && ./gradlew clean test
+```
+
+### Step 4: Validate Coverage
+Generate coverage report to ensure 100% coverage:
+```bash
+cd tdd-agent-junit && ./gradlew jacocoTestReport
+```
+
+## File Structure Reference
+```
+tdd-agent-junit/
+├── src/main/java/com/davidparry/junit/
+│   ├── OddEvenCamp.java (interface - do not modify)
+│   ├── OddEvenCampImpl.java (implement logic here)
+│   ├── NegativeNumberException.java (do not modify)
+│   └── validation/
+│       ├── Validator.java (interface - do not modify)
+│       └── NegativeChecker.java (do not modify)
+└── src/test/java/com/davidparry/junit/
+    ├── OddEvenCampTest.java (DO NOT MODIFY)
+    └── NegativeNumberExceptionTest.java (DO NOT MODIFY)
+```
+
+## Success Criteria
+1. ✅ All tests pass without modification to test files
+2. ✅ No compilation errors or warnings
+3. ✅ Performance requirements met (sub-second execution for 10K operations)
+4. ✅ Thread safety maintained
+5. ✅ SOLID principles compliance verified through existing tests
+6. ✅ 100% code coverage on implemented methods
+7. ✅ Clean, readable, and maintainable code
+
+## Constraints and Rules
+- **ABSOLUTE PROHIBITION**: Do not modify any files in `src/test/` directory
+- **IMPLEMENTATION ONLY**: Only modify source files in `src/main/java/` directory
+- **MINIMAL IMPLEMENTATION**: Add only the code necessary to make tests pass
+- **NO OVER-ENGINEERING**: Avoid adding features not required by tests
+- **PRESERVE DESIGN**: Maintain existing class structure and dependency injection pattern
+
+## TDD Philosophy Reminder
+This is the GREEN phase of TDD where you implement the minimal code to make tests pass. The focus is on:
+- Making tests pass quickly and efficiently
+- Not on perfect design (that comes in REFACTOR phase)
+- Proving that requirements are met through passing tests
+- Building confidence in the implementation through comprehensive test coverage
+
+Remember: The tests are your specification. If all tests pass, you have successfully implemented the requirements.
 """
