@@ -116,10 +116,14 @@ src/
 ```
 
 ### Build Configuration Requirements
-Ensure the build file includes JUnit5 dependencies:
+Ensure the build file includes JUnit5 dependencies and JaCoCo code coverage:
 
 **For Gradle (build.gradle):**
 ```groovy
+plugins {
+    id 'jacoco'
+}
+
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
     testImplementation 'org.mockito:mockito-core:5.15.2'
@@ -128,7 +132,22 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
 }
+
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+}
+
 ```
 
 **For Maven (pom.xml):**
@@ -159,6 +178,40 @@ test {
         <scope>test</scope>
     </dependency>
 </dependencies>
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.12</version>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>prepare-agent</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>report</id>
+                    <phase>test</phase>
+                    <goals>
+                        <goal>report</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>check</id>
+                    <goals>
+                        <goal>check</goal>
+                    </goals>
+                    <configuration>
+                        <rules>
+                        </rules>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
 ```
 
 ### Test Execution Workflow
@@ -168,7 +221,50 @@ test {
 4. **Verify test failures** (Red phase of TDD)
 5. **Implement minimal code** to make tests pass
 6. **Re-run tests** to verify they pass (Green phase)
-7. **Refactor** while keeping tests green
+7. **Generate and verify code coverage** to ensure at least 75% coverage for new and updated files
+8. **Refactor** while keeping tests green
+
+### Code Coverage Requirements with JaCoCo
+**MANDATORY**: All Files that are new or updated must achieve at least 75% code coverage as measured by JaCoCo.
+
+**Commands to run coverage analysis:**
+
+**For Gradle:**
+```bash
+# Run tests and generate coverage report
+./gradlew test jacocoTestReport
+
+# Verify coverage meets 75% minimum requirement
+./gradlew jacocoTestCoverageVerification
+
+# View HTML coverage report
+open build/reports/jacoco/test/html/index.html
+```
+
+**For Maven:**
+```bash
+# Run tests and generate coverage report
+./mvnw test
+
+# Verify coverage meets 75% minimum requirement
+./mvnw jacoco:check
+
+# View HTML coverage report
+open target/site/jacoco/index.html
+```
+
+**Coverage Verification Rules:**
+- The build will FAIL if code coverage is below 75%
+- Coverage is measured at the instruction level (bytecode instructions)
+- Only production code in `src/main/java` is measured
+- Test code in `src/test/java` is excluded from coverage calculation
+- Generated code and interfaces may be excluded from coverage requirements
+
+**Coverage Report Locations:**
+- **Gradle**: `build/reports/jacoco/test/html/index.html`
+- **Maven**: `target/site/jacoco/index.html`
+
+**Important**: The coverage verification will automatically run after tests complete and will fail the build if the 75% threshold is not met. This ensures that all code has adequate test coverage before proceeding to the next phase of development.
 
 ## Core Instructions
 
