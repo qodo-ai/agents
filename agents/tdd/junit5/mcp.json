@@ -1,13 +1,5 @@
 {
   "mcpServers": {
-    "confluence": {
-      "command": "node",
-      "args": ["Your atlassian mcp server parameters i used https://github.com/aashari/mcp-server-atlassian-confluence run locally"],
-      "env": {
-        "ATLASSIAN_SITE_NAME": "YOURSITE",
-        "ATLASSIAN_USER_EMAIL": "YOUREMAIL",
-        "ATLASSIAN_API_TOKEN": "YOURTOKEN"
-      }
-    }
+    "confluence": {}
   }
 }

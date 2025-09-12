@@ -29,3 +29,31 @@ This example demonstrates Test-Driven Development (TDD) using JUnit5. In TDD, de
 
 Here, the agent creates a skeleton implementation and comprehensive tests for the `OddEvenCamp` interface, which checks if a number is even (return 1) or odd (return 0), throwing `NegativeNumberException` for zero or negative numbers. The tests are designed to fail initially since only stubs are present. This represents the Red phase, where 44 out of 75 tests fail as expected, covering even/odd checks, exceptions, edge cases, and design principles.
 
+## MCP Confluence Setup
+
+This project can be configured to work with a local MCP (Machine-readable Capability Profile) server for Atlassian Confluence. This allows the agent to interact with Confluence for tasks like creating and updating pages.
+
+To use this functionality, you need to set up a Confluence MCP server. You can use any compatible server; for example, one option is available at [https://github.com/aashari/mcp-server-atlassian-confluence](https://github.com/aashari/mcp-server-atlassian-confluence). Follow the setup instructions provided by the MCP server you choose.
+
+Once your server is set up and running, configure the `mcp.json` file in this project to point to it:
+
+**Configure `mcp.json`:**
+Update the `mcp.json` file with the path to your server's entry point and your Atlassian credentials.
+
+    ```json
+    {
+      "mcpServers": {
+        "confluence": {
+          "command": "node",
+          "args": ["/path/to/your/mcp-server-atlassian-confluence/dist/index.js"],
+          "env": {
+            "ATLASSIAN_SITE_NAME": "your-confluence-site",
+            "ATLASSIAN_USER_EMAIL": "your-email@example.com",
+            "ATLASSIAN_API_TOKEN": "your-api-token"
+          }
+        }
+      }
+    }
+    ```
+
+    Replace the placeholder values with your specific information.
