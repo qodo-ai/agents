@@ -25,12 +25,17 @@ fi
 
 echo ""
 
+# Abort if JDK check failed
+if [ "$JDK_EXIT_CODE" -ne 0 ]; then
+  echo "Aborting: JDK 21+ is required."
+  exit 1
+fi
 
 # 2. Clone the target repo
 if [ ! -d "tdd-agent-junit" ]; then
-  git clone git@github.com:davidparry/tdd-agent-junit.git
+  git clone git@github.com:davidparry/tdd-agent-junit.git || { echo "Failed to clone repository"; exit 1; }
 else
-  cd tdd-agent-junit && git pull origin main && cd ..
+  (cd tdd-agent-junit && git pull --ff-only origin main) || { echo "Failed to update repository"; exit 1; }
 fi
 echo ""
 echo "Running Agents"
