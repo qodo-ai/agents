@@ -5,6 +5,8 @@ description = "This agent is designed to execute JUnit5 tests in a Java environm
 
 execution_strategy = "act"
 
+tools=["confluence", "filesystem", "shell"]
+
 output_schema = """
 {
     "properties": {
