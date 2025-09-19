@@ -29,7 +29,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          key: ${{ runner.os }}-buildx-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-buildx-
         
@@ -52,9 +52,11 @@ jobs:
             exit 1
           fi
           
-          # Check if health score meets minimum threshold
-          health_score=$(grep -o '"health_score":[0-9]*' analysis/metrics.json | cut -d: -f2)
-          if [ "$health_score" -lt 6 ]; then
+          # Check if health score meets minimum threshold - ROBUST VERSION
+          health_score=$(jq -r '.executive_summary.health_score // 0' analysis/metrics.json)
+          
+          # Use awk for floating point comparison
+          if awk -v score="$health_score" 'BEGIN { exit !(score < 6) }'; then
             echo "Architecture health score ($health_score) below minimum threshold (6)"
             exit 1
           fi
@@ -110,16 +112,19 @@ jobs:
             
       - name: Check Architecture Quality Gates
         run: |
-          # Parse metrics for quality gates
-          complexity=$(grep -o '"complexity_score":[0-9]*' analysis/metrics.json | cut -d: -f2)
-          health=$(grep -o '"health_score":[0-9]*' analysis/metrics.json | cut -d: -f2)
+          # Parse metrics for quality gates - ROBUST VERSION
+          complexity=$(jq -r '.executive_summary.complexity_score // 10' analysis/metrics.json)
+          health=$(jq -r '.executive_summary.health_score // 0' analysis/metrics.json)
           
           echo "Architecture Quality Gates:"
           echo "- Health Score: $health/10 (minimum: 6)"
           echo "- Complexity Score: $complexity/10 (maximum: 8)"
           
-          # Fail if quality gates not met
-          if [ "$health" -lt 6 ] || [ "$complexity" -gt 8 ]; then
+          # Use awk for floating point comparisons
+          health_fail=$(awk -v score="$health" 'BEGIN { print (score < 6) }')
+          complexity_fail=$(awk -v score="$complexity" 'BEGIN { print (score > 8) }')
+          
+          if [ "$health_fail" = "1" ] || [ "$complexity_fail" = "1" ]; then
             echo "Quality gates failed!"
             exit 1
           fi

@@ -54,7 +54,7 @@ docker run --rm -v $PWD:/workspace ghcr.io/qodo-ai/archmind:latest \
   qodo archmind --analysis-depth=quick --output-format=json > quick-metrics.json
 
 docker run --rm -v $PWD:/workspace ghcr.io/qodo-ai/archmind:latest \
-  qudo archmind --focus-area=security --output-format=markdown > security-report.md
+  qodo archmind --focus-area=security --output-format=markdown > security-report.md
 
 docker run --rm -v $PWD:/workspace ghcr.io/qodo-ai/archmind:latest \
   qodo archmind --focus-area=performance --include-diagrams=true
