@@ -2,7 +2,19 @@
 set -e
 
 echo "ArchMind Demo - Analyzing Next.js Framework"
-echo "==========================================="
+echo "=============================================="
+
+# Check if API key is set
+if [ -z "$QODO_API_KEY" ]; then
+    echo ""
+    echo "ERROR: Qodo API key required"
+    echo "Please set QODO_API_KEY environment variable"
+    echo "Get your key from https://qodo.ai"
+    echo ""
+    echo "Example: export QODO_API_KEY=your_key_here"
+    echo ""
+    exit 1
+fi
 
 # Clone Next.js repository if not exists
 if [ ! -d "target-repo" ]; then
@@ -14,7 +26,12 @@ fi
 mkdir -p output
 
 echo "Starting ArchMind Docker container..."
-docker-compose up --build archmind
+
+# Run with explicit agent file specification
+docker-compose run --rm archmind qodo archmind \
+    --agent-file=/workspace/agent.toml \
+    --analysis-depth=deep \
+    --generate-docs=true
 
 echo "Analysis complete! Check the output directory for results."
 echo "Generated files:"

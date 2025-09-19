@@ -203,33 +203,23 @@ arguments = [
     { name = "framework_mode", type = "boolean", required = false, default = false, description = "Enable framework extensibility documentation" }
 ]
 
-# MCP servers for comprehensive analysis
+# MCP servers for comprehensive analysis (using npx)
 mcpServers = """
 {
-    "filesystem": {
-        "command": "uvx",
-        "args": ["mcp-server-filesystem", "."],
-        "env": {}
-    },
-    "git": {
-        "command": "uvx", 
-        "args": ["mcp-server-git", "--repository", "."],
-        "env": {}
-    },
     "memory": {
-        "command": "uvx",
-        "args": ["mcp-server-memory"],
+        "command": "npx",
+        "args": ["@modelcontextprotocol/server-memory"],
         "env": {}
     },
     "sequential-thinking": {
-        "command": "uvx",
-        "args": ["mcp-server-sequential-thinking"],
+        "command": "npx",
+        "args": ["@modelcontextprotocol/server-sequential-thinking"],
         "env": {}
     }
 }
 """
 
-# Available tools for the agent
+# Available tools for the agent (use built-in filesystem and git)
 tools = ["filesystem", "git", "memory", "sequential-thinking"]
 
 # Execution strategy for complex analysis
@@ -242,6 +232,7 @@ output_schema = """
     "properties": {
         "analysis_metadata": {
             "type": "object",
+            "description": "Metadata about the analysis execution including repository info and timing",
             "properties": {
                 "repository_name": {"type": "string"},
                 "analysis_date": {"type": "string"},
@@ -255,6 +246,7 @@ output_schema = """
         },
         "executive_summary": {
             "type": "object",
+            "description": "High-level summary of architectural findings and key metrics",
             "properties": {
                 "architecture_type": {"type": "string"},
                 "complexity_score": {"type": "number", "minimum": 1, "maximum": 10},
@@ -267,6 +259,7 @@ output_schema = """
         },
         "repository_structure": {
             "type": "object",
+            "description": "Analysis of repository organization and file structure patterns",
             "properties": {
                 "components": {"type": "array", "items": {"type": "object"}},
                 "directory_patterns": {"type": "array", "items": {"type": "object"}},
@@ -277,6 +270,7 @@ output_schema = """
         },
         "patterns_detected": {
             "type": "object",
+            "description": "Architectural and design patterns identified in the codebase",
             "properties": {
                 "architectural_patterns": {"type": "array", "items": {"type": "string"}},
                 "design_patterns_inferred": {"type": "array", "items": {"type": "string"}},
@@ -285,17 +279,9 @@ output_schema = """
                 "pattern_confidence": {"type": "object"}
             }
         },
-        "historical_analysis": {
-            "type": "object",
-            "properties": {
-                "evolution_timeline": {"type": "array", "items": {"type": "object"}},
-                "change_hotspots": {"type": "array", "items": {"type": "object"}},
-                "contributor_patterns": {"type": "object"},
-                "architectural_decisions": {"type": "array", "items": {"type": "object"}}
-            }
-        },
         "quality_metrics": {
             "type": "object",
+            "description": "Quantitative metrics about code structure and organization quality",
             "properties": {
                 "structure_organization_score": {"type": "number"},
                 "pattern_consistency_score": {"type": "number"},
@@ -305,6 +291,7 @@ output_schema = """
         },
         "recommendations": {
             "type": "array",
+            "description": "Prioritized list of actionable improvement suggestions",
             "items": {
                 "type": "object",
                 "properties": {
@@ -318,17 +305,9 @@ output_schema = """
                 }
             }
         },
-        "framework_capabilities": {
-            "type": "object",
-            "properties": {
-                "current_phase": {"type": "string"},
-                "available_integrations": {"type": "array", "items": {"type": "string"}},
-                "extension_opportunities": {"type": "array", "items": {"type": "string"}},
-                "roadmap_items": {"type": "array", "items": {"type": "object"}}
-            }
-        },
         "documentation_generated": {
             "type": "object",
+            "description": "Information about documentation files and artifacts created",
             "properties": {
                 "files_created": {"type": "array", "items": {"type": "string"}},
                 "diagrams_generated": {"type": "array", "items": {"type": "string"}},
@@ -336,13 +315,24 @@ output_schema = """
                 "framework_documentation": {"type": "boolean"}
             }
         },
-        "success": {"type": "boolean"},
-        "errors": {"type": "array", "items": {"type": "string"}},
-        "warnings": {"type": "array", "items": {"type": "string"}}
+        "success": {
+            "type": "boolean",
+            "description": "Whether the analysis completed successfully"
+        },
+        "errors": {
+            "type": "array",
+            "description": "List of errors encountered during analysis",
+            "items": {"type": "string"}
+        },
+        "warnings": {
+            "type": "array", 
+            "description": "List of warnings or non-critical issues found",
+            "items": {"type": "string"}
+        }
     },
     "required": ["analysis_metadata", "executive_summary", "success"]
 }
 """
 
-# Success condition for CI/CD integration
-exit_expression = "success && executive_summary.health_score >= 6"
+# Success condition for CI/CD integration (fixed JMESPath)
+exit_expression = "success == `true` && executive_summary.health_score >= `6`"

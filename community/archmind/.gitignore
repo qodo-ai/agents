@@ -1,0 +1,5 @@
+# Env vars
+.env.*
+
+# Example repo
+target-repo

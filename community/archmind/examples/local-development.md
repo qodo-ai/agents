@@ -25,6 +25,7 @@ docker run --rm \
   -v $PWD/architecture-analysis:/workspace/analysis \
   ghcr.io/qodo-ai/archmind:latest \
   qodo archmind \
+  --agent-file=agent.toml \
   --analysis-depth=expert \
   --include-diagrams=true \
   --focus-area=all \
@@ -42,22 +43,22 @@ docker run --rm -it \
   ghcr.io/qodo-ai/archmind:latest /bin/sh
 
 # Inside container, run various analyses
-qodo archmind --analysis-depth=quick --focus-area=dependencies
-qodo archmind --analysis-depth=deep --focus-area=patterns
-qodo archmind --analysis-depth=expert --include-diagrams=true
+qodo archmind --agent-file=agent.toml --analysis-depth=quick --focus-area=dependencies
+qodo archmind --agent-file=agent.toml --analysis-depth=deep --focus-area=patterns
+qodo archmind --agent-file=agent.toml --analysis-depth=expert --include-diagrams=true
 ```
 
 ### Multiple Analysis Runs
 ```bash
 # Run different analyses for different purposes
 docker run --rm -v $PWD:/workspace ghcr.io/qodo-ai/archmind:latest \
-  qodo archmind --analysis-depth=quick --output-format=json > quick-metrics.json
+  qodo archmind --agent-file=agent.toml --analysis-depth=quick --output-format=json > quick-metrics.json
 
 docker run --rm -v $PWD:/workspace ghcr.io/qodo-ai/archmind:latest \
-  qodo archmind --focus-area=security --output-format=markdown > security-report.md
+  qodo archmind --agent-file=agent.toml --focus-area=security --output-format=markdown > security-report.md
 
 docker run --rm -v $PWD:/workspace ghcr.io/qodo-ai/archmind:latest \
-  qodo archmind --focus-area=performance --include-diagrams=true
+  qodo archmind --agent-file=agent.toml --focus-area=performance --include-diagrams=true
 ```
 
 ## Continuous Analysis
@@ -74,7 +75,7 @@ docker run --rm \
   -v $PWD:/workspace \
   -v $PWD/.architecture:/workspace/analysis \
   ghcr.io/qodo-ai/archmind:latest \
-  qodo archmind --analysis-depth=quick --generate-docs=false
+  qodo archmind --agent-file=agent.toml --analysis-depth=quick --generate-docs=false
 
 # Check for significant architectural changes
 if [ -f ".architecture/metrics.json" ]; then
@@ -101,7 +102,7 @@ echo "Validating architecture before push..."
 docker run --rm \
   -v $PWD:/workspace \
   ghcr.io/qodo-ai/archmind:latest \
-  qodo archmind --analysis-depth=standard --output-format=json > /tmp/arch-check.json
+  qodo archmind --agent-file=agent.toml --analysis-depth=standard --output-format=json > /tmp/arch-check.json
 
 # Check if architecture meets standards
 complexity=$(grep -o '"complexity_score":[0-9]*' /tmp/arch-check.json | cut -d: -f2)
@@ -181,6 +182,7 @@ max_complexity_score = 6
 ```bash
 docker run --rm -v $PWD:/workspace ghcr.io/qodo-ai/archmind:latest \
   qodo archmind \
+  --agent-file=agent.toml \
   --exclude-patterns="node_modules,dist,build,.next" \
   --focus-area=patterns \
   --max-file-count=10000
@@ -190,6 +192,7 @@ docker run --rm -v $PWD:/workspace ghcr.io/qodo-ai/archmind:latest \
 ```bash
 docker run --rm -v $PWD:/workspace ghcr.io/qodo-ai/archmind:latest \
   qodo archmind \
+  --agent-file=agent.toml \
   --exclude-patterns="__pycache__,.venv,venv,*.pyc" \
   --focus-area=dependencies \
   --analysis-depth=deep
@@ -199,6 +202,7 @@ docker run --rm -v $PWD:/workspace ghcr.io/qodo-ai/archmind:latest \
 ```bash
 docker run --rm -v $PWD:/workspace ghcr.io/qodo-ai/archmind:latest \
   qodo archmind \
+  --agent-file=agent.toml \
   --exclude-patterns="target/,*.class,.gradle" \
   --focus-area=all \
   --include-diagrams=true
@@ -221,6 +225,7 @@ docker run --rm -m 4g \
   -v $PWD:/workspace \
   ghcr.io/qodo-ai/archmind:latest \
   qodo archmind \
+  --agent-file=agent.toml \
   --max-file-count=5000 \
   --exclude-patterns="vendor,node_modules,dist,build"
 ```

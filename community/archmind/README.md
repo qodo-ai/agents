@@ -23,6 +23,17 @@ This agent is submitted for the **"Best Agent for Complex Codebases"** category 
 ### Prerequisites
 - Docker and Docker Compose
 - Git
+- **Qodo API Key** (required for analysis)
+  - Set environment variable: `export QODO_API_KEY=your_key_here`
+
+### Setup API Key
+```bash
+# Get API key from https://qodo.ai
+export QODO_API_KEY=your_api_key_here
+
+# Or create .env file
+echo "QODO_API_KEY=your_key_here" > .env
+```
 
 ### Demo Analysis (Next.js Framework)
 

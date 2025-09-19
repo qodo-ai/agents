@@ -40,6 +40,7 @@ jobs:
             -v ${{ github.workspace }}/analysis:/workspace/analysis \
             ghcr.io/qodo-ai/archmind:latest \
             qodo archmind \
+            --agent-file=agent.toml \
             --analysis-depth=deep \
             --generate-docs=true \
             --include-diagrams=true \
@@ -170,6 +171,7 @@ jobs:
             -v ${{ github.workspace }}:/workspace \
             ghcr.io/qodo-ai/archmind:latest \
             qodo archmind \
+            --agent-file=agent.toml \
             --focus-area=dependencies \
             --output-format=json > dependency-changes.json
             
