@@ -1,0 +1,26 @@
+services:
+  archmind:
+    build: .
+    volumes:
+      - ./target-repo:/workspace/repo
+      - ./agent.toml:/workspace/agent.toml
+      - ./output:/workspace/analysis
+    working_dir: /workspace
+    environment:
+      - QODO_MODEL=claude-sonnet-4@20250514
+      - QODO_API_KEY=${QODO_API_KEY}
+    command: qodo archmind --agent-file=agent.toml --analysis-depth=deep --generate-docs=true
+    
+  archmind-interactive:
+    build: .
+    volumes:
+      - ./target-repo:/workspace/repo
+      - ./agent.toml:/workspace/agent.toml
+      - ./output:/workspace/analysis
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    environment:
+      - QODO_MODEL=claude-sonnet-4@20250514
+      - QODO_API_KEY=${QODO_API_KEY}
+    command: /bin/sh
