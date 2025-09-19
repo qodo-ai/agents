@@ -1,0 +1,171 @@
+# Example GitHub Actions workflow for ArchMind
+name: Architecture Analysis
+on: 
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run weekly analysis
+    - cron: '0 0 * * 0'
+
+jobs:
+  architecture-analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for architectural evolution analysis
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+        
+      - name: Run ArchMind Analysis
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -v ${{ github.workspace }}/analysis:/workspace/analysis \
+            ghcr.io/qodo-ai/archmind:latest \
+            qodo archmind \
+            --analysis-depth=deep \
+            --generate-docs=true \
+            --include-diagrams=true \
+            --output-format=markdown
+            
+      - name: Validate Analysis Results
+        run: |
+          if [ ! -f "analysis/architecture-overview.md" ]; then
+            echo "Architecture analysis failed - no overview generated"
+            exit 1
+          fi
+          
+          # Check if health score meets minimum threshold
+          health_score=$(grep -o '"health_score":[0-9]*' analysis/metrics.json | cut -d: -f2)
+          if [ "$health_score" -lt 6 ]; then
+            echo "Architecture health score ($health_score) below minimum threshold (6)"
+            exit 1
+          fi
+          
+      - name: Upload Analysis Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-analysis-${{ github.sha }}
+          path: analysis/
+          retention-days: 30
+          
+      - name: Comment PR with Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            try {
+              const summary = fs.readFileSync('analysis/architecture-overview.md', 'utf8');
+              const metricsRaw = fs.readFileSync('analysis/metrics.json', 'utf8');
+              const metrics = JSON.parse(metricsRaw);
+              
+              const comment = `## Architecture Analysis Results
+              
+              ### Health Score: ${metrics.executive_summary.health_score}/10
+              ### Complexity Score: ${metrics.executive_summary.complexity_score}/10
+              
+              ### Key Insights
+              ${metrics.executive_summary.key_insights.map(insight => `- ${insight}`).join('\n')}
+              
+              ### Recommendations
+              ${metrics.recommendations.filter(r => r.priority === 'high').slice(0, 3).map(rec => 
+                `- **${rec.title}**: ${rec.description}`
+              ).join('\n')}
+              
+              <details>
+              <summary>Full Analysis Summary</summary>
+              
+              ${summary}
+              </details>
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            } catch (error) {
+              console.error('Error posting comment:', error);
+            }
+            
+      - name: Check Architecture Quality Gates
+        run: |
+          # Parse metrics for quality gates
+          complexity=$(grep -o '"complexity_score":[0-9]*' analysis/metrics.json | cut -d: -f2)
+          health=$(grep -o '"health_score":[0-9]*' analysis/metrics.json | cut -d: -f2)
+          
+          echo "Architecture Quality Gates:"
+          echo "- Health Score: $health/10 (minimum: 6)"
+          echo "- Complexity Score: $complexity/10 (maximum: 8)"
+          
+          # Fail if quality gates not met
+          if [ "$health" -lt 6 ] || [ "$complexity" -gt 8 ]; then
+            echo "Quality gates failed!"
+            exit 1
+          fi
+          
+          echo "All quality gates passed!"
+          
+      - name: Update Architecture Documentation
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Copy analysis results to docs directory
+          mkdir -p docs/architecture
+          cp analysis/architecture-overview.md docs/architecture/
+          cp analysis/patterns-detected.md docs/architecture/
+          cp analysis/recommendations.md docs/architecture/
+          cp -r analysis/diagrams/ docs/architecture/
+          
+          # Commit updated documentation
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/architecture/
+          git diff --staged --quiet || git commit -m "Update architecture documentation [skip ci]"
+          git push
+
+  dependency-analysis:
+    runs-on: ubuntu-latest
+    needs: architecture-analysis
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download Analysis Results
+        uses: actions/download-artifact@v4
+        with:
+          name: architecture-analysis-${{ github.sha }}
+          path: analysis/
+          
+      - name: Analyze Dependency Changes
+        run: |
+          # Compare dependency changes in PR
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            ghcr.io/qodo-ai/archmind:latest \
+            qodo archmind \
+            --focus-area=dependencies \
+            --output-format=json > dependency-changes.json
+            
+          echo "Dependency analysis complete"
