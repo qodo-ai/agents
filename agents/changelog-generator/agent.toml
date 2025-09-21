@@ -1,0 +1,55 @@
+version = "1.0"
+
+[commands.changelog_generator]
+description = "Generates release notes by analyzing commits, PRs, and issues for a given version tag or date range."
+
+instructions = """
+You are a changelog generator. Fetch PRs, issues, and commits from the specified repository and release tag or date range.
+Group them into categories (Features, Fixes, Documentation, Chores, Others).
+Generate a human-readable changelog in Markdown format that can be directly used in a RELEASE.md file.
+Include PR numbers and authors.
+Optionally group using Conventional Commit types (feat, fix, docs, chore, refactor). If disabled, fall back to heuristic grouping.
+"""
+
+arguments = [
+  { name = "repo", type = "string", required = true, description = "GitHub repository in owner/name format" },
+  { name = "since", type = "string", required = true, description = "Start date or tag for changelog" },
+  { name = "until", type = "string", required = false, description = "End date or tag (defaults to HEAD)" },
+  { name = "output_file", type = "string", required = false, default = "CHANGELOG.md", description = "File to save generated changelog" },
+  { name = "group_conventional", type = "boolean", required = false, default = true, description = "Group using Conventional Commits (feat, fix, docs, chore, refactor)" },
+  { name = "include_issues", type = "boolean", required = false, default = true, description = "Include closed issues in the changelog" },
+  { name = "include_prs", type = "boolean", required = false, default = true, description = "Include merged pull requests in the changelog" },
+  { name = "include_commits", type = "boolean", required = false, default = true, description = "Include commits not associated with PRs" }
+]
+
+mcpServers = """
+{
+  "github": {
+    "url": "https://api.githubcopilot.com/mcp/",
+    "headers": {
+      "Authorization": "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}"
+    }
+  },
+  "external_shell": {
+    "command": "uvx",
+    "args": ["mcp-shell-server"]
+  }
+}
+"""
+
+tools = ["github", "filesystem", "external_shell"]
+execution_strategy = "plan"
+
+output_schema = """
+{
+  "properties": {
+    "success": {"type": "boolean", "description": "Whether the changelog generation completed without errors"},
+    "changelog": {"type": "string", "description": "Generated Markdown changelog content"},
+    "commit_count": {"type": "number", "description": "Number of commits considered in the range"},
+    "pr_count": {"type": "number", "description": "Number of pull requests included"},
+    "issue_count": {"type": "number", "description": "Number of issues included"}
+  }
+}
+"""
+
+exit_expression = "success"
