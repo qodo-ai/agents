@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# MasterMindAI Launcher Script
+# Simple entry point for the unified AI development assistant
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Colors for output
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+print_header() { echo -e "${BOLD}${BLUE}$1${NC}"; }
+print_success() { echo -e "${GREEN}✓${NC} $1"; }
+
+# Check if the main script exists
+if [ ! -f "$SCRIPT_DIR/mastermind_ai.sh" ]; then
+    echo "Error: mastermind_ai.sh not found in $SCRIPT_DIR"
+    exit 1
+fi
+
+# Make sure the main script is executable
+chmod +x "$SCRIPT_DIR/mastermind_ai.sh"
+
+# Show banner if no arguments provided
+if [ $# -eq 0 ]; then
+    print_header "🤖 MasterMindAI - Unified AI Development Assistant"
+    echo "═══════════════════════════════════════════════════════════════"
+    echo ""
+    echo "Quick Start:"
+    echo "  $0 --interactive                    # Interactive mode"
+    echo "  $0 --list-agents                    # List all agents"
+    echo "  $0 chunked-generation \"your idea\"   # Generate massive project"
+    echo "  $0 code-review                      # Review code changes"
+    echo "  $0 --help                           # Full help"
+    echo ""
+    echo "Examples:"
+    echo "  $0 chunked-generation \"enterprise e-commerce platform\" --language python"
+    echo "  $0 code-review --target-branch main --severity-threshold high"
+    echo "  $0 documentation --input-file ./src"
+    echo ""
+    print_success "Ready to revolutionize your development workflow!"
+    echo ""
+    exit 0
+fi
+
+# Execute the main script with all arguments
+exec "$SCRIPT_DIR/mastermind_ai.sh" "$@"

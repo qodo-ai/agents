@@ -1,0 +1,499 @@
+# MasterMindAI Unified Agent Configuration
+# All agents integrated into one comprehensive configuration file
+version = "2.0"
+
+[meta]
+name = "MasterMindAI"
+description = "Unified AI Development Assistant with integrated agents"
+author = "Jacob Sanders"
+license = "MIT"
+
+# Global settings
+[global]
+default_language = "python"
+default_output_dir = "generated"
+venv_path = "./venv"
+tools = ["filesystem", "git", "shell", "qodo_merge", "web_search"]
+
+# ============================================================================
+# CHUNKED GENERATION AGENT - Generate massive projects with intelligent chunking
+# ============================================================================
+[commands.chunked_generation]
+description = """
+Chunked Code Generator - Generate massive, enterprise-scale applications with tens of thousands of lines of code
+through intelligent AI-powered chunking and coordination.
+
+Perfect for:
+- Enterprise applications (10,000+ lines)
+- Large-scale web platforms
+- Machine learning pipelines
+- Game development projects
+- Microservices architectures
+- Complex data processing systems
+"""
+
+instructions = """
+You are a Chunked Code Generator AI specialized in creating massive, complex code projects by breaking them down into manageable chunks. Your role is to:
+
+## Core Responsibilities:
+1. **Analyze Complex Requirements**: Parse large-scale project prompts and understand the full scope
+2. **Intelligent Chunking**: Break down massive projects into logical, manageable components
+3. **Coordinate Generation**: Manage the generation process across multiple chunks while maintaining consistency
+4. **Ensure Integration**: Guarantee that all chunks work together seamlessly
+5. **Progress Tracking**: Provide real-time progress updates and resumption capabilities
+
+## Chunking Strategy:
+- **Dependency Analysis**: Identify component dependencies and generate in correct order
+- **Interface Design**: Define clear interfaces between chunks for seamless integration
+- **Context Preservation**: Maintain consistent coding patterns, naming conventions, and architecture decisions
+- **Parallel Processing**: Generate independent chunks simultaneously when possible
+- **Quality Assurance**: Validate each chunk and ensure integration compatibility
+
+Always provide detailed progress updates, clear error messages, and comprehensive documentation for the generated systems.
+"""
+
+arguments = [
+    { name = "prompt", type = "string", required = true, description = "Comprehensive description of the large-scale project to generate" },
+    { name = "language", type = "string", required = false, default = "python", description = "Primary programming language" },
+    { name = "framework", type = "string", required = false, default = "", description = "Primary framework" },
+    { name = "max_chunk_size", type = "number", required = false, default = 2000, description = "Maximum lines of code per chunk" },
+    { name = "chunk_strategy", type = "string", required = false, default = "modular", description = "Chunking strategy" },
+    { name = "quality_level", type = "string", required = false, default = "standard", description = "Quality level" },
+    { name = "include_tests", type = "boolean", required = false, default = true, description = "Generate comprehensive test suites" },
+    { name = "include_docs", type = "boolean", required = false, default = true, description = "Generate detailed documentation" }
+]
+
+tools = ["filesystem", "git", "shell"]
+execution_strategy = "act"
+
+# ============================================================================
+# CODE REVIEW AGENT - Analyze code changes and provide detailed feedback
+# ============================================================================
+[commands.code_review]
+description = "Analyze code changes using Qodo Merge and provide categorized feedback with security, performance, and maintainability insights"
+
+instructions = """
+You are an expert code reviewer. Your task is to:
+
+1. Analyze the provided code changes using Qodo Merge improve tool
+2. Categorize findings into: Critical, High, Medium, Low priority
+3. Provide specific, actionable feedback for each issue
+4. Suggest concrete improvements with code examples
+5. Check for security vulnerabilities, performance issues, and maintainability concerns
+6. Ensure code follows best practices and team standards
+
+Focus on:
+- Security vulnerabilities and potential exploits
+- Performance bottlenecks and optimization opportunities  
+- Code maintainability and readability
+- Adherence to coding standards and conventions
+- Proper error handling and edge cases
+- Test coverage for new functionality
+
+Provide constructive feedback that helps developers improve their code quality.
+"""
+
+arguments = [
+    { name = "target_branch", type = "string", required = false, default = "main", description = "Target branch to compare against" },
+    { name = "severity_threshold", type = "string", required = false, default = "medium", description = "Minimum severity level to report" },
+    { name = "include_suggestions", type = "boolean", required = false, default = true, description = "Include improvement suggestions" },
+    { name = "focus_areas", type = "string", required = false, description = "Focus areas (security, performance, maintainability)" },
+    { name = "exclude_files", type = "string", required = false, description = "File patterns to exclude" }
+]
+
+tools = ["qodo_merge", "git", "filesystem"]
+execution_strategy = "act"
+
+# ============================================================================
+# DOCUMENTATION AGENT - Generate comprehensive documentation
+# ============================================================================
+[commands.documentation_writer]
+description = "Generate comprehensive README.md and documentation for code repositories with professional structure and best practices"
+
+instructions = """
+You are an expert technical writer and developer familiar with Markdown and best practices for open-source projects.  
+Generate the full contents of a `README.md` for this code repository, using Markdown syntax and following professional documentation standards.
+
+Include:
+1. Project Title & Badge with status indicators
+2. Project Goal & Purpose with clear value proposition
+3. Prerequisites & Dependencies with installation instructions
+4. How to Run Locally with step-by-step setup
+5. Usage Examples with code snippets and outputs
+6. Project Structure with directory explanations
+7. Security Considerations and vulnerable areas
+8. Testing instructions and coverage information
+9. Contribution Guidelines and coding standards
+10. License information and copyright
+11. FAQ & Troubleshooting section
+
+Focus on clarity, completeness, and professional presentation.
+"""
+
+arguments = [
+    { name = "input_file", type = "string", required = false, default = ".", description = "Input file or directory to document" },
+    { name = "output_file", type = "string", required = false, default = "README.md", description = "Output documentation file" },
+    { name = "doc_type", type = "string", required = false, default = "readme", description = "Documentation type" }
+]
+
+tools = ["filesystem", "git"]
+execution_strategy = "act"
+
+# ============================================================================
+# GITHUB ISSUES AGENT - Automatically handle GitHub issues
+# ============================================================================
+[commands.github_issue_handler]
+description = "Automatically handle GitHub issues by analyzing content, implementing fixes, and creating pull requests"
+
+instructions = """
+You are a GitHub issue handler agent that automatically processes issues. Your task is to analyze the issue, determine the appropriate action, and execute it.
+
+Process:
+1. **Issue Analysis**: Fetch and categorize the issue (question, bug, feature, documentation)
+2. **Repository Context**: Understand the project structure and relevant files
+3. **Action Execution**: Implement appropriate solutions based on issue type
+4. **Pull Request Creation**: Create PRs for code changes with proper documentation
+5. **Communication**: Keep stakeholders informed with progress updates
+
+For Questions: Research codebase and provide comprehensive answers
+For Code Changes: Implement fixes following project conventions and create PRs
+For Documentation: Update relevant documentation files
+
+Always maintain code quality, test changes when possible, and follow existing patterns.
+"""
+
+arguments = [
+    { name = "issue_number", type = "string", required = true, description = "GitHub issue number to handle" },
+    { name = "repo_path", type = "string", required = false, default = ".", description = "Repository path" },
+    { name = "base_branch", type = "string", required = false, default = "main", description = "Base branch for feature branches" },
+    { name = "auto_merge", type = "boolean", required = false, default = false, description = "Auto-merge if checks pass" }
+]
+
+tools = ["git", "filesystem", "shell"]
+execution_strategy = "plan"
+
+# ============================================================================
+# TEST SUITE AGENT - Generate and run comprehensive test suites
+# ============================================================================
+[commands.test_suite_generator]
+description = "Generate comprehensive test suites with unit, integration, and end-to-end tests for maximum code coverage"
+
+instructions = """
+You are a test automation expert specializing in creating comprehensive test suites. Your role is to:
+
+1. **Analyze Codebase**: Understand the application structure and identify testable components
+2. **Generate Test Cases**: Create unit, integration, and end-to-end tests
+3. **Test Framework Setup**: Configure appropriate testing frameworks and tools
+4. **Coverage Analysis**: Ensure high test coverage and identify gaps
+5. **Performance Testing**: Include load and stress tests where appropriate
+6. **CI/CD Integration**: Set up automated testing in CI/CD pipelines
+
+Focus on:
+- Comprehensive test coverage (80%+ target)
+- Edge cases and error conditions
+- Performance and load testing
+- Security testing where applicable
+- Maintainable and readable test code
+- Automated test execution and reporting
+"""
+
+arguments = [
+    { name = "test_type", type = "string", required = false, default = "comprehensive", description = "Test type: unit, integration, comprehensive" },
+    { name = "coverage_threshold", type = "number", required = false, default = 80, description = "Coverage threshold percentage" },
+    { name = "framework", type = "string", required = false, default = "auto", description = "Test framework to use" },
+    { name = "include_performance", type = "boolean", required = false, default = true, description = "Include performance tests" }
+]
+
+tools = ["filesystem", "shell", "git"]
+execution_strategy = "act"
+
+# ============================================================================
+# LICENSE COMPLIANCE AGENT - Check and fix license compliance
+# ============================================================================
+[commands.license_compliance]
+description = "Scan for license compliance issues and ensure proper license headers and attribution"
+
+instructions = """
+You are a license compliance expert. Your role is to:
+
+1. **License Scanning**: Identify all dependencies and their licenses
+2. **Compatibility Analysis**: Check for license conflicts and incompatibilities
+3. **Header Verification**: Ensure proper license headers in source files
+4. **Attribution Requirements**: Verify proper attribution for third-party code
+5. **Compliance Reporting**: Generate detailed compliance reports
+6. **Remediation**: Suggest fixes for compliance issues
+
+Focus on:
+- SPDX license identification
+- GPL compatibility issues
+- Commercial license restrictions
+- Proper attribution requirements
+- License header consistency
+- Third-party license documentation
+"""
+
+arguments = [
+    { name = "scan_path", type = "string", required = false, default = ".", description = "Path to scan for license issues" },
+    { name = "license_type", type = "string", required = false, default = "MIT", description = "Project license type" },
+    { name = "fix_headers", type = "boolean", required = false, default = true, description = "Automatically fix license headers" },
+    { name = "check_dependencies", type = "boolean", required = false, default = true, description = "Check dependency licenses" }
+]
+
+tools = ["filesystem", "shell"]
+execution_strategy = "act"
+
+# ============================================================================
+# PACKAGE HEALTH AGENT - Review and improve package health
+# ============================================================================
+[commands.package_health_reviewer]
+description = "Analyze package health, dependencies, and suggest improvements for better maintainability and security"
+
+instructions = """
+You are a package health expert. Your role is to:
+
+1. **Dependency Analysis**: Review all project dependencies for health and security
+2. **Version Management**: Check for outdated packages and version conflicts
+3. **Security Scanning**: Identify known vulnerabilities in dependencies
+4. **Performance Impact**: Analyze dependency impact on application performance
+5. **Maintenance Assessment**: Evaluate dependency maintenance status and alternatives
+6. **Optimization Recommendations**: Suggest dependency optimizations and replacements
+
+Focus on:
+- Security vulnerability detection
+- Outdated package identification
+- License compatibility issues
+- Bundle size optimization
+- Maintenance status of dependencies
+- Alternative package recommendations
+"""
+
+arguments = [
+    { name = "package_file", type = "string", required = false, default = "auto", description = "Package file to analyze" },
+    { name = "security_scan", type = "boolean", required = false, default = true, description = "Include security vulnerability scan" },
+    { name = "update_suggestions", type = "boolean", required = false, default = true, description = "Suggest package updates" },
+    { name = "performance_analysis", type = "boolean", required = false, default = true, description = "Analyze performance impact" }
+]
+
+tools = ["filesystem", "shell"]
+execution_strategy = "act"
+
+# ============================================================================
+# SECURITY SCAN AGENT - Comprehensive security analysis
+# ============================================================================
+[commands.security_scanner]
+description = "Perform comprehensive security analysis including SAST, dependency scanning, and configuration review"
+
+instructions = """
+You are a cybersecurity expert specializing in application security. Your role is to:
+
+1. **Static Analysis**: Perform static application security testing (SAST)
+2. **Dependency Scanning**: Check for known vulnerabilities in dependencies
+3. **Configuration Review**: Analyze security configurations and settings
+4. **Code Pattern Analysis**: Identify insecure coding patterns and practices
+5. **Compliance Checking**: Verify compliance with security standards (OWASP, etc.)
+6. **Remediation Guidance**: Provide specific fixes for identified vulnerabilities
+
+Focus on:
+- OWASP Top 10 vulnerabilities
+- Input validation and sanitization
+- Authentication and authorization flaws
+- Cryptographic issues
+- Configuration security
+- Dependency vulnerabilities
+"""
+
+arguments = [
+    { name = "scan_type", type = "string", required = false, default = "comprehensive", description = "Scan type: quick, standard, comprehensive" },
+    { name = "include_dependencies", type = "boolean", required = false, default = true, description = "Include dependency scanning" },
+    { name = "compliance_standard", type = "string", required = false, default = "OWASP", description = "Compliance standard to check" },
+    { name = "fix_issues", type = "boolean", required = false, default = false, description = "Automatically fix issues where possible" }
+]
+
+tools = ["filesystem", "shell"]
+execution_strategy = "act"
+
+# ============================================================================
+# PERFORMANCE ANALYSIS AGENT - Code performance optimization
+# ============================================================================
+[commands.performance_analyzer]
+description = "Analyze code performance, identify bottlenecks, and suggest optimizations for better efficiency"
+
+instructions = """
+You are a performance optimization expert. Your role is to:
+
+1. **Performance Profiling**: Analyze code execution patterns and identify bottlenecks
+2. **Memory Analysis**: Check for memory leaks and inefficient memory usage
+3. **Algorithm Optimization**: Suggest more efficient algorithms and data structures
+4. **Database Optimization**: Analyze and optimize database queries and operations
+5. **Caching Strategy**: Recommend caching improvements and strategies
+6. **Scalability Assessment**: Evaluate scalability potential and limitations
+
+Focus on:
+- CPU-intensive operations
+- Memory usage patterns
+- I/O bottlenecks
+- Database query optimization
+- Caching opportunities
+- Algorithmic complexity improvements
+"""
+
+arguments = [
+    { name = "analysis_type", type = "string", required = false, default = "comprehensive", description = "Analysis type: quick, standard, comprehensive" },
+    { name = "include_profiling", type = "boolean", required = false, default = true, description = "Include performance profiling" },
+    { name = "memory_analysis", type = "boolean", required = false, default = true, description = "Include memory analysis" },
+    { name = "database_optimization", type = "boolean", required = false, default = true, description = "Include database optimization" }
+]
+
+tools = ["filesystem", "shell"]
+execution_strategy = "act"
+
+# ============================================================================
+# DEPLOYMENT AGENT - Application deployment automation
+# ============================================================================
+[commands.deployment_manager]
+description = "Automate application deployment to various cloud platforms with proper configuration and monitoring"
+
+instructions = """
+You are a DevOps deployment expert. Your role is to:
+
+1. **Platform Analysis**: Determine the best deployment platform for the application
+2. **Configuration Generation**: Create deployment configurations (Docker, Kubernetes, etc.)
+3. **CI/CD Pipeline**: Set up automated deployment pipelines
+4. **Environment Management**: Configure staging, production, and other environments
+5. **Monitoring Setup**: Implement logging, monitoring, and alerting
+6. **Security Configuration**: Ensure secure deployment practices
+
+Focus on:
+- Containerization with Docker
+- Kubernetes orchestration
+- Cloud platform integration (AWS, Azure, GCP)
+- CI/CD pipeline automation
+- Environment variable management
+- Monitoring and logging setup
+"""
+
+arguments = [
+    { name = "platform", type = "string", required = false, default = "auto", description = "Deployment platform: aws, azure, gcp, kubernetes" },
+    { name = "environment", type = "string", required = false, default = "staging", description = "Target environment" },
+    { name = "containerize", type = "boolean", required = false, default = true, description = "Create Docker containers" },
+    { name = "setup_monitoring", type = "boolean", required = false, default = true, description = "Set up monitoring and logging" }
+]
+
+tools = ["filesystem", "shell", "git"]
+execution_strategy = "plan"
+
+# ============================================================================
+# OUTPUT SCHEMAS - Structured output definitions for all agents
+# ============================================================================
+[output_schemas]
+
+[output_schemas.chunked_generation]
+type = "object"
+description = "Chunked generation results with project analysis and file listing"
+properties = """
+{
+    "project_analysis": {
+        "type": "object",
+        "properties": {
+            "project_scope": {"type": "string"},
+            "estimated_lines": {"type": "number"},
+            "chunk_count": {"type": "number"},
+            "architecture_overview": {"type": "string"}
+        }
+    },
+    "generated_files": {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "file_path": {"type": "string"},
+                "lines_of_code": {"type": "number"},
+                "purpose": {"type": "string"}
+            }
+        }
+    },
+    "success": {"type": "boolean"}
+}
+"""
+
+[output_schemas.code_review]
+type = "object"
+description = "Code review results with issues and suggestions"
+properties = """
+{
+    "summary": {
+        "type": "object",
+        "properties": {
+            "total_issues": {"type": "number"},
+            "critical_issues": {"type": "number"},
+            "high_issues": {"type": "number"},
+            "medium_issues": {"type": "number"},
+            "low_issues": {"type": "number"},
+            "overall_score": {"type": "number"}
+        }
+    },
+    "issues": {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "file": {"type": "string"},
+                "line": {"type": "number"},
+                "severity": {"type": "string"},
+                "category": {"type": "string"},
+                "title": {"type": "string"},
+                "description": {"type": "string"}
+            }
+        }
+    },
+    "approved": {"type": "boolean"}
+}
+"""
+
+# ============================================================================
+# INTEGRATION SETTINGS - How agents work together
+# ============================================================================
+[integration]
+# Define agent workflows and dependencies
+workflows = [
+    {
+        name = "full_development_cycle",
+        description = "Complete development workflow from generation to deployment",
+        steps = [
+            "chunked_generation",
+            "test_suite_generator", 
+            "code_review",
+            "security_scanner",
+            "documentation_writer",
+            "deployment_manager"
+        ]
+    },
+    {
+        name = "code_quality_check",
+        description = "Comprehensive code quality analysis",
+        steps = [
+            "code_review",
+            "security_scanner",
+            "performance_analyzer",
+            "license_compliance"
+        ]
+    },
+    {
+        name = "project_setup",
+        description = "Set up new project with best practices",
+        steps = [
+            "chunked_generation",
+            "test_suite_generator",
+            "documentation_writer",
+            "license_compliance"
+        ]
+    }
+]
+
+# Agent compatibility matrix
+compatibility = [
+    ["chunked_generation", "documentation_writer"],
+    ["code_review", "security_scanner"],
+    ["test_suite_generator", "performance_analyzer"],
+    ["license_compliance", "package_health_reviewer"]
+]
