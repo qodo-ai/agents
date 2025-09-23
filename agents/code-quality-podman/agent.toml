@@ -1,0 +1,160 @@
+# Code Quality Podman Pipeline Agent Configuration
+version = "1.0"
+[commands.code_quality_podman]
+description = "Automate code quality checks using Podman pipelines with continuous monitoring"
+
+instructions = """
+You are an expert code quality automation specialist. Your task is to:
+
+1. CREATE and EXECUTE Podman-based pipelines for continuous code quality checks
+2. GENERATE and RUN multiple code quality tools (linters, formatters, security scanners, complexity analyzers)
+3. BUILD containerized quality gates and EXECUTE them consistently across environments
+4. PRODUCE comprehensive quality reports with actionable insights by RUNNING the analysis
+5. IMPLEMENT automated quality thresholds and EXECUTE failure conditions
+6. DEPLOY continuous monitoring and alerting for quality metrics
+7. CREATE and EXECUTE pipeline templates for different programming languages and frameworks
+
+Focus on:
+- Static code analysis using industry-standard tools
+- Security vulnerability scanning and SAST integration
+- Code complexity and maintainability metrics
+- Dependency vulnerability scanning
+- Code formatting and style consistency
+- Performance and memory leak detection
+- Documentation quality assessment
+- License compliance checking
+
+Memory Retrieval:
+   - When beginning a new chat, retrieve details related to previous tool runs to help ensure success
+
+Memory
+   - While analyzing the system, store details related to:
+     a) code language
+     b) frameworks
+     c) external dependencies
+
+Memory Update:
+   - After performing steps that might pertain to the above memory, update the memory accordingly for future runs
+
+Sequential Thinking:
+   - When initializing the podman process, begin by thinking about the problem in a sequential manner to ensure that you do not
+   complete any steps too early.
+
+Create robust, scalable pipelines that enforce quality standards automatically without requiring manual intervention.
+
+IMPORTANT: You must ACTUALLY CREATE FILES and EXECUTE PROCESSES, not just describe what you would do. When a user requests a code quality pipeline:
+
+1. CREATE the actual pipeline configuration files (Podman YAML, shell scripts, etc.)
+2. GENERATE the actual quality tool configurations (.eslintrc, .pylintrc, etc.)
+3. WRITE the actual execution scripts and make them executable
+4. CREATE the actual report generation scripts
+5. EXECUTE the pipeline and quality checks when requested
+6. PRODUCE actual output files and reports
+
+Do not just list what files you would create - actually create them using the available file creation tools.
+"""
+
+mcpServers = """
+{
+    "sequential-thinking": {
+        "command": "npx",
+        "args": [
+            "-y",
+            "@modelcontextprotocol/server-sequential-thinking"
+        ]
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ]
+    }
+}
+"""
+
+# Arguments that can be passed to the agent
+arguments = [
+    { name = "language", type = "string", required = false, default = "auto", description = "Programming language (auto, python, javascript, java, go, rust, etc.)" },
+    { name = "quality_tools", type = "string", required = false, default = "all", description = "Comma-separated list of quality tools to include (eslint, pylint, sonarqube, bandit, etc.)" },
+    { name = "severity_threshold", type = "string", required = false, default = "medium", description = "Minimum severity level to fail pipeline (low, medium, high, critical)" },
+    { name = "container_registry", type = "string", required = false, default = "docker.io", description = "Container registry for quality tool images" },
+    { name = "parallel_execution", type = "boolean", required = false, default = true, description = "Run quality checks in parallel for faster execution" },
+    { name = "cache_enabled", type = "boolean", required = false, default = true, description = "Enable caching for faster subsequent runs" },
+    { name = "report_format", type = "string", required = false, default = "json", description = "Output format for quality reports (json, xml, html, sarif)" },
+    { name = "exclude_paths", type = "string", required = false, description = "Comma-separated list of paths to exclude from quality checks" },
+    { name = "custom_rules", type = "string", required = false, description = "Path to custom quality rules configuration file" },
+    { name = "notification_webhook", type = "string", required = false, description = "Webhook URL for quality check notifications" }
+]
+
+# Tools available to this agent
+tools = ["podman", "git", "filesystem", "container_registry", "quality_scanners"]
+
+# Execution strategy: "execute" for actual pipeline creation and execution
+execution_strategy = "execute"
+
+# Expected output structure for integration
+output_schema = """
+{
+    "type": "object",
+    "properties": {
+        "pipeline_config": {
+            "type": "object",
+            "description": "Generated Podman pipeline configuration",
+            "properties": {
+                "pipeline_file": {"type": "string", "description": "Path to generated pipeline YAML file"},
+                "containers": {"type": "array", "items": {"type": "string"}, "description": "List of container images used"},
+                "stages": {"type": "array", "items": {"type": "string"}, "description": "Pipeline execution stages"},
+                "estimated_duration": {"type": "string", "description": "Estimated pipeline execution time"}
+            },
+            "required": ["pipeline_file", "containers", "stages"]
+        },
+        "quality_summary": {
+            "type": "object",
+            "description": "Summary of quality checks configured",
+            "properties": {
+                "total_checks": {"type": "number", "description": "Total number of quality checks configured"},
+                "security_checks": {"type": "number", "description": "Number of security-related checks"},
+                "code_style_checks": {"type": "number", "description": "Number of code style checks"},
+                "complexity_checks": {"type": "number", "description": "Number of complexity analysis checks"},
+                "dependency_checks": {"type": "number", "description": "Number of dependency vulnerability checks"},
+                "performance_checks": {"type": "number", "description": "Number of performance analysis checks"},
+                "languages_supported": {"type": "array", "items": {"type": "string"}, "description": "Programming languages covered"}
+            },
+            "required": ["total_checks", "languages_supported"]
+        },
+        "quality_gates": {
+            "type": "array",
+            "description": "Configured quality gates and thresholds",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Quality gate name"},
+                    "tool": {"type": "string", "description": "Tool responsible for this gate"},
+                    "threshold": {"type": "string", "description": "Threshold value for passing"},
+                    "severity": {"type": "string", "enum": ["low", "medium", "high", "critical"], "description": "Severity level"},
+                    "blocking": {"type": "boolean", "description": "Whether this gate blocks pipeline on failure"}
+                },
+                "required": ["name", "tool", "threshold", "severity", "blocking"]
+            }
+        },
+        "monitoring": {
+            "type": "object",
+            "description": "Continuous monitoring configuration",
+            "properties": {
+                "metrics_enabled": {"type": "boolean", "description": "Whether quality metrics collection is enabled"},
+                "alerting_configured": {"type": "boolean", "description": "Whether alerting is configured"},
+                "dashboard_url": {"type": "string", "description": "URL to quality metrics dashboard"},
+                "notification_channels": {"type": "array", "items": {"type": "string"}, "description": "Configured notification channels"}
+            },
+            "required": ["metrics_enabled", "alerting_configured"]
+        },
+        "setup_complete": {"type": "boolean", "description": "Whether the pipeline setup completed successfully"},
+        "next_steps": {"type": "array", "items": {"type": "string"}, "description": "Recommended next steps for implementation"}
+    },
+    "required": ["pipeline_config", "quality_summary", "quality_gates", "setup_complete"]
+}
+"""
+
+# Success condition for CI/CD integration
+exit_expression = "setup_complete"
