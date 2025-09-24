@@ -1,0 +1,295 @@
+# Code Quality Podman Agent Configuration
+# This file contains comprehensive configuration options for the agent
+
+# Global settings
+global:
+  version: "1.0.0"
+  log_level: "info"
+  max_parallel_jobs: 4
+  timeout: 3600  # 1 hour
+  cache_ttl: 86400  # 24 hours
+
+# Container settings
+containers:
+  registry: "docker.io"
+  pull_policy: "if-not-present"
+  network_mode: "bridge"
+  security_opts:
+    - "no-new-privileges:true"
+  resource_limits:
+    memory: "2g"
+    cpus: "2"
+
+# Language detection settings
+language_detection:
+  auto_detect: true
+  file_patterns:
+    python: ["*.py", "requirements.txt", "setup.py", "pyproject.toml"]
+    javascript: ["*.js", "*.jsx", "package.json", "yarn.lock"]
+    typescript: ["*.ts", "*.tsx", "tsconfig.json"]
+    java: ["*.java", "pom.xml", "build.gradle", "gradle.properties"]
+    go: ["*.go", "go.mod", "go.sum"]
+    rust: ["*.rs", "Cargo.toml", "Cargo.lock"]
+    php: ["*.php", "composer.json", "composer.lock"]
+    ruby: ["*.rb", "Gemfile", "Gemfile.lock"]
+    csharp: ["*.cs", "*.csproj", "*.sln"]
+    cpp: ["*.cpp", "*.hpp", "*.c", "*.h", "CMakeLists.txt"]
+
+# Quality tools configuration
+quality_tools:
+  # Static analysis tools
+  static_analysis:
+    sonarqube:
+      enabled: true
+      container: "sonarqube/sonar-scanner-cli:latest"
+      languages: ["java", "javascript", "typescript", "python", "csharp", "php", "go", "kotlin", "ruby", "scala", "cpp"]
+      args: ["-Dsonar.projectKey=${PROJECT_KEY}", "-Dsonar.sources=.", "-Dsonar.host.url=${SONAR_HOST_URL}"]
+
+    codeclimate:
+      enabled: true
+      container: "codeclimate/codeclimate:latest"
+      languages: ["javascript", "typescript", "python", "ruby", "php", "go"]
+      args: ["analyze", "-f", "json"]
+
+    eslint:
+      enabled: true
+      container: "node:18-alpine"
+      languages: ["javascript", "typescript"]
+      install_cmd: "npm install -g eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin"
+      args: ["eslint", ".", "--format", "json", "--output-file", "eslint-results.json"]
+
+    pylint:
+      enabled: true
+      container: "python:3.11-alpine"
+      languages: ["python"]
+      install_cmd: "pip install pylint"
+      args: ["pylint", ".", "--output-format", "json", "--reports", "no"]
+
+  # Security scanners
+  security_scanners:
+    semgrep:
+      enabled: true
+      container: "returntocorp/semgrep:latest"
+      languages: ["python", "javascript", "typescript", "java", "go", "ruby", "php", "csharp"]
+      args: ["--config", "auto", "--json", "--output", "semgrep-results.json"]
+
+    bandit:
+      enabled: true
+      container: "python:3.11-alpine"
+      languages: ["python"]
+      install_cmd: "pip install bandit"
+      args: ["bandit", "-r", ".", "-f", "json", "-o", "bandit-results.json"]
+
+    trivy:
+      enabled: true
+      container: "aquasec/trivy:latest"
+      scan_types: ["fs", "config", "secret"]
+      args: ["fs", ".", "--format", "json", "--output", "trivy-results.json"]
+
+    snyk:
+      enabled: false  # Requires API key
+      container: "snyk/snyk:alpine"
+      args: ["test", "--json", "--file", "package.json"]
+
+  # Code formatters
+  formatters:
+    prettier:
+      enabled: true
+      container: "node:18-alpine"
+      languages: ["javascript", "typescript", "json", "yaml", "markdown"]
+      install_cmd: "npm install -g prettier"
+      args: ["prettier", "--check", ".", "--write"]
+
+    black:
+      enabled: true
+      container: "python:3.11-alpine"
+      languages: ["python"]
+      install_cmd: "pip install black"
+      args: ["black", "--check", "--diff", "."]
+
+# Pipeline configuration
+pipeline:
+  stages:
+    setup:
+      description: "Initialize environment and pull container images"
+      parallel: false
+      timeout: 600
+
+    lint:
+      description: "Code style and syntax checking"
+      parallel: true
+      timeout: 1800
+      tools: ["eslint", "pylint", "rubocop", "golangci-lint"]
+
+    security:
+      description: "Security vulnerability scanning"
+      parallel: true
+      timeout: 1800
+      tools: ["semgrep", "bandit", "trivy", "codeql"]
+
+    complexity:
+      description: "Code complexity analysis"
+      parallel: true
+      timeout: 900
+      tools: ["radon", "jscomplexity", "gocyclo"]
+
+    dependencies:
+      description: "Dependency vulnerability scanning"
+      parallel: true
+      timeout: 1200
+      tools: ["trivy", "snyk", "owasp-dependency-check"]
+
+    performance:
+      description: "Performance analysis"
+      parallel: false
+      timeout: 1800
+      tools: ["py-spy", "clinic.js"]
+
+    report:
+      description: "Generate consolidated reports"
+      parallel: false
+      timeout: 300
+
+# Quality gates (imported from quality-gates.yaml if present)
+quality_gates_file: "quality-gates.yaml"
+
+# Reporting configuration
+reporting:
+  formats: ["json", "html", "sarif"]
+  output_dir: "quality-reports"
+  consolidate_reports: true
+  include_metrics: true
+
+  templates:
+    html: "templates/quality-report.html"
+    json: "templates/quality-report.json"
+    sarif: "templates/quality-report.sarif"
+
+# Caching configuration
+caching:
+  enabled: true
+  backend: "redis"  # redis, file, memory
+  redis:
+    host: "localhost"
+    port: 6379
+    db: 0
+    password: ""
+  file:
+    directory: ".quality-cache"
+    max_size: "1GB"
+  ttl: 86400  # 24 hours
+
+# Notification configuration
+notifications:
+  enabled: true
+  channels:
+    webhook:
+      enabled: true
+      url: "${WEBHOOK_URL}"
+      timeout: 30
+      retry_count: 3
+
+    slack:
+      enabled: false
+      webhook_url: "${SLACK_WEBHOOK_URL}"
+      channel: "#code-quality"
+      username: "Quality Bot"
+
+    email:
+      enabled: false
+      smtp_host: "${SMTP_HOST}"
+      smtp_port: 587
+      username: "${SMTP_USERNAME}"
+      password: "${SMTP_PASSWORD}"
+      from: "quality@company.com"
+      to: ["team@company.com"]
+
+# Integration settings
+integrations:
+  sonarqube:
+    enabled: false
+    url: "${SONARQUBE_URL}"
+    token: "${SONARQUBE_TOKEN}"
+    project_key: "${SONAR_PROJECT_KEY}"
+
+  github:
+    enabled: false
+    token: "${GITHUB_TOKEN}"
+    upload_sarif: true
+    comment_pr: true
+
+  gitlab:
+    enabled: false
+    token: "${GITLAB_TOKEN}"
+    upload_artifacts: true
+
+  jenkins:
+    enabled: false
+    url: "${JENKINS_URL}"
+    username: "${JENKINS_USERNAME}"
+    token: "${JENKINS_TOKEN}"
+
+# Environment-specific configurations
+environments:
+  development:
+    log_level: "debug"
+    quality_gates:
+      blocking_threshold: "medium"
+    notifications:
+      enabled: false
+    caching:
+      enabled: true
+
+  staging:
+    log_level: "info"
+    quality_gates:
+      blocking_threshold: "high"
+    notifications:
+      enabled: true
+      channels: ["webhook"]
+    caching:
+      enabled: true
+
+  production:
+    log_level: "warn"
+    quality_gates:
+      blocking_threshold: "critical"
+    notifications:
+      enabled: true
+      channels: ["webhook", "slack", "email"]
+    caching:
+      enabled: true
+      ttl: 172800  # 48 hours
+
+# Exclusion patterns
+exclusions:
+  global:
+    - ".git/"
+    - ".svn/"
+    - "node_modules/"
+    - "vendor/"
+    - "target/"
+    - "build/"
+    - "dist/"
+    - "*.min.js"
+    - "*.min.css"
+
+  by_tool:
+    eslint:
+      - "*.config.js"
+      - "webpack.config.js"
+    pylint:
+      - "migrations/"
+      - "venv/"
+      - "__pycache__/"
+    semgrep:
+      - "test/"
+      - "tests/"
+      - "spec/"
+
+# Custom rules directories
+custom_rules:
+  eslint: ".eslintrc.json"
+  pylint: ".pylintrc"
+  sonarqube: "sonar-project.properties"
+  semgrep: ".semgrep.yml"

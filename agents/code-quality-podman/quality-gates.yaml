@@ -1,0 +1,163 @@
+# Custom Quality Gates Configuration
+# This file defines custom quality gates and thresholds for the Code Quality Podman Agent
+
+quality_gates:
+  # Security-related gates
+  - name: "critical_security_issues"
+    description: "No critical security vulnerabilities allowed"
+    threshold: 0
+    blocking: true
+    severity: "critical"
+    tools: ["semgrep", "bandit", "trivy", "codeql"]
+
+  - name: "high_security_issues"
+    description: "Maximum 2 high severity security issues"
+    threshold: 2
+    blocking: true
+    severity: "high"
+    tools: ["semgrep", "bandit", "trivy", "snyk"]
+
+  - name: "dependency_vulnerabilities"
+    description: "Maximum 5 dependency vulnerabilities"
+    threshold: 5
+    blocking: true
+    severity: "medium"
+    tools: ["trivy", "snyk", "owasp-dependency-check"]
+
+  # Code quality gates
+  - name: "code_coverage"
+    description: "Minimum 80% code coverage recommended"
+    threshold: 80
+    blocking: false
+    severity: "medium"
+    tools: ["coverage", "jacoco", "nyc"]
+
+  - name: "complexity_score"
+    description: "Maximum cyclomatic complexity of 10"
+    threshold: 10
+    blocking: false
+    severity: "medium"
+    tools: ["radon", "gocyclo", "jscomplexity"]
+
+  - name: "maintainability_index"
+    description: "Minimum maintainability index of 70"
+    threshold: 70
+    blocking: false
+    severity: "low"
+    tools: ["radon", "sonarqube"]
+
+  # Code style gates
+  - name: "linting_errors"
+    description: "Maximum 10 linting errors allowed"
+    threshold: 10
+    blocking: true
+    severity: "medium"
+    tools: ["eslint", "pylint", "rubocop", "golangci-lint"]
+
+  - name: "formatting_issues"
+    description: "No formatting issues allowed"
+    threshold: 0
+    blocking: false
+    severity: "low"
+    tools: ["prettier", "black", "gofmt", "rustfmt"]
+
+  # Performance gates
+  - name: "performance_regression"
+    description: "No significant performance regression"
+    threshold: 20
+    blocking: false
+    severity: "medium"
+    tools: ["py-spy", "clinic.js"]
+
+  - name: "memory_leaks"
+    description: "No memory leaks detected"
+    threshold: 0
+    blocking: true
+    severity: "high"
+    tools: ["valgrind", "py-spy"]
+
+# Tool-specific configurations
+tool_configs:
+  semgrep:
+    rules: ["security", "correctness", "performance"]
+    exclude_rules: ["generic.secrets"]
+
+  bandit:
+    confidence: "medium"
+    severity: "medium"
+    exclude_tests: true
+
+  trivy:
+    scan_types: ["vuln", "secret", "config"]
+    severity: ["HIGH", "CRITICAL"]
+
+  eslint:
+    max_warnings: 50
+    fail_on_error: true
+
+  pylint:
+    fail_under: 8.0
+    disable: ["missing-docstring"]
+
+  sonarqube:
+    quality_gate: "Sonar way"
+    coverage_exclusions: ["**/test/**", "**/tests/**"]
+
+# Notification settings
+notifications:
+  on_failure:
+    - type: "webhook"
+      url: "${WEBHOOK_URL}"
+      payload_template: |
+        {
+          "text": "Quality gate failed: {{gate_name}}",
+          "details": "{{gate_description}}",
+          "threshold": "{{threshold}}",
+          "actual": "{{actual_value}}",
+          "severity": "{{severity}}"
+        }
+
+    - type: "email"
+      recipients: ["${TEAM_EMAIL}"]
+      subject: "Code Quality Gate Failure: {{gate_name}}"
+
+  on_success:
+    - type: "webhook"
+      url: "${SUCCESS_WEBHOOK_URL}"
+      payload_template: |
+        {
+          "text": "All quality gates passed",
+          "summary": "{{quality_summary}}"
+        }
+
+# Environment-specific overrides
+environments:
+  development:
+    quality_gates:
+      - name: "linting_errors"
+        threshold: 20
+        blocking: false
+      - name: "code_coverage"
+        threshold: 60
+        blocking: false
+
+  staging:
+    quality_gates:
+      - name: "high_security_issues"
+        threshold: 1
+        blocking: true
+      - name: "code_coverage"
+        threshold: 75
+        blocking: false
+
+  production:
+    quality_gates:
+      - name: "critical_security_issues"
+        threshold: 0
+        blocking: true
+      - name: "high_security_issues"
+        threshold: 0
+        blocking: true
+      - name: "code_coverage"
+        threshold: 85
+        blocking: true

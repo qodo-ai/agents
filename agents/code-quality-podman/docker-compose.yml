@@ -1,0 +1,158 @@
+version: '3.8'
+
+services:
+  # SonarQube for comprehensive code analysis
+  sonarqube:
+    image: sonarqube:community
+    container_name: code-quality-sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    networks:
+      - quality-network
+
+  # PostgreSQL for SonarQube
+  sonarqube-db:
+    image: postgres:13
+    container_name: code-quality-postgres
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonar
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    networks:
+      - quality-network
+
+  # Grafana for quality metrics visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: code-quality-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - quality-network
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: code-quality-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - quality-network
+
+  # Redis for caching quality results
+  redis:
+    image: redis:alpine
+    container_name: code-quality-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - quality-network
+
+  # MinIO for storing quality reports
+  minio:
+    image: minio/minio:latest
+    container_name: code-quality-minio
+    ports:
+      - "9001:9001"
+      - "9002:9002"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001" --address ":9002"
+    networks:
+      - quality-network
+
+  # Webhook receiver for notifications
+  webhook-receiver:
+    image: adnanh/webhook:latest
+    container_name: code-quality-webhook
+    ports:
+      - "9003:9000"
+    volumes:
+      - ./webhooks/hooks.json:/etc/webhook/hooks.json
+      - ./webhooks/scripts:/var/scripts
+    command: ["-verbose", "-hooks=/etc/webhook/hooks.json", "-hotreload"]
+    networks:
+      - quality-network
+
+  # Quality dashboard (custom web interface)
+  quality-dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: code-quality-dashboard
+    ports:
+      - "8080:80"
+    environment:
+      - SONARQUBE_URL=http://sonarqube:9000
+      - GRAFANA_URL=http://grafana:3000
+      - PROMETHEUS_URL=http://prometheus:9090
+    depends_on:
+      - sonarqube
+      - grafana
+      - prometheus
+    networks:
+      - quality-network
+
+  # Code quality agent runner
+  quality-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    container_name: code-quality-agent
+    volumes:
+      - /var/run/podman/podman.sock:/var/run/podman/podman.sock
+      - ./workspace:/workspace
+      - ./reports:/reports
+      - ./config:/config
+    environment:
+      - SONARQUBE_URL=http://sonarqube:9000
+      - REDIS_URL=redis://redis:6379
+      - MINIO_ENDPOINT=minio:9002
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - WEBHOOK_URL=http://webhook-receiver:9000/hooks/quality-results
+    working_dir: /workspace
+    networks:
+      - quality-network
+
+volumes:
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:
+  postgresql_data:
+  grafana_data:
+  prometheus_data:
+  redis_data:
+  minio_data:
+
+networks:
+  quality-network:
+    driver: bridge
