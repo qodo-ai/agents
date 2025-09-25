@@ -8,7 +8,6 @@ Pre-requisite for running this agent includes:
 
 - GitHub Personal Access Token (PAT) with `repo` scope
 - Docker installed and running
-- GitHub MCP Server running locally
 - GitHub CLI tool (`gh`) installed
 - OpenSSF Scorecard CLI tool installed
 - Qodo Command installed globally (`npm install -g @qodo/command`)

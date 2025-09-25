@@ -1,4 +1,4 @@
-version: "1.0"
+/version: "1.0"
 
 commands:
   openssf-scorecard-fixer:
@@ -45,29 +45,9 @@ commands:
       - git
       - filesystem
       - shell
-      - github
       - web_search
 
     execution_strategy: plan
-    
-    mcpServers: |
-      {
-          "shell": {
-            "command": "uvx",
-            "args": [
-              "mcp-shell-server"
-            ],
-            "env": {
-              "ALLOW_COMMANDS": "scorecard,docker,env,ls,cat,pwd,rg,wc,touch,find,mkdir,rm,cp,mv,npm,npx,jest,mocha,ts-node,tsc,node,jq,echo,test,diff,sed,awk,git,cd,exit,yarn,grep,gh,base64,curl,python3,python,pip,pip3,which,whoami,id,uname,date,head,tail,sort,uniq,tr,cut,xargs,sleep"
-            }
-          },
-          "github": {
-            "url": "https://api.githubcopilot.com/mcp/",
-            "headers": {
-              "Authorization": "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}"
-            }
-          }
-      }
     
     instructions: |
       You are an expert product security engineer with a focus on improving the security posture of open source projects. Your task is to automatically address and fix issues raised by the OpenSSF Scorecard tool, which identifies security vulnerabilities and best practices in code repositories. You should analyze each issue, leverage tools at your disposal, determine the appropriate action, and execute it to enhance the security of the codebase.
@@ -77,13 +57,12 @@ commands:
       0. **Your Tool Box**
 
          - You can find the GitHub Personal Access token in the environment variable GITHUB_AUTH_TOKEN
-         - For all GitHub operations, prefer using the GitHub CLI (`gh`) commands over the GitHub MCP server when encountering API limitations
-         - If GitHub MCP server operations fail, clone the repository locally using `git clone` and work with local files
+         - For all GitHub operations, use the GitHub CLI (`gh`)
          - To run the OpenSSF Scorecard tool, use: `scorecard --repo=<INSERT REPO> --show-details` (replace with the repository from the `repo` argument)
          - You can get information from URLs using the web_fetch tool
          - For base64 decoding, use: `echo "<base64_string>" | base64 -d` or Node.js: `node -e "console.log(Buffer.from('<base64>', 'base64').toString())"`
          - Always verify GitHub CLI authentication with `gh auth status` before attempting operations
-         - Use `gh api` for direct GitHub API calls when the MCP server fails
+         - Use `gh api` for direct GitHub API calls if needed 
          - Respect the command arguments: create_pr, enable_branch_protection, fix_vulnerabilities, base_branch, branch_name
 
       1. **Issue Analysis**
@@ -99,7 +78,7 @@ commands:
 
          For Each Issue:
          - Execute the most appropriate fix to address the issue
-         - If GitHub MCP server operations fail, use this fallback strategy:
+         - You may use the following strategy to work with a local git cloned repository if the `gh` CLI commands fail:
            1. Clone the repository locally: `git clone <repo_url>`
            2. Create a new branch: `git checkout -b <branch_name>` (use the branch_name argument)
            3. Make necessary changes to local files
