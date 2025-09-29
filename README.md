@@ -134,6 +134,16 @@ qodo my_agent --set input1=0.9 --set input2="test"
 qodo my_agent --ci --set input1=0.9 --set input2="test"
 ```
 
+### How to Create an Agent from Prompt
+
+To speed up agent creation, you can prompt Qodo Command to generate an agent based on your requirements, using a simple prompt.
+
+As a reference example, the following prompt was used in a Qodo chat session with `claude-4-sonnet` to generate the package health reviewer agent at `/agents/package-health-reviewer/`.
+
+```plaintext
+Let's create a new Qodo custom agent. This new custom agent will developers to assess a package health. You are already in a repository of custom Qodo agents, they are placed in the `agents/` directory and you can read Qodo custom agents in the repository's /Users/lirantal/projects/repos/qodo-agents/README.md file to get information about them. Learn how existing agents are defined, good examples are the /Users/lirantal/projects/repos/qodo-agents/agents/pr-readme-updater/agent.toml and the /Users/lirantal/projects/repos/qodo-agents/agents/license-compliance/agent.toml that you can use as reference. The custom agent we're building is "package-health-review" which takes a package name as an argument, runs checks to assess the package health, and then returns a score that can be one of three options: "healthy" for good quality packages, "sustainable" for medium quality packages, and "risky" for low quality packages. This custom agent will use several tools to perform the assessment: 1) Fetch the Snyk Advisor page for packages (example of risky package: https://snyk.io/advisor/npm-package/request and example of high quality package: https://snyk.io/advisor/npm-package/nodemon). 2) To access the Snyk Advisor pages and any other pages, it should use the Playwright library as a tool to be able to simulate real browser so that firewalls don't block naive "curl" or "fetch" requests as bots. 3) It should parse the contents of the Snyk Advisor page and include some directives and logic for how to assess package health. Plan how you intent to build this agent and create it in the `agents/package-health-reviewer/` directory along with an "examples" folder, README file, and of course the agent's own `agent.toml` file.
+```
+
 ---
 
 ## Example Agents
