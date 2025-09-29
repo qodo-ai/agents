@@ -152,6 +152,7 @@ Community-contributed agents demonstrating various use cases and integrations.
 > **Note:** Community agents are maintained by their respective authors and should be used at your own discretion.
 
 ### Development Workflow
+- **[ArchMind](community/archmind/)** - Advanced architectural intelligence framework that provides comprehensive analysis, pattern recognition, and documentation generation for complex codebases with Docker containerization and CI/CD integration *(contributed by [@53gf4u1t](https://github.com/53gf4u1t))*
 - **[Documentation Writer](agents/documentation-writer/)** - Automatically generates and updates professional README.md files with comprehensive project documentation, including Git hooks for automated updates *(contributed by [@Max77788](https://github.com/Max77788))*
 
 ### Security & Compliance
