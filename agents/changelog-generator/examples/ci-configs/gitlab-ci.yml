@@ -1,0 +1,36 @@
+stages:
+  - docs
+
+generate_changelog:
+  stage: docs
+  image: node:20
+  variables:
+    GIT_STRATEGY: fetch
+  script:
+    - npm install -g @qodo/command
+    - |
+      PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || true)
+      if [ -z "$PREV_TAG" ]; then
+        SINCE=$(date -u -d '14 days ago' +%Y-%m-%d)
+      else
+        SINCE=$PREV_TAG
+      fi
+      qodo changelog_generator \
+        --set repo=${CI_PROJECT_PATH} \
+        --set since=${SINCE} \
+        --set until=${CI_COMMIT_REF_NAME} \
+        --set group_conventional=true \
+        --set output_file=CHANGELOG.md
+    - |
+      git config user.name "gitlab-ci[bot]"
+      git config user.email "gitlab-ci-bot@noreply"
+      git add CHANGELOG.md
+      if ! git diff --staged --quiet; then
+        git commit -m "docs(changelog): update for ${CI_COMMIT_REF_NAME}"
+        git push "https://oauth2:${GITLAB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" HEAD:${CI_COMMIT_REF_NAME}
+      fi
+  only:
+    - tags
+    - schedules
+
+
