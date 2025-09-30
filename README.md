@@ -151,7 +151,6 @@ Let's create a new Qodo custom agent. This new custom agent will developers to a
 These agents demonstrate core patterns and best practices for the Qodo framework.
 
 ### Development Workflow Agents
-- **[Code Review](agents/code-review/)** - Comprehensive code review with Qodo Merge integration
 - **[Diff Test Generation](agents/diff-test-suite/)** - Automated test suite creation and validation of code changes
 - **[GitHub Issue Handler](agents/github-issue-handler/)** - Automatically processes GitHub issues by analyzing content, answering questions, implementing fixes, and creating pull requests
 
