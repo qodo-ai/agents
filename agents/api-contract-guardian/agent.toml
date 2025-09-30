@@ -1,0 +1,102 @@
+version = "1.0"
+
+[commands.api_contract_guardian]
+description = "Enforce API contract consistency across branches and services using OpenAPI/GraphQL schemas; fail PRs on breaking changes."
+
+instructions = """
+You are an API contract guardian. Your job is to detect, explain, and gate breaking API changes across services and repositories.
+
+Scope:
+- Compare current branch API schemas (OpenAPI 3.x JSON/YAML and GraphQL SDL) against the target branch (default: main) or a baseline file.
+- Report all breaking changes with severity, location, and human‑readable guidance.
+- Suggest migration notes and safe upgrade paths.
+- Optionally allow documented exceptions via an allowlist file.
+
+Inputs:
+- openapi_paths: comma‑separated globs for OpenAPI files (e.g., "**/openapi.{yml,yaml,json}")
+- graphql_paths: comma‑separated globs for GraphQL SDL files (e.g., "**/*.graphql,**/*.gql")
+- target_branch: git ref to compare schemas against (default: main)
+- allowlist_file: path to a YAML/JSON file listing approved breaking changes
+- fail_on: minimum severity to fail the run (minor|moderate|major|critical)
+
+Policy (breaking examples):
+- Removing operations/paths/types/fields
+- Narrowing request/response shapes (required adds, enum removal, type narrowing)
+- Status code removals; content type removals
+- Response schema changes that are backward incompatible
+- GraphQL: field/type removals, non‑null tightening, enum value removals, input arg additions without defaults
+
+Process:
+1. Discover schema files from provided paths; if none provided, use sensible defaults.
+2. Checkout and read baseline schemas from target_branch.
+3. Diff schemas using specialized rules per spec.
+4. Summarize breaking vs non‑breaking deltas; map to severity.
+5. Apply allowlist exceptions to downgrade or ignore specific findings.
+6. Output a structured JSON report and a concise summary. Set approved=false if any finding >= fail_on.
+
+Edge cases:
+- Missing baseline: treat as initial introduction; mark as non‑breaking unless configured otherwise.
+- Non‑parseable files: report with severity=critical and continue others.
+- Monorepo: group results per workspace/service directory.
+
+Return actionable recommendations for each breaking change.
+"""
+
+arguments = [
+  { name = "openapi_paths", type = "string", required = false, description = "Comma-separated globs for OpenAPI files" },
+  { name = "graphql_paths", type = "string", required = false, description = "Comma-separated globs for GraphQL SDL files" },
+  { name = "target_branch", type = "string", required = false, default = "main", description = "Branch to compare against" },
+  { name = "allowlist_file", type = "string", required = false, description = "Path to allowed exceptions file (yaml/json)" },
+  { name = "fail_on", type = "string", required = false, default = "major", description = "Minimum severity to fail: minor|moderate|major|critical" }
+]
+
+tools = ["git", "filesystem"]
+execution_strategy = "act"
+
+output_schema = """
+{
+  "type": "object",
+  "properties": {
+    "summary": {
+      "type": "object",
+      "description": "Summary statistics for files and services compared, and severities encountered",
+      "properties": {
+        "services": {"type": "number"},
+        "files_compared": {"type": "number"},
+        "breaking": {"type": "number"},
+        "non_breaking": {"type": "number"},
+        "severity_max": {"type": "string", "enum": ["none","minor","moderate","major","critical"]}
+      },
+      "required": ["files_compared","breaking","non_breaking","severity_max"]
+    },
+    "findings": {
+      "type": "array",
+      "description": "List of detected API contract changes with severity and recommendations",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {"type": "string", "enum": ["openapi","graphql"]},
+          "service": {"type": "string"},
+          "file": {"type": "string"},
+          "path": {"type": "string", "description": "Schema path, e.g., /users GET or GraphQL Type.Field"},
+          "category": {"type": "string"},
+          "severity": {"type": "string", "enum": ["minor","moderate","major","critical"]},
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "recommendation": {"type": "string"},
+          "allowed_by": {"type": "string", "description": "Allowlist rule id if matched"}
+        },
+        "required": ["type","file","category","severity","title","description"]
+      }
+    },
+    "approved": {"type": "boolean", "description": "True if the change set passes the configured severity policy"},
+    "requires_changes": {"type": "boolean", "description": "True if authors must address reported breaking changes"}
+  },
+  "required": ["summary","findings","approved","requires_changes"]
+}
+"""
+
+exit_expression = "approved"
+
+
+

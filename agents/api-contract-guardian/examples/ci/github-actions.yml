@@ -1,0 +1,24 @@
+name: API Contract Guardian
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm i -g @qodo/command
+      - name: Run API Contract Guardian
+        run: |
+          qodo api_contract_guardian \
+            --agent-file=agents/api-contract-guardian/agent.toml \
+            --set openapi_paths="**/openapi.{yml,yaml,json}" \
+            --set graphql_paths="**/*.{graphql,gql}" \
+            --set target_branch=${{ github.base_ref || 'main' }} \
+            --ci
+
