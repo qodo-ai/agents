@@ -13,6 +13,7 @@ Qodo Agents are configurable AI workflows that combine:
 - **Execution Strategy**: How the agent approaches tasks (plan vs act)
 - **Output Schema**: Structured output format for integration
 - **Exit Expressions**: Success/failure conditions for CI/CD
+- **For Testing
 
 ---
 
