@@ -33,7 +33,7 @@ This project adheres to a code of conduct that we expect all contributors to fol
    ```
 3. **Set up the upstream remote**:
    ```bash
-   git remote add upstream https://github.com/qodo-dev/agents.git
+   git remote add upstream https://github.com/qodo-ai/agents.git
    ```
 
 ## How to Contribute
