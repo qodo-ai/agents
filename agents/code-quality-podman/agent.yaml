@@ -1,0 +1,269 @@
+name: "Code Quality Podman Pipeline Agent"
+version: "1.0.0"
+description: "Comprehensive code quality automation using Podman containers for consistent, scalable quality checks across environments"
+
+author:
+  name: "Qodo AI"
+  email: "support@qodo.ai"
+  url: "https://qodo.ai"
+
+tags:
+  - "code-quality"
+  - "podman"
+  - "containers"
+  - "ci-cd"
+  - "static-analysis"
+  - "security"
+  - "linting"
+  - "pipeline"
+
+category: "DevOps"
+
+requirements:
+  - "podman >= 4.0"
+  - "git"
+  - "bash"
+
+supported_languages:
+  - "python"
+  - "javascript"
+  - "typescript"
+  - "java"
+  - "go"
+  - "rust"
+  - "c++"
+  - "c#"
+  - "php"
+  - "ruby"
+  - "kotlin"
+  - "scala"
+
+features:
+  - "Multi-language static code analysis"
+  - "Security vulnerability scanning (SAST/DAST)"
+  - "Code complexity and maintainability metrics"
+  - "Dependency vulnerability scanning"
+  - "Code formatting and style consistency"
+  - "Performance analysis and memory leak detection"
+  - "Documentation quality assessment"
+  - "License compliance checking"
+  - "Container-based execution for consistency"
+  - "Parallel execution for performance"
+  - "Comprehensive reporting (JSON, XML, HTML, SARIF)"
+  - "Quality gates and thresholds"
+  - "Continuous monitoring and alerting"
+
+quality_tools:
+  static_analysis:
+    - name: "SonarQube"
+      container: "sonarqube/sonar-scanner-cli:latest"
+      languages: ["java", "javascript", "typescript", "python", "c#", "php", "go", "kotlin", "ruby", "scala", "c++"]
+    - name: "CodeClimate"
+      container: "codeclimate/codeclimate:latest"
+      languages: ["javascript", "typescript", "python", "ruby", "php", "go"]
+    - name: "ESLint"
+      container: "node:18-alpine"
+      languages: ["javascript", "typescript"]
+    - name: "Pylint"
+      container: "python:3.11-alpine"
+      languages: ["python"]
+    - name: "RuboCop"
+      container: "ruby:3.2-alpine"
+      languages: ["ruby"]
+    - name: "golangci-lint"
+      container: "golangci/golangci-lint:latest"
+      languages: ["go"]
+    - name: "Clippy"
+      container: "rust:1.70-alpine"
+      languages: ["rust"]
+
+  security_scanners:
+    - name: "Bandit"
+      container: "python:3.11-alpine"
+      languages: ["python"]
+      type: "SAST"
+    - name: "Semgrep"
+      container: "returntocorp/semgrep:latest"
+      languages: ["python", "javascript", "typescript", "java", "go", "ruby", "php", "c#"]
+      type: "SAST"
+    - name: "CodeQL"
+      container: "github/codeql:latest"
+      languages: ["javascript", "typescript", "python", "java", "c#", "go", "ruby", "c++"]
+      type: "SAST"
+    - name: "Trivy"
+      container: "aquasec/trivy:latest"
+      type: "Dependency Scanner"
+    - name: "Snyk"
+      container: "snyk/snyk:alpine"
+      type: "Dependency Scanner"
+    - name: "OWASP Dependency Check"
+      container: "owasp/dependency-check:latest"
+      type: "Dependency Scanner"
+
+  formatters:
+    - name: "Prettier"
+      container: "node:18-alpine"
+      languages: ["javascript", "typescript", "json", "yaml", "markdown"]
+    - name: "Black"
+      container: "python:3.11-alpine"
+      languages: ["python"]
+    - name: "gofmt"
+      container: "golang:1.21-alpine"
+      languages: ["go"]
+    - name: "rustfmt"
+      container: "rust:1.70-alpine"
+      languages: ["rust"]
+
+  complexity_analyzers:
+    - name: "Radon"
+      container: "python:3.11-alpine"
+      languages: ["python"]
+    - name: "JSComplexity"
+      container: "node:18-alpine"
+      languages: ["javascript", "typescript"]
+    - name: "gocyclo"
+      container: "golang:1.21-alpine"
+      languages: ["go"]
+
+  performance_analyzers:
+    - name: "py-spy"
+      container: "python:3.11-alpine"
+      languages: ["python"]
+    - name: "clinic.js"
+      container: "node:18-alpine"
+      languages: ["javascript", "typescript"]
+
+pipeline_stages:
+  - name: "setup"
+    description: "Initialize environment and pull container images"
+    parallel: false
+  - name: "lint"
+    description: "Code style and syntax checking"
+    parallel: true
+  - name: "security"
+    description: "Security vulnerability scanning"
+    parallel: true
+  - name: "complexity"
+    description: "Code complexity analysis"
+    parallel: true
+  - name: "dependencies"
+    description: "Dependency vulnerability scanning"
+    parallel: true
+  - name: "performance"
+    description: "Performance analysis"
+    parallel: false
+  - name: "report"
+    description: "Generate consolidated reports"
+    parallel: false
+
+quality_gates:
+  - name: "critical_security_issues"
+    threshold: 0
+    blocking: true
+    description: "No critical security vulnerabilities allowed"
+  - name: "high_security_issues"
+    threshold: 2
+    blocking: true
+    description: "Maximum 2 high severity security issues"
+  - name: "code_coverage"
+    threshold: 80
+    blocking: false
+    description: "Minimum 80% code coverage recommended"
+  - name: "complexity_score"
+    threshold: 10
+    blocking: false
+    description: "Maximum cyclomatic complexity of 10"
+  - name: "maintainability_index"
+    threshold: 70
+    blocking: false
+    description: "Minimum maintainability index of 70"
+  - name: "dependency_vulnerabilities"
+    threshold: 5
+    blocking: true
+    description: "Maximum 5 dependency vulnerabilities"
+
+output_formats:
+  - "json"
+  - "xml"
+  - "html"
+  - "sarif"
+  - "junit"
+  - "sonarqube"
+
+integrations:
+  ci_cd:
+    - "GitHub Actions"
+    - "GitLab CI"
+    - "Jenkins"
+    - "Azure DevOps"
+    - "CircleCI"
+    - "Tekton"
+
+  quality_platforms:
+    - "SonarQube"
+    - "CodeClimate"
+    - "Codacy"
+    - "DeepSource"
+
+  security_platforms:
+    - "Snyk"
+    - "WhiteSource"
+    - "Veracode"
+    - "Checkmarx"
+
+  notification_channels:
+    - "Slack"
+    - "Microsoft Teams"
+    - "Email"
+    - "Webhook"
+    - "PagerDuty"
+
+monitoring:
+  metrics:
+    - "pipeline_execution_time"
+    - "quality_score_trend"
+    - "security_issues_count"
+    - "code_coverage_percentage"
+    - "dependency_vulnerabilities"
+    - "complexity_metrics"
+
+  dashboards:
+    - "Quality Trends Dashboard"
+    - "Security Metrics Dashboard"
+    - "Performance Metrics Dashboard"
+    - "Team Quality Scorecard"
+
+examples:
+  basic_usage: |
+    qodo code_quality_podman --language=python --quality_tools=pylint,bandit,black
+
+  comprehensive_scan: |
+    qodo code_quality_podman \
+      --language=javascript \
+      --quality_tools=eslint,semgrep,prettier \
+      --severity_threshold=medium \
+      --parallel_execution=true \
+      --report_format=json,html
+
+  security_focused: |
+    qodo code_quality_podman \
+      --quality_tools=semgrep,bandit,trivy \
+      --severity_threshold=high \
+      --focus=security
+
+  ci_integration: |
+    qodo code_quality_podman \
+      --language=auto \
+      --quality_tools=all \
+      --severity_threshold=medium \
+      --report_format=sarif \
+      --cache_enabled=true \
+      --notification_webhook=$WEBHOOK_URL
+
+documentation:
+  readme: "README.md"
+  examples: "examples/"
+  troubleshooting: "docs/troubleshooting.md"
+  best_practices: "docs/best-practices.md"
+
+license: "MIT"
