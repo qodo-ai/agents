@@ -1,0 +1,183 @@
+# Chunked Code Generator Agent
+# An agent that generates massive code projects using intelligent prompt chunking
+
+version = "1.0"
+
+[commands.generate_chunked]
+description = """
+Chunked Code Generator - An AI agent that generates massive code projects (tens of thousands of lines) 
+by intelligently breaking down complex requirements into manageable chunks and coordinating their generation.
+
+Perfect for:
+- Enterprise applications
+- Large-scale web platforms
+- Machine learning pipelines
+- Game development projects
+- Microservices architectures
+- Complex data processing systems
+"""
+
+instructions = """
+You are a Chunked Code Generator AI specialized in creating massive, complex code projects by breaking them down into manageable chunks. Your role is to:
+
+## Core Responsibilities:
+1. **Analyze Complex Requirements**: Parse large-scale project prompts and understand the full scope
+2. **Intelligent Chunking**: Break down massive projects into logical, manageable components
+3. **Coordinate Generation**: Manage the generation process across multiple chunks while maintaining consistency
+4. **Ensure Integration**: Guarantee that all chunks work together seamlessly
+5. **Progress Tracking**: Provide real-time progress updates and resumption capabilities
+
+## Chunking Strategy:
+- **Dependency Analysis**: Identify component dependencies and generate in correct order
+- **Interface Design**: Define clear interfaces between chunks for seamless integration
+- **Context Preservation**: Maintain consistent coding patterns, naming conventions, and architecture decisions
+- **Parallel Processing**: Generate independent chunks simultaneously when possible
+- **Quality Assurance**: Validate each chunk and ensure integration compatibility
+
+## Supported Project Types:
+- **Web Applications**: Full-stack applications with complex business logic
+- **Machine Learning**: End-to-end ML pipelines with data processing, training, and inference
+- **Enterprise Software**: Large business applications with multiple modules
+- **Game Development**: Complete game projects with engines, assets, and gameplay systems
+- **Microservices**: Distributed systems with multiple interconnected services
+- **Data Platforms**: Complex data processing and analytics systems
+
+## Generation Process:
+1. **Project Analysis**: Understand requirements and identify major components
+2. **Architecture Planning**: Design overall system architecture and component interfaces
+3. **Chunk Definition**: Break project into logical chunks with clear boundaries
+4. **Dependency Mapping**: Create dependency graph for proper generation order
+5. **Coordinated Generation**: Generate chunks while maintaining global context
+6. **Integration Testing**: Verify that all chunks work together correctly
+7. **Documentation**: Create comprehensive documentation for the entire system
+
+## Quality Standards:
+- **Consistency**: Maintain consistent coding patterns across all chunks
+- **Modularity**: Ensure each chunk is self-contained with clear interfaces
+- **Testability**: Include comprehensive tests for each chunk and integration points
+- **Documentation**: Provide detailed documentation for each component
+- **Performance**: Optimize for performance and scalability
+- **Security**: Implement security best practices throughout the system
+
+## Error Handling:
+- **Chunk Validation**: Validate each chunk before proceeding to dependent chunks
+- **Automatic Retry**: Retry failed chunks with modified approaches
+- **Graceful Degradation**: Provide fallback implementations when needed
+- **Progress Recovery**: Resume generation from the last successful checkpoint
+- **Quality Gates**: Ensure each chunk meets quality standards before integration
+
+Always provide detailed progress updates, clear error messages, and comprehensive documentation for the generated systems.
+"""
+
+# Define configurable arguments for chunked generation
+arguments = [
+    { name = "prompt", type = "string", required = true, description = "Comprehensive description of the large-scale project to generate" },
+    { name = "language", type = "string", required = false, default = "python", description = "Primary programming language (python, javascript, typescript, java, etc.)" },
+    { name = "framework", type = "string", required = false, default = "", description = "Primary framework (django, react, spring, etc.)" },
+    { name = "project_name", type = "string", required = false, default = "", description = "Name for the generated project" },
+    { name = "max_chunk_size", type = "number", required = false, default = 2000, description = "Maximum lines of code per chunk" },
+    { name = "chunk_strategy", type = "string", required = false, default = "modular", description = "Chunking strategy: 'modular', 'layered', 'feature', or 'domain'" },
+    { name = "parallel_chunks", type = "number", required = false, default = 3, description = "Maximum number of chunks to generate in parallel" },
+    { name = "quality_level", type = "string", required = false, default = "standard", description = "Quality level: 'basic', 'standard', or 'enterprise'" },
+    { name = "include_tests", type = "boolean", required = false, default = true, description = "Whether to generate comprehensive test suites" },
+    { name = "include_docs", type = "boolean", required = false, default = true, description = "Whether to generate detailed documentation" },
+    { name = "resume_from", type = "string", required = false, default = "", description = "Resume generation from a specific checkpoint" },
+    { name = "output_dir", type = "string", required = false, default = "generated", description = "Directory to create the project in" },
+    { name = "fast_mode", type = "boolean", required = false, default = false, description = "Prioritize speed over comprehensive features" },
+    { name = "cache_templates", type = "boolean", required = false, default = true, description = "Use cached templates and patterns for faster generation" }
+]
+
+# Define available tools
+tools = ["filesystem", "git", "shell"]
+
+# Use coordinated execution strategy for chunked generation
+execution_strategy = "act"
+
+# Define structured output schema for chunked generation
+output_schema = """
+{
+    "type": "object",
+    "properties": {
+        "project_analysis": {
+            "type": "object",
+            "description": "Analysis of the project requirements and chunking strategy",
+            "properties": {
+                "project_scope": {"type": "string", "description": "Overall scope and complexity assessment"},
+                "estimated_lines": {"type": "number", "description": "Estimated total lines of code"},
+                "chunk_count": {"type": "number", "description": "Number of chunks to be generated"},
+                "generation_time_estimate": {"type": "string", "description": "Estimated time to complete generation"},
+                "architecture_overview": {"type": "string", "description": "High-level architecture description"}
+            }
+        },
+        "chunk_plan": {
+            "type": "array",
+            "description": "Detailed plan for each chunk to be generated",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "chunk_id": {"type": "string", "description": "Unique identifier for the chunk"},
+                    "chunk_name": {"type": "string", "description": "Human-readable name for the chunk"},
+                    "description": {"type": "string", "description": "What this chunk will contain"},
+                    "dependencies": {"type": "array", "items": {"type": "string"}, "description": "Other chunks this depends on"},
+                    "estimated_lines": {"type": "number", "description": "Estimated lines of code for this chunk"},
+                    "priority": {"type": "number", "description": "Generation priority (1-10)"},
+                    "complexity": {"type": "string", "description": "Complexity level: low, medium, high"}
+                }
+            }
+        },
+        "generation_progress": {
+            "type": "object",
+            "description": "Current generation progress and status",
+            "properties": {
+                "current_chunk": {"type": "string", "description": "Currently processing chunk"},
+                "completed_chunks": {"type": "array", "items": {"type": "string"}, "description": "List of completed chunk IDs"},
+                "failed_chunks": {"type": "array", "items": {"type": "string"}, "description": "List of failed chunk IDs"},
+                "overall_progress": {"type": "number", "description": "Overall completion percentage (0-100)"},
+                "estimated_remaining": {"type": "string", "description": "Estimated time remaining"}
+            }
+        },
+        "generated_files": {
+            "type": "array",
+            "description": "List of all files generated across all chunks",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "file_path": {"type": "string", "description": "Path to the generated file"},
+                    "chunk_id": {"type": "string", "description": "Which chunk generated this file"},
+                    "file_type": {"type": "string", "description": "Type of file (source, test, config, documentation)"},
+                    "lines_of_code": {"type": "number", "description": "Number of lines in the file"},
+                    "purpose": {"type": "string", "description": "Purpose and functionality of the file"}
+                }
+            }
+        },
+        "integration_status": {
+            "type": "object",
+            "description": "Status of chunk integration and system coherence",
+            "properties": {
+                "integration_tests_passed": {"type": "boolean", "description": "Whether integration tests passed"},
+                "interface_compatibility": {"type": "boolean", "description": "Whether all chunk interfaces are compatible"},
+                "consistency_check": {"type": "boolean", "description": "Whether coding patterns are consistent"},
+                "documentation_complete": {"type": "boolean", "description": "Whether documentation is complete"}
+            }
+        },
+        "next_steps": {
+            "type": "object",
+            "description": "Recommended next steps for the generated project",
+            "properties": {
+                "setup_instructions": {"type": "array", "items": {"type": "string"}, "description": "Steps to set up the generated project"},
+                "testing_guide": {"type": "string", "description": "How to run tests and verify functionality"},
+                "deployment_notes": {"type": "string", "description": "Notes on deploying the generated system"},
+                "customization_points": {"type": "array", "items": {"type": "string"}, "description": "Areas where customization is recommended"}
+            }
+        },
+        "success": {
+            "type": "boolean",
+            "description": "Whether the chunked generation completed successfully"
+        }
+    },
+    "required": ["project_analysis", "chunk_plan", "generation_progress", "generated_files", "integration_status", "next_steps", "success"]
+}
+"""
+
+# Success condition for CI/CD integration
+exit_expression = "success"
