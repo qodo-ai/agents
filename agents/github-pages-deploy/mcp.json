@@ -1,0 +1,17 @@
+{
+    "mcpServers": {
+      "desktop-commander": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@wonderwhy-er/desktop-commander@latest"
+        ]
+      },
+      "github": {
+        "url": "https://api.githubcopilot.com/mcp/",
+        "headers": {
+        "Authorization": "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}"
+        }
+       }
+    }
+  }

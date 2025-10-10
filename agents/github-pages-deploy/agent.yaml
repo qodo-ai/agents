@@ -1,0 +1,72 @@
+version: "1.0"
+
+commands:
+  github_pages_deploy:
+    description: "Deploy a static site to GitHub Pages"
+
+    instructions: |
+      You are an automation agent responsible for deploying static sites to GitHub Pages.
+
+      Your goals:
+
+      1. Check if a `.git` folder exists. If not, initialize a new Git repository.
+      2. Verify if the remote GitHub repository exists; if not, create it.
+      3. Add and commit all project files to the `main` branch, excluding `node_modules`, `.env`, and build artifacts.
+      4. Push the `main` branch to the remote repository.
+      5. Detect if the project requires a build:
+         - If `package.json` and `build_command` are present, run the build command.
+         - Otherwise, treat it as a static HTML/CSS/JS site.
+      6. Determine which folder to deploy:
+         - Use `source_dir` if provided.
+         - Otherwise, auto-detect `build`, `dist`, `out`, or `.next/out`.
+         - If none exist, deploy the current directory (excluding `.git`, `node_modules`, `.env`).
+      7. Create a temporary folder `.deploy_temp` and copy only deployable files into it.
+      8. Check out or create the `gh-pages` branch.
+      9. Remove all tracked files except `.git` and `.github` from the branch.
+      10. Copy contents of `.deploy_temp` into the branch root.
+      11. Commit the changes with the provided `commit_message`.
+      12. Push the `gh-pages` branch to GitHub.
+      13. Remove the `.deploy_temp` folder.
+      14. Confirm that the GitHub Pages site is live at `https://<owner>.github.io/<repo>/`.
+      15. Report success, repository URL, deployed site URL, and any log messages.
+
+    arguments:
+      - name: repo
+        type: string
+        required: true
+        description: "GitHub repo in the form owner/repo"
+
+      - name: build_command
+        type: string
+        required: false
+        description: "Build command (if applicable). Example: 'npm run build' or 'next build'"
+
+      - name: source_dir
+        type: string
+        required: false
+        default: ""
+        description: "Path to built static site directory. Auto-detects if empty."
+
+      - name: commit_message
+        type: string
+        required: false
+        default: "Deploy updated site to GitHub Pages"
+        description: "Commit message for deployment"
+
+    tools:
+      - filesystem
+      - desktop-commander
+      - github
+      - git
+
+    execution_strategy: "act"
+
+    output_schema: |
+      {
+        "properties": {
+          "success": { "type": "boolean", "description": "Whether deployment succeeded" },
+          "repo_url": { "type": "string", "description": "URL of the GitHub repository" },
+          "pages_url": { "type": "string", "description": "URL of the deployed GitHub Pages site" },
+          "messages": { "type": "array", "items": { "type": "string" }, "description": "Log messages or errors encountered during deployment" }
+        }
+      }
