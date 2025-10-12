@@ -1,0 +1,115 @@
+stages:
+  - test
+  - security
+
+variables:
+  NODE_VERSION: "18"
+
+migration_safety_check:
+  stage: test
+  image: node:${NODE_VERSION}
+  
+  before_script:
+    - npm install -g @qodo/command@0.27.0
+    
+  script:
+    - echo "🔍 Analyzing database migrations for safety..."
+    - |
+      qodo database_migration_safety \
+        --migration_directory=./migrations \
+        --risk_threshold=caution \
+        --include_rollback_check=true \
+        --check_backup_requirements=true \
+        --suggest_alternatives=true \
+        --output_file=migration-safety-results.json
+        
+  artifacts:
+    reports:
+      junit: migration-safety-results.json
+    paths:
+      - migration-safety-results.json
+    expire_in: 1 week
+    
+  only:
+    - merge_requests
+    - main
+    - develop
+  changes:
+    - migrations/**/*
+    - db/migrate/**/*
+    - src/migrations/**/*
+    - "**/*.sql"
+
+migration_safety_review:
+  stage: security
+  image: node:${NODE_VERSION}
+  dependencies:
+    - migration_safety_check
+    
+  before_script:
+    - npm install -g @qodo/command@0.27.0
+    
+  script:
+    - |
+      if [ -f migration-safety-results.json ]; then
+        echo "📊 Migration Safety Results:"
+        cat migration-safety-results.json | jq '.'
+        
+        SAFE_TO_DEPLOY=$(cat migration-safety-results.json | jq -r '.safe_to_deploy')
+        RISK_LEVEL=$(cat migration-safety-results.json | jq -r '.risk_level')
+        
+        if [ "$SAFE_TO_DEPLOY" = "false" ]; then
+          echo "❌ Migrations are not safe to deploy!"
+          echo "Risk Level: $RISK_LEVEL"
+          echo "Please review the migration safety analysis and address any issues."
+          exit 1
+        else
+          echo "✅ Migrations are safe to deploy"
+          echo "Risk Level: $RISK_LEVEL"
+        fi
+      else
+        echo "⚠️ No migration safety results found"
+        exit 1
+      fi
+      
+  only:
+    - merge_requests
+    - main
+    - develop
+  changes:
+    - migrations/**/*
+    - db/migrate/**/*
+    - src/migrations/**/*
+    - "**/*.sql"
+
+# Optional: Add manual approval for high-risk migrations
+manual_approval_required:
+  stage: security
+  image: node:${NODE_VERSION}
+  dependencies:
+    - migration_safety_check
+    
+  script:
+    - |
+      if [ -f migration-safety-results.json ]; then
+        RISK_LEVEL=$(cat migration-safety-results.json | jq -r '.risk_level')
+        
+        if [ "$RISK_LEVEL" = "CRITICAL" ] || [ "$RISK_LEVEL" = "DANGEROUS" ]; then
+          echo "⚠️ High-risk migration detected: $RISK_LEVEL"
+          echo "Manual approval required before deployment"
+          echo "Please review the migration safety analysis"
+        else
+          echo "✅ Migration risk level acceptable: $RISK_LEVEL"
+        fi
+      fi
+      
+  when: manual
+  only:
+    - merge_requests
+    - main
+    - develop
+  changes:
+    - migrations/**/*
+    - db/migrate/**/*
+    - src/migrations/**/*
+    - "**/*.sql"

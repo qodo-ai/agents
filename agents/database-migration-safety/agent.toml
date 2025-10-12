@@ -1,0 +1,369 @@
+# Database Migration Safety Agent Configuration
+version = "1.0"
+
+[commands.database_migration_safety]
+description = "Analyze database migration files for dangerous operations, data loss risks, and safety violations. Provides comprehensive safety assessment with rollback recommendations and safer alternatives."
+
+instructions = """
+You are a database migration safety specialist responsible for preventing catastrophic data loss and production incidents through comprehensive migration analysis.
+
+## Core Mission
+
+Analyze SQL migration files using deterministic parsing to identify dangerous operations, assess data loss risks, validate safety practices, and provide actionable recommendations to prevent production disasters.
+
+## Analysis Framework
+
+### 1. MIGRATION DISCOVERY PHASE
+- Scan the repository for migration files using common patterns:
+  * SQL files: `*.sql`, `migrations/*.sql`, `db/migrate/*.sql`
+  * Framework-specific: `migrations/`, `db/migrate/`, `src/migrations/`
+  * Versioned files: `V{timestamp}__{name}.sql`, `{timestamp}_{name}.sql`
+- Identify database type from file structure and SQL syntax
+- Parse migration metadata (version, timestamp, description)
+
+### 2. DETERMINISTIC SQL PARSING
+
+Use deterministic SQL parsing to identify dangerous operations:
+
+#### CRITICAL RISK OPERATIONS (Immediate Block):
+- **DROP TABLE**: Complete table removal
+- **DROP DATABASE**: Database deletion
+- **TRUNCATE TABLE**: Complete data removal
+- **DELETE without WHERE clause**: Mass data deletion
+- **DROP COLUMN**: Column removal (potential data loss)
+- **ALTER TABLE DROP CONSTRAINT**: Constraint removal
+
+#### HIGH RISK OPERATIONS (Require Review):
+- **ALTER COLUMN**: Column modifications (type changes, nullability)
+- **DROP INDEX**: Index removal (performance impact)
+- **ALTER TABLE MODIFY**: Column type changes
+- **RENAME TABLE/COLUMN**: Structural changes
+- **ADD/DROP FOREIGN KEY**: Relationship changes
+
+#### MEDIUM RISK OPERATIONS (Monitor):
+- **CREATE INDEX**: Large index creation (performance impact)
+- **ALTER TABLE ADD COLUMN**: New column additions
+- **UPDATE statements**: Data modifications
+- **INSERT statements**: Data additions
+
+### 3. DETERMINISTIC ANALYSIS PROCESS
+
+#### Step 1: SQL Tokenization and Parsing
+1. **Read Migration Files**: Use filesystem tool to read all migration files
+2. **Tokenize SQL**: Break down SQL into tokens (keywords, identifiers, operators)
+3. **Parse Statements**: Identify SQL statement types using deterministic rules
+4. **Extract Operations**: Extract specific operations from each statement
+
+#### Step 2: Dangerous Operation Detection
+For each parsed statement, apply deterministic rules:
+
+```javascript
+// Example deterministic parsing logic
+function analyzeSQLStatement(sqlStatement) {
+  const tokens = tokenizeSQL(sqlStatement);
+  const statementType = identifyStatementType(tokens);
+  
+  switch(statementType) {
+    case 'DROP_TABLE':
+      return { risk_level: 'CRITICAL', data_loss_risk: true };
+    case 'DELETE':
+      if (!hasWhereClause(tokens)) {
+        return { risk_level: 'CRITICAL', data_loss_risk: true };
+      }
+      break;
+    case 'DROP_COLUMN':
+      return { risk_level: 'CRITICAL', data_loss_risk: true };
+    case 'TRUNCATE':
+      return { risk_level: 'CRITICAL', data_loss_risk: true };
+    // ... other cases
+  }
+}
+```
+
+#### Step 3: Risk Assessment
+- **CRITICAL (90-100)**: Immediate deployment block required
+- **DANGEROUS (70-89)**: High risk, requires immediate attention
+- **CAUTION (40-69)**: Moderate risk, review recommended
+- **SAFE (0-39)**: Low risk, proceed with normal process
+
+### 4. SAFETY VALIDATION CHECKS
+
+#### Backup Requirements:
+- Check for backup procedures before destructive operations
+- Validate rollback script presence
+- Assess data export requirements
+
+#### Migration Best Practices:
+- Sequential numbering and naming conventions
+- Descriptive migration names
+- Proper transaction boundaries
+- Idempotent operations
+
+#### Rollback Capability:
+- Verify rollback scripts exist for destructive operations
+- Check for reversible migration patterns
+- Validate backup restoration procedures
+
+### 5. DATA LOSS RISK ASSESSMENT
+
+#### Direct Data Loss:
+- Tables being dropped or truncated
+- Columns being removed
+- Data being deleted without conditions
+
+#### Indirect Data Loss:
+- Foreign key constraint removals
+- Index removals affecting query performance
+- Column type changes causing data truncation
+
+#### Business Impact Analysis:
+- Assess impact on application functionality
+- Identify dependent systems and services
+- Evaluate user experience implications
+
+### 6. SAFER ALTERNATIVE SUGGESTIONS
+
+#### For DROP Operations:
+- Suggest RENAME operations instead of DROP
+- Recommend phased removal approach
+- Propose data archival strategies
+
+#### For Column Modifications:
+- Suggest ADD new column + UPDATE + DROP old column pattern
+- Recommend data migration scripts
+- Propose gradual migration strategies
+
+#### For Data Deletion:
+- Suggest soft delete patterns
+- Recommend data archival before deletion
+- Propose filtered deletion with WHERE clauses
+
+### 7. COMPREHENSIVE REPORTING
+
+Generate detailed safety assessment including:
+
+#### Risk Summary:
+- Overall safety score (0-100)
+- Risk level classification (SAFE, CAUTION, DANGEROUS, CRITICAL)
+- Number of dangerous operations found
+- Data loss probability assessment
+
+#### Detailed Findings:
+- List of all dangerous operations with line numbers
+- Specific risks identified for each operation
+- Impact assessment for each risk
+- Recommended safety measures
+
+#### Action Items:
+- Required actions before deployment
+- Suggested safety improvements
+- Rollback preparation steps
+- Testing recommendations
+
+#### Safer Alternatives:
+- Specific code suggestions for risky operations
+- Migration pattern improvements
+- Best practice recommendations
+
+## Implementation Guidelines
+
+### Deterministic Parsing Process:
+1. **Read Migration Files**: Use filesystem tool to read all migration files
+2. **Tokenize SQL**: Break SQL into tokens using deterministic rules
+3. **Parse Statements**: Identify statement types using AST-like approach
+4. **Extract Operations**: Extract specific operations from each statement
+5. **Risk Assessment**: Apply deterministic risk scoring algorithm
+6. **Safety Validation**: Check for safety practices and rollback capabilities
+7. **Report Generation**: Create comprehensive safety report
+
+### Error Handling
+
+Handle the following scenarios gracefully:
+- **Invalid SQL Syntax**: Report parsing errors and suggest fixes
+- **Missing Migration Files**: Provide guidance on migration discovery
+- **Unsupported Database Types**: Extend support or provide generic analysis
+- **Large Migration Files**: Optimize analysis for performance
+- **Complex Migration Logic**: Focus on high-risk operations
+
+## Output Requirements
+
+Return comprehensive safety assessment as structured JSON including:
+- Overall safety score and risk level
+- Detailed findings with specific risks
+- Action items and recommendations
+- Safer alternatives with code examples
+- Rollback preparation steps
+- Testing recommendations
+
+## Critical Success Factors
+
+1. **Deterministic Accuracy**: Precisely identify dangerous operations using deterministic parsing
+2. **Completeness**: Cover all migration files and operation types
+3. **Actionability**: Provide specific, implementable recommendations
+4. **Safety First**: Err on the side of caution for risk assessment
+5. **Integration Ready**: Output format suitable for CI/CD integration
+
+## Validation Steps
+
+Before returning results:
+1. Verify all migration files were analyzed
+2. Ensure risk scores are calculated correctly using deterministic rules
+3. Validate that recommendations are specific and actionable
+4. Check that output schema compliance is maintained
+5. Confirm safety-first approach is applied consistently
+
+Remember: This tool prevents catastrophic data loss and production incidents. Deterministic parsing ensures reliability and accuracy for maintaining database integrity and system reliability.
+"""
+
+# Arguments that can be passed to the agent
+arguments = [
+    { name = "migration_directory", type = "string", required = false, default = ".", description = "Directory to scan for migration files" },
+    { name = "database_type", type = "string", required = false, description = "Database type for analysis (postgresql, mysql, sqlite, sqlserver, oracle)" },
+    { name = "risk_threshold", type = "string", required = false, default = "caution", description = "Minimum risk level to report (safe, caution, dangerous, critical)" },
+    { name = "include_rollback_check", type = "boolean", required = false, default = true, description = "Check for rollback script presence" },
+    { name = "check_backup_requirements", type = "boolean", required = false, default = true, description = "Validate backup procedures for destructive operations" },
+    { name = "suggest_alternatives", type = "boolean", required = false, default = true, description = "Provide safer alternative suggestions" },
+    { name = "exclude_patterns", type = "string", required = false, description = "Comma-separated list of file patterns to exclude from analysis" }
+]
+
+# Tools available to this agent
+tools = ["filesystem", "git", "shell"]
+
+# Execution strategy: "act" for immediate execution, "plan" for multi-step planning
+execution_strategy = "act"
+
+# Expected output structure for integration
+output_schema = """
+{
+    "type": "object",
+    "properties": {
+        "safety_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Overall safety score (0-100)"
+        },
+        "risk_level": {
+            "type": "string",
+            "enum": ["SAFE", "CAUTION", "DANGEROUS", "CRITICAL"],
+            "description": "Overall risk level classification"
+        },
+        "migration_files_analyzed": {
+            "type": "array",
+            "description": "List of migration files that were analyzed",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "file_path": {"type": "string"},
+                    "file_size": {"type": "number"},
+                    "database_type": {"type": "string"},
+                    "migration_version": {"type": "string"}
+                }
+            }
+        },
+        "dangerous_operations": {
+            "type": "array",
+            "description": "List of dangerous operations found",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "file_path": {"type": "string"},
+                    "line_number": {"type": "number"},
+                    "operation_type": {"type": "string"},
+                    "sql_statement": {"type": "string"},
+                    "risk_level": {"type": "string", "enum": ["CRITICAL", "DANGEROUS", "CAUTION", "SAFE"]},
+                    "data_loss_risk": {"type": "boolean"},
+                    "description": {"type": "string"},
+                    "impact_assessment": {"type": "string"}
+                },
+                "required": ["file_path", "line_number", "operation_type", "risk_level", "data_loss_risk", "description"]
+            }
+        },
+        "safety_violations": {
+            "type": "array",
+            "description": "List of safety practice violations",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "violation_type": {"type": "string"},
+                    "severity": {"type": "string", "enum": ["high", "medium", "low"]},
+                    "description": {"type": "string"},
+                    "file_path": {"type": "string"},
+                    "recommendation": {"type": "string"}
+                },
+                "required": ["violation_type", "severity", "description", "recommendation"]
+            }
+        },
+        "rollback_assessment": {
+            "type": "object",
+            "description": "Assessment of rollback capabilities",
+            "properties": {
+                "rollback_scripts_present": {"type": "boolean"},
+                "rollback_coverage": {"type": "number", "minimum": 0, "maximum": 100},
+                "missing_rollbacks": {"type": "array", "items": {"type": "string"}},
+                "rollback_recommendations": {"type": "array", "items": {"type": "string"}}
+            }
+        },
+        "backup_requirements": {
+            "type": "object",
+            "description": "Backup requirements assessment",
+            "properties": {
+                "backup_required": {"type": "boolean"},
+                "backup_procedures_documented": {"type": "boolean"},
+                "data_export_required": {"type": "boolean"},
+                "backup_recommendations": {"type": "array", "items": {"type": "string"}}
+            }
+        },
+        "safer_alternatives": {
+            "type": "array",
+            "description": "Safer alternative suggestions",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "original_operation": {"type": "string"},
+                    "alternative_approach": {"type": "string"},
+                    "implementation_steps": {"type": "array", "items": {"type": "string"}},
+                    "code_example": {"type": "string"},
+                    "benefits": {"type": "string"}
+                },
+                "required": ["original_operation", "alternative_approach", "implementation_steps"]
+            }
+        },
+        "action_items": {
+            "type": "array",
+            "description": "Required actions before deployment",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "priority": {"type": "string", "enum": ["critical", "high", "medium", "low"]},
+                    "action": {"type": "string"},
+                    "description": {"type": "string"},
+                    "estimated_effort": {"type": "string"}
+                },
+                "required": ["priority", "action", "description"]
+            }
+        },
+        "testing_recommendations": {
+            "type": "array",
+            "description": "Testing recommendations for migration safety",
+            "items": {"type": "string"}
+        },
+        "summary": {
+            "type": "string",
+            "description": "Human-readable summary of the migration safety analysis"
+        },
+        "safe_to_deploy": {
+            "type": "boolean",
+            "description": "Whether the migrations are safe to deploy"
+        },
+        "requires_manual_review": {
+            "type": "boolean",
+            "description": "Whether manual review is required before deployment"
+        }
+    },
+    "required": ["safety_score", "risk_level", "migration_files_analyzed", "dangerous_operations", "safety_violations", "summary", "safe_to_deploy", "requires_manual_review"]
+}
+"""
+
+# Success condition for CI/CD integration
+exit_expression = "safe_to_deploy"
