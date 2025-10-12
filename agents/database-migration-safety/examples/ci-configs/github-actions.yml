@@ -29,7 +29,7 @@ jobs:
           node-version: '18'
           
       - name: Install Qodo Command
-        run: npm install -g @qodo/command
+        run: npm install -g @qodo/command@0.27.0
         
       - name: Check Migration Safety
         run: |

@@ -10,7 +10,7 @@ migration_safety_check:
   image: node:${NODE_VERSION}
   
   before_script:
-    - npm install -g @qodo/command
+    - npm install -g @qodo/command@0.27.0
     
   script:
     - echo "🔍 Analyzing database migrations for safety..."
@@ -47,7 +47,7 @@ migration_safety_review:
     - migration_safety_check
     
   before_script:
-    - npm install -g @qodo/command
+    - npm install -g @qodo/command@0.27.0
     
   script:
     - |

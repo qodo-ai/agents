@@ -25,7 +25,7 @@ pipeline {
             steps {
                 sh 'node --version'
                 sh 'npm --version'
-                sh 'npm install -g @qodo/command'
+                sh 'npm install -g @qodo/command@0.27.0'
             }
         }
         

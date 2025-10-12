@@ -1,6 +1,6 @@
 # Database Migration Safety Agent
 
-A comprehensive safety analysis tool for database migrations that prevents catastrophic data loss and production incidents through automated risk assessment, dangerous operation detection, and safer alternative recommendations.
+A comprehensive safety analysis tool for database migrations that prevents catastrophic data loss and production incidents through deterministic SQL parsing, automated risk assessment, dangerous operation detection, and safer alternative recommendations.
 
 ## 🎯 Purpose
 
@@ -15,6 +15,7 @@ Database migrations are critical operations that can cause catastrophic data los
 ## 🚀 Features
 
 ### Core Safety Analysis
+- **Deterministic SQL Parsing**: Uses reliable tokenization and AST-based analysis for accurate operation detection
 - **Dangerous Operation Detection**: Identifies DROP, TRUNCATE, DELETE without WHERE, and other risky operations
 - **Data Loss Risk Assessment**: Evaluates potential for data loss and business impact
 - **Safety Practice Validation**: Checks for backup procedures, rollback scripts, and best practices
@@ -24,7 +25,7 @@ Database migrations are critical operations that can cause catastrophic data los
 - **Multiple Database Support**: PostgreSQL, MySQL, SQLite, SQL Server, Oracle
 - **Framework Agnostic**: Works with any migration system (Flyway, Liquibase, Rails, etc.)
 - **Pattern Recognition**: Detects migration files using common naming conventions
-- **SQL Analysis**: Parses SQL statements to identify operation types and risks
+- **Deterministic SQL Analysis**: Uses tokenization and AST-based parsing to identify operation types and risks
 
 ### Actionable Recommendations
 - **Safer Alternatives**: Provides specific code suggestions for risky operations

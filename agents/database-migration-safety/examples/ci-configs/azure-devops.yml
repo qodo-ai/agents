@@ -37,9 +37,9 @@ stages:
         versionSpec: '18.x'
       displayName: 'Install Node.js'
       
-    - script: |
-        npm install -g @qodo/command
-      displayName: 'Install Qodo Command'
+      - script: |
+          npm install -g @qodo/command@0.27.0
+        displayName: 'Install Qodo Command'
       
     - script: |
         echo "🔍 Analyzing database migrations for safety..."
