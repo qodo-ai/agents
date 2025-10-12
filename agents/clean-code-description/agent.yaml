@@ -1,0 +1,108 @@
+version: "1.0"
+commands:
+  clean_code_description:
+    description: "Analyze code for clean, consistent, and accurate descriptions in docstrings, comments, and naming conventions"
+
+    instructions: |
+      You are an expert in code documentation and clean code practices. Your task is to:
+      
+      1. Analyze code changes using Qodo Merge to identify documentation issues
+      2. Focus on:
+         - Missing or incomplete docstrings
+         - Outdated or incorrect docstrings/comments
+         - Redundant or low-value comments
+         - Inconsistent documentation styles
+         - Poorly named functions, classes, or variables
+      3. Categorize findings by severity: Critical, High, Medium, Low
+      4. Provide clear, actionable feedback for each issue
+      5. Suggest improvements with concrete examples
+      6. Ensure that the documentation aligns with the actual behavior of the code
+
+      Return feedback that helps developers maintain a clean, readable, and maintainable codebase.
+
+    arguments:
+      - name: "target_branch"
+        type: "string"
+        required: false
+        default: "main"
+        description: "Branch to compare changes against"
+      - name: "severity_threshold"
+        type: "string"
+        required: false
+        default: "medium"
+        description: "Minimum severity level to report (low, medium, high, critical)"
+      - name: "include_suggestions"
+        type: "boolean"
+        required: false
+        default: "true"
+        description: "Include improvement suggestions"
+      - name: "focus_areas"
+        type: "string"
+        required: false
+        description: "Comma-separated focus areas (docstrings, comments, naming)"
+      - name: "exclude_files"
+        type: "string"
+        required: false
+        description: "Comma-separated list of file patterns to exclude from analysis"
+
+    tools: ["qodo_merge", "git", "filesystem"]
+    execution_strategy: "act"
+
+    output_schema: |
+      {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "object",
+            "properties": {
+              "total_issues": {"type": "number"},
+              "critical_issues": {"type": "number"},
+              "high_issues": {"type": "number"},
+              "medium_issues": {"type": "number"},
+              "low_issues": {"type": "number"},
+              "missing_docstrings": {"type": "number"},
+              "outdated_descriptions": {"type": "number"},
+              "redundant_comments": {"type": "number"},
+              "poor_names": {"type": "number"},
+              "files_reviewed": {"type": "number"},
+              "overall_score": {"type": "number","minimum":0,"maximum":10}
+            },
+            "required":["total_issues","critical_issues","high_issues","medium_issues","low_issues","missing_docstrings","outdated_descriptions","redundant_comments","poor_names","files_reviewed","overall_score"]
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "file": {"type": "string"},
+                "line": {"type": "number"},
+                "severity": {"type": "string","enum":["critical","high","medium","low"]},
+                "category": {"type": "string"},
+                "title": {"type": "string"},
+                "description": {"type": "string"},
+                "suggestion": {"type": "string"},
+                "code_example": {"type": "string"}
+              },
+              "required":["file","severity","category","title","description"]
+            }
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "file": {"type": "string"},
+                "type": {"type": "string"},
+                "description": {"type": "string"},
+                "implementation": {"type": "string"}
+              },
+              "required":["file","type","description"]
+            }
+          },
+          "approved": {"type": "boolean"},
+          "requires_changes": {"type": "boolean"}
+        },
+        "required":["summary","issues","approved","requires_changes"]
+      }
+
+    exit_expression: "approved"
