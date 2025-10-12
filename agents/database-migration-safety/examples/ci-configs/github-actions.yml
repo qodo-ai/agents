@@ -1,0 +1,102 @@
+name: Database Migration Safety Check
+
+on:
+  pull_request:
+    paths:
+      - 'migrations/**'
+      - 'db/migrate/**'
+      - 'src/migrations/**'
+      - '**/*.sql'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'migrations/**'
+      - 'db/migrate/**'
+      - 'src/migrations/**'
+      - '**/*.sql'
+
+jobs:
+  migration-safety:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install Qodo Command
+        run: npm install -g @qodo/command
+        
+      - name: Check Migration Safety
+        run: |
+          echo "🔍 Analyzing database migrations for safety..."
+          qodo database_migration_safety \
+            --migration_directory=./migrations \
+            --risk_threshold=caution \
+            --include_rollback_check=true \
+            --check_backup_requirements=true \
+            --suggest_alternatives=true
+            
+      - name: Comment PR with Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            try {
+              const results = fs.readFileSync('migration-safety-results.json', 'utf8');
+              const data = JSON.parse(results);
+              
+              const comment = `## 🛡️ Database Migration Safety Analysis
+              
+              **Safety Score**: ${data.safety_score}/100
+              **Risk Level**: ${data.risk_level}
+              **Safe to Deploy**: ${data.safe_to_deploy ? '✅ Yes' : '❌ No'}
+              **Requires Manual Review**: ${data.requires_manual_review ? '⚠️ Yes' : '✅ No'}
+              
+              ### Summary
+              ${data.summary}
+              
+              ### Dangerous Operations Found
+              ${data.dangerous_operations.length > 0 ? 
+                data.dangerous_operations.map(op => 
+                  `- **${op.operation_type}** in ${op.file_path}:${op.line_number} (${op.risk_level})`
+                ).join('\n') : 
+                'No dangerous operations detected ✅'
+              }
+              
+              ### Action Items
+              ${data.action_items.length > 0 ? 
+                data.action_items.map(item => 
+                  `- **${item.priority.toUpperCase()}**: ${item.action}`
+                ).join('\n') : 
+                'No action items required ✅'
+              }
+              
+              ### Testing Recommendations
+              ${data.testing_recommendations.length > 0 ? 
+                data.testing_recommendations.map(rec => `- ${rec}`).join('\n') : 
+                'No specific testing recommendations'
+              }
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            } catch (error) {
+              console.log('Could not read results file or create comment:', error);
+            }
+            
+      - name: Fail on Unsafe Migrations
+        if: failure()
+        run: |
+          echo "❌ Migration safety check failed!"
+          echo "Please review the migration safety analysis and address any issues before merging."
+          exit 1
