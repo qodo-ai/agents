@@ -1,0 +1,143 @@
+# 🛡️ Reliability Guardian Agent
+version: "1.0"
+
+commands:
+  reliability_guardian:
+    description: "Analyze and score project reliability by detecting logic conflicts, missing validations, weak tests, and historical reliability trends."
+
+    instructions: |
+      You are an expert reliability analyst agent. Your purpose is to evaluate the reliability of a software project by analyzing logic consistency, input validation completeness, and test suite robustness.
+
+      ### Your mission:
+      1. **Analyze code for logic reliability**
+         - Detect logical conflicts, contradictory conditions, or redundant branches
+         - Identify missing input validation or unsafe operations (e.g., divide by zero, null dereference)
+         - Recognize missing or ineffective exception handling
+
+      2. **Evaluate test robustness**
+         - Perform mutation or fuzz testing to estimate how strong the existing tests are
+         - Identify functions that lack test coverage or only test “happy paths”
+
+      3. **Compute a comprehensive reliability score**
+         - Logic Consistency (30%)
+         - Input Validation Coverage (30%)
+         - Exception Safety (20%)
+         - Test Effectiveness (20%)
+         Provide an overall reliability score between 0–10.
+
+      4. **Detect reliability trends over time**
+         - Use Git history to compare reliability results across recent commits or branches
+         - Highlight improvement or regression in reliability score
+
+      5. **Suggest self-healing fixes**
+         - Suggest specific code improvements such as adding missing validation, refactoring conflicting branches, or adding stronger test cases
+         - Each fix suggestion should include a short code patch snippet where applicable
+
+    arguments:
+      - name: target_branch
+        type: string
+        required: false
+        default: "master"
+        description: "Branch to compare against for diff and reliability trend"
+
+      - name: max_commits
+        type: number
+        required: false
+        default: 5
+        description: "Number of past commits to analyze for historical reliability trends"
+
+      - name: mutation_testing
+        type: boolean
+        required: false
+        default: true
+        description: "Enable simulated mutation testing"
+
+      - name: fuzz_testing
+        type: boolean
+        required: false
+        default: true
+        description: "Enable fuzz-style reliability probing"
+
+      - name: exclude_files
+        type: string
+        required: false
+        description: "Comma-separated list of files to exclude (e.g., test mocks or migrations)"
+
+    tools:
+      - qodo_merge
+      - git
+      - filesystem
+
+    execution_strategy: "act"
+
+    output_schema: |
+      {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "object",
+            "description": "High-level summary of reliability issues and test robustness",
+            "properties": {
+              "files_analyzed": { "type": "number" },
+              "functions_checked": { "type": "number" },
+              "total_issues": { "type": "number" },
+              "critical_issues": { "type": "number" },
+              "reliability_score": {
+                "type": "object",
+                "properties": {
+                  "overall": { "type": "number", "minimum": 0, "maximum": 10 },
+                  "logic_consistency": { "type": "number", "minimum": 0, "maximum": 10 },
+                  "validation_coverage": { "type": "number", "minimum": 0, "maximum": 10 },
+                  "exception_safety": { "type": "number", "minimum": 0, "maximum": 10 },
+                  "test_strength": { "type": "number", "minimum": 0, "maximum": 10 }
+                },
+                "required": ["overall", "logic_consistency", "validation_coverage", "exception_safety", "test_strength"]
+              },
+              "trend": {
+                "type": "object",
+                "properties": {
+                  "previous_scores": { "type": "array", "items": { "type": "number" } },
+                  "improvement": { "type": "number" },
+                  "best_commit": { "type": "string" },
+                  "worst_commit": { "type": "string" }
+                }
+              }
+            },
+            "required": ["files_analyzed", "functions_checked", "total_issues", "reliability_score", "trend"]
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "file": { "type": "string" },
+                "line": { "type": "number" },
+                "severity": { "type": "string", "enum": ["critical", "high", "medium", "low"] },
+                "category": { "type": "string" },
+                "description": { "type": "string" },
+                "suggestion": { "type": "string" },
+                "code_patch": { "type": "string" }
+              },
+              "required": ["file", "severity", "category", "description"]
+            }
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "area": { "type": "string" },
+                "description": { "type": "string" },
+                "example_patch": { "type": "string" }
+              },
+              "required": ["area", "description"]
+            }
+          },
+          "approved": { "type": "boolean" },
+          "requires_changes": { "type": "boolean" }
+        },
+        "required": ["summary", "issues", "suggestions", "approved"]
+      }
+
+
+    exit_expression: "approved"

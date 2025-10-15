@@ -1,0 +1,121 @@
+# Reliability Guardian Agent Configuration
+version = "1.0"
+
+[commands.reliability_guardian]
+description = "Analyze and score project reliability by detecting logic conflicts, missing validations, weak tests, and historical reliability trends."
+
+instructions = """
+You are an expert reliability analyst agent. Your purpose is to evaluate the reliability of a software project by analyzing logic consistency, input validation completeness, and test suite robustness.
+
+### Your mission:
+1. **Analyze code for logic reliability**
+   - Detect logical conflicts, contradictory conditions, or redundant branches
+   - Identify missing input validation or unsafe operations (e.g., divide by zero, null dereference)
+   - Recognize missing or ineffective exception handling
+
+2. **Evaluate test robustness**
+   - Perform mutation or fuzz testing to estimate how strong the existing tests are
+   - Identify functions that lack test coverage or only test “happy paths”
+
+3. **Compute a comprehensive reliability score**
+   - Logic Consistency (30%)
+   - Input Validation Coverage (30%)
+   - Exception Safety (20%)
+   - Test Effectiveness (20%)
+   Provide an overall reliability score between 0–10.
+
+4. **Detect reliability trends over time**
+   - Use Git history to compare reliability results across recent commits or branches
+   - Highlight improvement or regression in reliability score
+
+5. **Suggest self-healing fixes**
+   - Suggest specific code improvements such as adding missing validation, refactoring conflicting branches, or adding stronger test cases
+   - Each fix suggestion should include a short code patch snippet where applicable
+"""
+
+arguments = [
+    { name = "target_branch", type = "string", required = false, default = "main", description = "Branch to compare against for diff and reliability trend" },
+    { name = "max_commits", type = "number", required = false, default = 5, description = "Number of past commits to analyze for historical reliability trends" },
+    { name = "mutation_testing", type = "boolean", required = false, default = true, description = "Enable simulated mutation testing" },
+    { name = "fuzz_testing", type = "boolean", required = false, default = true, description = "Enable fuzz-style reliability probing" },
+    { name = "exclude_files", type = "string", required = false, description = "Comma-separated list of files to exclude (e.g., test mocks or migrations)" }
+]
+
+tools = ["qodo_merge", "git", "filesystem"]
+
+execution_strategy = "act"
+
+output_schema = """
+{
+  "type": "object",
+  "properties": {
+    "summary": {
+      "type": "object",
+      "description": "High-level summary of reliability issues and test robustness",
+      "properties": {
+        "files_analyzed": { "type": "number", "description": "Total number of source files analyzed" },
+        "functions_checked": { "type": "number", "description": "Number of functions analyzed for logic reliability" },
+        "total_issues": { "type": "number", "description": "Total reliability issues detected" },
+        "critical_issues": { "type": "number", "description": "Number of critical logic or reliability flaws" },
+        "reliability_score": {
+          "type": "object",
+          "properties": {
+            "overall": { "type": "number", "minimum": 0, "maximum": 10 },
+            "logic_consistency": { "type": "number", "minimum": 0, "maximum": 10 },
+            "validation_coverage": { "type": "number", "minimum": 0, "maximum": 10 },
+            "exception_safety": { "type": "number", "minimum": 0, "maximum": 10 },
+            "test_strength": { "type": "number", "minimum": 0, "maximum": 10 }
+          },
+          "required": ["overall", "logic_consistency", "validation_coverage", "exception_safety", "test_strength"]
+        },
+        "trend": {
+          "type": "object",
+          "description": "Reliability trend compared to past commits",
+          "properties": {
+            "previous_scores": { "type": "array", "items": { "type": "number" } },
+            "improvement": { "type": "number", "description": "Positive if reliability improved, negative if regressed" },
+            "best_commit": { "type": "string", "description": "Commit hash with highest reliability" },
+            "worst_commit": { "type": "string", "description": "Commit hash with lowest reliability" }
+          }
+        }
+      },
+      "required": ["files_analyzed", "functions_checked", "total_issues", "reliability_score", "trend"]
+    },
+    "issues": {
+      "type": "array",
+      "description": "Detailed list of individual reliability issues",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file": { "type": "string" },
+          "line": { "type": "number" },
+          "severity": { "type": "string", "enum": ["critical", "high", "medium", "low"] },
+          "category": { "type": "string", "description": "logic_conflict | validation_gap | weak_test | exception_risk" },
+          "description": { "type": "string" },
+          "suggestion": { "type": "string" },
+          "code_patch": { "type": "string", "description": "Example of an automated fix or patch suggestion" }
+        },
+        "required": ["file", "severity", "category", "description"]
+      }
+    },
+    "suggestions": {
+      "type": "array",
+      "description": "High-level reliability improvement recommendations",
+      "items": {
+        "type": "object",
+        "properties": {
+          "area": { "type": "string", "description": "validation | error_handling | logic | testing" },
+          "description": { "type": "string" },
+          "example_patch": { "type": "string" }
+        },
+        "required": ["area", "description"]
+      }
+    },
+    "approved": { "type": "boolean", "description": "Whether project meets reliability standards" },
+    "requires_changes": { "type": "boolean", "description": "True if reliability score < 7.0 or critical issues found" }
+  },
+  "required": ["summary", "issues", "suggestions", "approved"]
+}
+"""
+
+exit_expression = "approved"
