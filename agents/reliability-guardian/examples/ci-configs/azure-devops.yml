@@ -1,0 +1,38 @@
+# Azure DevOps Pipeline for Reliability Guardian Agent
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: qodo-credentials
+
+stages:
+- stage: CleanCode
+  displayName: 'Reliability Guardian'
+  jobs:
+  - job: Review
+    displayName: 'Run Reliability Guardian Agent'
+    steps:
+    - task: Docker@2
+      displayName: 'Run Reliability Guardian Agent'
+      inputs:
+        command: 'run'
+        image: 'qodoai/command:latest'
+        arguments: >
+          --prompt reliability_guardian 
+          --agent-file path/to/agent.toml
+          --key-value-pairs "target_branch=$(System.PullRequest.TargetBranch),max_commits=5,mutation_testing=true,fuzz_testing=true"
+        envVars: |
+          QODO_API_KEY=$(qodo-api-key)
+          AZURE_TOKEN=$(System.AccessToken)
