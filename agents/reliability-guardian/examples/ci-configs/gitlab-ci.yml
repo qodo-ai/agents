@@ -1,0 +1,18 @@
+# GitLab CI Configuration for Reliability Guardian Agent
+stages:
+  - review
+
+clean_code_review:
+  stage: review
+  image: qodoai/command:latest
+  script:
+    - |
+      command \
+        --prompt reliability_guardian  \
+        --agent-file path/to/agent.toml \
+        --key-value-pairs "target_branch=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-main},max_commits=5,mutation_testing=true,fuzz_testing=true"
+  variables:
+    QODO_API_KEY: $QODO_API_KEY
+    GITLAB_TOKEN: $CI_JOB_TOKEN
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"

@@ -1,0 +1,31 @@
+name: Reliability Guardian Agent
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  reliability-guardian:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Reliability Guardian Agent
+        uses: qodo-ai/command@v1
+        env:
+          QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          prompt: reliability_guardian
+          agent-file: path/to/agent.toml
+          key-value-pairs: |
+            target_branch=${{ github.base_ref }}
+            max_commits=5
+            mutation_testing=true
+            fuzz_testing=true
