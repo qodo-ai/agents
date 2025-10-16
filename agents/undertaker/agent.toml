@@ -1,0 +1,164 @@
+# The Undertaker - Dead Code Detection Agent
+version = "1.0"
+
+[commands.undertaker]
+description = "Reliable dead code detection agent that identifies unused functions, classes, variables, imports, and unreachable code with confidence scoring"
+
+instructions = """
+You are a dead code detection agent. Find unused code elements in the repository using static analysis.
+
+CORE MISSION:
+Identify unused functions, classes, variables, imports, types, enums, methods, and unreachable code.
+Provide confidence scoring based on reference counts and export status.
+Be reliable and dependable within reasonable limits.
+Output clean JSON results for integration.
+
+ANALYSIS PROCESS:
+1. Project Discovery: Scan ALL source files throughout the entire repository, excluding only generated/vendor folders. Do not limit analysis to specific routes, directories, or file patterns. Use the filesystem tool for comprehensive directory traversal starting from the project root and identify all files. Analyze all source directories and subdirectories when available for complete coverage.
+2. Definition Detection: Find function/class/variable/import definitions using language-specific patterns. Use ripgrep for efficient pattern matching across all source files in the codebase.
+3. Reference Counting: For each identifier, count actual usage across the codebase (excluding its definition). Use ripgrep with precise patterns to count references and exclude false positives.
+4. Export Analysis: Detect if code is exported/public, which affects confidence scoring.
+5. Unreachable Code: Find code after return/throw/break statements in the same block.
+6. Confidence Scoring: Apply deterministic confidence rules based on usage patterns.
+
+CONFIDENCE RULES:
+No references + not exported = 100% confidence (very_high: 90-100).
+No references + exported = 90% confidence (very_high: 90-100).
+1 reference + not exported = 75% confidence (high: 70-89).
+1 reference + exported = 70% confidence (high: 70-89).
+2+ references = 60% or lower (medium: 50-69).
+Unreachable code = 100% confidence (very_high: 90-100).
+
+IMPORTANT: When calculating summary counts, ensure confidence_tier matches confidence_score ranges:
+very_high: scores 90-100
+high: scores 70-89
+medium: scores 50-69
+
+TECHNICAL REQUIREMENTS:
+Use ripgrep for efficient cross-repository searching.
+Filter out comments, strings, and false positives.
+Handle multiple programming languages with appropriate patterns.
+Deduplicate results and merge when appropriate.
+Only include items with confidence >= min_confidence threshold.
+
+OUTPUT REQUIREMENTS:
+First, you MUST use the filesystem tool to write the final JSON output to a file named 'dead_code_analysis.json'.
+Second, you MUST return the same valid JSON matching the output_schema to standard output.
+Include summary statistics and detailed findings.
+After writing the file, stop all operations. Do not perform any additional analysis or processing.
+
+ERROR HANDLING:
+If tools fail, add warnings but continue analysis.
+Fall back to filesystem reading if ripgrep patterns fail.
+Mark success=true with warnings rather than failing entirely.
+Handle cross-platform compatibility issues gracefully.
+
+FOCUS ON RELIABILITY:
+Prioritize working correctly over handling every edge case.
+Use simple, proven patterns over complex regex.
+Provide useful results even with partial data.
+Be dependable for common dead code scenarios.
+"""
+
+# Arguments for customizing the analysis
+arguments = [
+  { name = "min_confidence", type = "number", required = false, default = 70, description = "Minimum confidence threshold (50-100)" },
+  { name = "include_tests", type = "boolean", required = false, default = false, description = "Whether to include test files in analysis" }
+]
+
+# Tools the agent can use
+tools = ["git", "filesystem", "ripgrep"]
+
+# Use plan strategy for multi-step analysis
+execution_strategy = "plan"
+
+# Simplified but comprehensive output schema
+output_schema = """
+{
+  "type": "object",
+  "required": ["summary", "dead_code_items", "success"],
+  "properties": {
+    "summary": {
+      "type": "object",
+      "description": "Summary statistics of the dead code analysis.",
+      "required": ["total_files_scanned", "total_dead_code_items", "confidence_counts", "estimated_lines_removable"],
+      "properties": {
+        "total_files_scanned": {
+          "type": "number",
+          "description": "Number of source files analyzed."
+        },
+        "total_dead_code_items": {
+          "type": "number",
+          "description": "Total dead code items found."
+        },
+        "confidence_counts": {
+          "type": "object",
+          "description": "Breakdown of dead code items by confidence tier.",
+          "properties": {
+            "very_high": { "type": "number" },
+            "high": { "type": "number" },
+            "medium": { "type": "number" }
+          }
+        },
+        "estimated_lines_removable": {
+          "type": "number",
+          "description": "Estimated lines that can be safely removed."
+        }
+      }
+    },
+    "dead_code_items": {
+      "type": "array",
+      "description": "List of dead code items found, sorted by confidence.",
+      "items": {
+        "type": "object",
+        "required": ["identifier", "type", "location", "confidence_score", "reference_count", "is_exported", "reasoning"],
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "description": "Name of the code element."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["function", "class", "method", "variable", "interface", "type", "enum", "import", "unreachable_code", "file"],
+            "description": "Type of code element."
+          },
+          "location": {
+            "type": "string",
+            "description": "File path and line range, e.g., 'src/helpers.ts:42-55' or 'lib/api.py:10-18'."
+          },
+          "confidence_score": {
+            "type": "number",
+            "minimum": 50,
+            "maximum": 100,
+            "description": "Confidence this is dead code (50-100)."
+          },
+          "reference_count": {
+            "type": "number",
+            "description": "Number of times referenced in the codebase (excluding definition)."
+          },
+          "is_exported": {
+            "type": "boolean",
+            "description": "Whether the code is exported/public."
+          },
+          "reasoning": {
+            "type": "string",
+            "description": "Explanation for why this is considered dead code."
+          }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Warnings encountered during analysis."
+    },
+    "success": {
+      "type": "boolean",
+      "description": "Whether the analysis completed successfully."
+    }
+  }
+}
+"""
+
+# Success condition for CI/CD integration
+exit_expression = "success"
