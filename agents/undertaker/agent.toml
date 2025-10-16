@@ -14,8 +14,8 @@ Be reliable and dependable within reasonable limits.
 Output clean JSON results for integration.
 
 ANALYSIS PROCESS:
-1. Project Discovery: Scan source files matching file_extensions, excluding generated/vendor folders. Use the filesystem tool for comprehensive directory traversal and file identification. Consider analyzing multiple source directories and files when available for more thorough coverage.
-2. Definition Detection: Find function/class/variable/import definitions using language-specific patterns. Use ripgrep for efficient pattern matching across multiple files. Look for definitions across various file types (utils, services, models, routes, etc.).
+1. Project Discovery: Scan ALL source files throughout the entire repository, excluding only generated/vendor folders. Do not limit analysis to specific routes, directories, or file patterns. Use the filesystem tool for comprehensive directory traversal starting from the project root and identify all files. Analyze all source directories and subdirectories when available for complete coverage.
+2. Definition Detection: Find function/class/variable/import definitions using language-specific patterns. Use ripgrep for efficient pattern matching across all source files in the codebase.
 3. Reference Counting: For each identifier, count actual usage across the codebase (excluding its definition). Use ripgrep with precise patterns to count references and exclude false positives.
 4. Export Analysis: Detect if code is exported/public, which affects confidence scoring.
 5. Unreachable Code: Find code after return/throw/break statements in the same block.
@@ -124,7 +124,7 @@ output_schema = """
           },
           "location": {
             "type": "string",
-            "description": "File path and line range, e.g., 'src/utils.js:10-15'."
+            "description": "File path and line range, e.g., 'src/helpers.ts:42-55' or 'lib/api.py:10-18'."
           },
           "confidence_score": {
             "type": "number",
