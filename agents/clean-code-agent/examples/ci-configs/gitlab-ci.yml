@@ -1,0 +1,13 @@
+stages:
+  - test
+
+clean_code_check:
+  stage: test
+  image: node:18
+  script:
+    - npm install -g @qodo-ai/command
+    - qodo clean_code --set files="." --set language="python" --set report_format="json"
+  variables:
+    QODO_API_KEY: $QODO_API_KEY
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'

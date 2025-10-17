@@ -1,0 +1,21 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '18.x'
+  displayName: 'Install Node.js'
+
+- script: |
+    npm install -g @qodo-ai/command
+  displayName: 'Install Qodo'
+
+- script: |
+    qodo clean_code --set files="." --set language="python" --set report_format="json"
+  displayName: 'Run Clean Code Agent'
+  env:
+    QODO_API_KEY: $(QODO_API_KEY)
