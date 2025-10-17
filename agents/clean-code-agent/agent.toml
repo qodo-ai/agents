@@ -1,0 +1,100 @@
+version = "1.0"
+
+[commands.clean_code]
+description = "An agent that analyzes code for cleanliness, readability, and maintainability, providing suggestions for improvement."
+
+instructions = """
+You are an expert AI assistant specializing in writing clean, maintainable, and well-documented code. Your primary goal is to improve code quality by not only identifying issues but also by actively generating missing documentation and tests.
+
+**Core Analysis Task:**
+Analyze the provided source code files for readability, maintainability, and structure. For each issue, provide the file path, line number, a clear description, and a 'diff-style' refactoring preview.
+
+You should look for:
+- **Meaningful Naming:** Unclear variable, function, or class names.
+- **Function Complexity:** Functions that are too long or have too many responsibilities.
+- **Code Smells:** Duplicated code, dead code, long parameter lists.
+- **Documentation Quality:** Unclear, outdated, or redundant comments.
+
+**Advanced Generation Tasks:**
+
+1.  **Docstring Generation (`generate_docstrings` = true):**
+    - Identify any public function or method that is missing a docstring.
+    - For each one, generate a complete and accurate docstring that describes the function's purpose, its arguments (`Args:`), and what it returns (`Returns:`).
+    - The generated docstring should be included in the `suggestion` part of the output.
+
+2.  **Unit Test Scaffolding (`generate_tests` = true):**
+    - For each source file, create a corresponding test file (e.g., `test_my_module.py` for `my_module.py`).
+    - In the test file, generate a basic unit test class with placeholder test methods for each public function in the source file.
+    - The test methods should include a simple `self.fail("Test not implemented")` or equivalent.
+    - The path to the newly created test file should be included in the output.
+
+**Execution Flow:**
+- If a `linter_command` is provided, run it first and use its output to inform your analysis.
+- If a `rules_file` is provided, prioritize those rules.
+- Perform the core analysis and the advanced generation tasks as requested by the input arguments.
+"""
+
+arguments = [
+  { name = "files", type = "string", required = true, description = "A comma-separated list of file paths or directories to analyze." },
+  { name = "language", type = "string", required = true, description = "The programming language of the files (e.g., 'python', 'javascript')." },
+  { name = "report_format", type = "string", required = false, default = "markdown", description = "The format for the output report ('markdown' or 'json')." },
+  { name = "linter_command", type = "string", required = false, description = "An optional linter command to run before analysis (e.g., 'eslint .')." },
+  { name = "rules_file", type = "string", required = false, description = "An optional path to a file containing custom analysis rules." },
+  { name = "complexity_analysis", type = "boolean", required = false, default = false, description = "Whether to perform and report on cyclomatic complexity." },
+  { name = "generate_docstrings", type = "boolean", required = false, default = false, description = "If true, generates missing docstrings for public functions." },
+  { name = "generate_tests", type = "boolean", required = false, default = false, description = "If true, generates a scaffold for unit tests." }
+]
+
+tools = ["filesystem", "shell"]
+execution_strategy = "plan"
+
+output_schema = """
+{
+  "type": "object",
+  "properties": {
+    "summary": {
+      "type": "object",
+      "properties": {
+        "files_analyzed": {"type": "number"},
+        "issues_found": {"type": "number"},
+        "docstrings_generated": {"type": "number"},
+        "test_files_created": {"type": "number"}
+      }
+    },
+    "issues": {
+      "type": "array",
+      "description": "A list of clean code issues found and refactoring suggestions.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file": {"type": "string"},
+          "line": {"type": "number"},
+          "description": {"type": "string"},
+          "suggestion": {
+            "type": "object",
+            "properties": {
+              "code_to_remove": {"type": "string"},
+              "code_to_add": {"type": "string"}
+            }
+          },
+          "cyclomatic_complexity": {
+            "type": "number",
+            "description": "The calculated cyclomatic complexity of the function or method."
+          }
+        },
+        "required": ["file", "line", "description", "suggestion"]
+      }
+    },
+    "generated_test_files": {
+      "type": "array",
+      "description": "A list of paths to the newly created unit test scaffold files.",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["summary", "issues"]
+}
+"""
+
+exit_expression = "summary.issues_found == 0"

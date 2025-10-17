@@ -1,0 +1,25 @@
+name: Clean Code Agent Analysis
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  clean-code-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Qodo
+        run: npm install -g @qodo-ai/command
+
+      - name: Run Clean Code Agent
+        run: |
+          qodo clean_code \
+            --set files="." \
+            --set language="python" \
+            --set report_format="json" \
+            --set generate_docstrings=true
+        env:
+          QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
