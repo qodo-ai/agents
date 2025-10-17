@@ -325,6 +325,7 @@ The agent automatically detects authentication requirements from the Swagger/Ope
 **Automatic Detection:**
 
 The agent checks the Swagger spec for:
+
 - `securitySchemes` section defining authentication types (Bearer, API Key, OAuth2, Basic Auth)
 - Endpoint-level `security` requirements
 - Authentication parameter locations (header, query, cookie)
@@ -332,14 +333,17 @@ The agent checks the Swagger spec for:
 **Generated Code Examples:**
 
 Bearer Token (most common):
+
 ```csharp
+using static RestAssured.Dsl;
+
 private string _authToken;
+
 
 [SetUp]
 public void Setup()
 {
-    _baseUrl = "https://api.example.com";
-    _authToken = Environment.GetEnvironmentVariable("AUTH_TOKEN") ?? "your-test-token";
+
 }
 
 [Test]
@@ -365,6 +369,7 @@ public void GetProtectedResource_WithoutAuth_ReturnsUnauthorized()
 ```
 
 API Key in Header:
+
 ```csharp
 [Test]
 public void GetResource_WithApiKey_ReturnsOk()
@@ -381,6 +386,7 @@ public void GetResource_WithApiKey_ReturnsOk()
 **Setting Authentication Tokens:**
 
 Set environment variables before running tests:
+
 ```bash
 export AUTH_TOKEN="your-bearer-token-here"
 export API_KEY="your-api-key-here"
@@ -388,6 +394,7 @@ dotnet test
 ```
 
 Or in appsettings.json (for non-sensitive test environments):
+
 ```json
 {
   "TestSettings": {

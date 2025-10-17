@@ -152,18 +152,16 @@ This agent targets .NET/C# exclusively. It does not generate Java code and does 
    **CRITICAL - Execute commands separately for better error handling:**
    
    **Step 1: Remove any existing swagger.json file (if it exists)**
-   - Execute shell command: `test -f swagger.json && rm swagger.json || true`
-   - This command checks if the file exists and removes it only if it does
-   - The `|| true` ensures the command always succeeds even if the file doesn't exist
-   - This ensures a clean state before fetching new data
+   - Execute shell command: `rm -f swagger.json`
+   - This command safely removes the file if it exists and does not fail if it doesn't.
+   - This ensures a clean state before fetching new data.
    
    **Step 2: Fetch the Swagger JSON using curl**
-   - Execute shell command: `curl -s -o swagger.json {swagger_url}`
-   - Use the -o flag to specify the output file (NOT output redirection >)
-   - The -s flag makes curl silent (no progress bar)
-   - Do NOT wrap the command in extra quotes
-   - Do NOT use output redirection (>)
-   - Example: `curl -s -o swagger.json https://petstore.swagger.io/v2/swagger.json`
+   - Execute shell command: `curl -s -L -o swagger.json {swagger_url}`
+   - The `-s` flag makes curl silent.
+   - The `-L` flag follows any redirects.
+   - The `-o` flag specifies the output file, which is safer than redirection.
+   - Example: `curl -s -L -o swagger.json https://petstore.swagger.io/v2/swagger.json`
    
    **Step 3: Verify the downloaded file**
    - Read the swagger.json file using filesystem tool
