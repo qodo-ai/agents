@@ -5,6 +5,9 @@
 This Qodo agent analyzes source code in any language (Python, JavaScript, Java, Rust, and more) for common clarity and quality problems, generates language-specific AI-powered fixes, and provides a quantifiable score to prove the improvement.
 
 ---
+Competition Category
+Best Agent for Clean Code Description
+
 
 ## Quick Start
 
