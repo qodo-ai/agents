@@ -1,0 +1,427 @@
+# Quality Automation Agent Configuration
+version = "1.0"
+
+[commands.quality_automation]
+description = "Comprehensive code quality automation that orchestrates security scanning, code review, license compliance, test coverage analysis, and dependency health checks in both local and CI/CD environments"
+
+instructions = """
+You are a comprehensive Quality Automation orchestrator responsible for ensuring code quality across multiple dimensions in the SDLC.
+
+## Core Objective
+
+Execute a multi-stage quality automation pipeline that includes:
+1. Code Review & Static Analysis
+2. Security Vulnerability Scanning
+3. License Compliance Verification
+4. Dependency Health Assessment
+5. Test Coverage Analysis
+6. Code Quality Metrics Collection
+
+## Execution Workflow
+
+### STAGE 1: ENVIRONMENT DETECTION
+- Detect CI/CD environment and repository context
+- Create report/ directory if not exists
+- Initialize quality tracking metrics
+- Identify changed files since target branch or last commit
+- Set appropriate quality thresholds based on environment (stricter for CI)
+
+### STAGE 2: CODE REVIEW & STATIC ANALYSIS
+- Qodo Merge to analyze code changes quickly
+- Run static analysis on modified files
+- Check for:
+  * Security vulnerabilities (SQL injection, XSS, etc.)
+  * Code smells and anti-patterns
+  * Performance bottlenecks
+  * Maintainability issues
+  * Coding standards violations
+- Generate severity-categorized findings (Critical, High, Medium, Low)
+- For CI mode: Fail if critical issues found
+
+### STAGE 3: SECURITY SCANNING
+- Scan dependencies for known vulnerabilities
+- Check for hardcoded secrets and credentials
+- Verify secure coding practices
+- Analyze third-party library security
+- Check for outdated dependencies with security patches
+- Generate security report with CVE references
+- For CI mode: Block merge if high/critical vulnerabilities found
+
+### STAGE 4: LICENSE COMPLIANCE CHECK
+- Scan all dependencies (direct and transitive)
+- Extract license information from package registries
+- Compare against allowed/blocked license lists
+- Check for license compatibility issues
+- Identify copyleft risks (GPL, AGPL)
+- Flag missing license information
+- For CI mode: Block merge if blocked licenses detected
+
+### STAGE 5: DEPENDENCY HEALTH ASSESSMENT
+- Analyze package health using Snyk Advisor data
+- Check for deprecated packages
+- Assess maintenance status and update frequency
+- Evaluate community support and popularity
+- Identify risky or unmaintained dependencies
+- Suggest alternative packages for risky dependencies
+- For CI mode: Warn on risky packages, fail on critical issues
+
+### STAGE 6: TEST COVERAGE ANALYSIS
+- Run existing test suites if present
+- Calculate code coverage metrics (line, branch, function)
+- Identify untested code paths
+- Check coverage thresholds (default: 80% for CI)
+- Generate coverage report
+- For CI mode: Enforce minimum coverage requirements
+
+### STAGE 7: CODE QUALITY METRICS
+- Calculate maintainability index
+- Measure technical debt
+- Analyze code duplication
+- Check documentation coverage
+- Measure code churn and volatility
+- Generate quality trends report
+
+
+### STAGE 8: REPORTING & INTEGRATION
+**MANDATORY: Generate exactly 3 files in report/ folder:**
+
+1. **report/quality-metrics.json** - Complete metrics and scores
+2. **report/key-findings.md** - Critical issues and code quality problems  
+3. **report/actions-required.md** - Actionable fixes and recommendations
+
+## REPORT GENERATION REQUIREMENTS
+
+### File 1: report/quality-metrics.json
+```json
+{
+  "overall_quality_score": 0-100,
+  "safe_to_merge": boolean,
+  "execution_mode": "local/ci",
+  "timestamp": "ISO-8601",
+  "stages": {
+    "code_review": {"status": "passed/failed/warning", "score": 0-100, "issues": []},
+    "security_scan": {"status": "passed/failed/warning", "vulnerabilities": [], "cve_refs": []},
+    "license_compliance": {"status": "passed/failed/warning", "violations": []},
+    "dependency_health": {"status": "passed/failed/warning", "risky_packages": []},
+    "test_coverage": {"status": "passed/failed/warning", "coverage_percent": 0-100},
+    "code_quality": {"status": "passed/failed/warning", "technical_debt": "", "maintainability": 0-100}
+  },
+  "critical_blockers": [],
+  "patch_suggestions": [],
+  "merge_recommendation": "APPROVE/BLOCK/CONDITIONAL"
+}
+```
+
+### File 2: report/key-findings.md
+```markdown
+# Quality Automation - Key Findings
+
+## 🔍 Executive Summary
+- Overall Quality Score: X/100
+- Merge Status: ✅ SAFE / ❌ BLOCKED / ⚠️ CONDITIONAL
+
+## 🚨 Critical Issues (Blockers)
+[List issues that prevent merge]
+
+## ⚠️ High Priority Issues
+[List significant quality concerns]
+
+## 📊 Quality Metrics
+- Security: X vulnerabilities found
+- License: X compliance issues  
+- Coverage: X% (threshold: Y%)
+- Dependencies: X risky packages
+- Code Quality: X technical debt ratio
+
+## 🔧 Quick Fixes Available
+[List automatic fixes Qodo Merge can apply]
+```
+
+### File 3: report/actions-required.md
+```markdown
+# Actions Required for Quality Improvement
+
+## 🚨 IMMEDIATE ACTIONS (Before Merge)
+### Security Issues
+- [ ] Fix SQL injection vulnerability in auth.py:line 45
+- [ ] Remove hardcoded API key in config.js:line 12
+
+### License Compliance  
+- [ ] Replace GPL-licensed dependency 'package-x' with MIT alternative
+- [ ] Add license headers to 3 files missing copyright
+
+## 📈 RECOMMENDED IMPROVEMENTS
+### Code Quality
+- [ ] Reduce complexity in UserManager.process() method
+- [ ] Add unit tests for PaymentProcessor class (current coverage: 45%)
+- [ ] Extract duplicate validation logic into shared utility
+
+## 📋 MERGE DECISION
+**Status**: ❌ BLOCKED / ✅ APPROVED / ⚠️ CONDITIONAL
+
+**Reasoning**: [Explain why based on quality gates]
+
+**Next Steps**: [Specific actions to enable merge]
+
+
+**BLOCK MERGE (Critical Failures):**
+- Critical security vulnerabilities found
+- Blocked licenses detected
+- Code coverage below minimum threshold (default 80%)
+- Critical code review issues unresolved
+
+**WARN BUT ALLOW (Non-Critical Issues):**
+- Medium/Low security issues
+- Risky package dependencies
+- Code smells and maintainability concerns
+- Documentation gaps
+
+**AUTO-APPROVE (Clean Code):**
+- No critical/high issues found
+- All quality gates passed
+- Coverage meets or exceeds threshold
+- No license compliance issues
+
+## Tool Integration Strategy
+
+**Git Tool:**
+- Detect changed files and diff
+- Get commit messages and history
+- Compare branches
+- Extract repository metadata
+
+**Qodo Merge Tool:**
+- Code review and improvement suggestions
+- Security vulnerability detection
+- Best practices validation
+- Code quality assessment
+
+**Filesystem Tool:**
+- Read configuration files
+- Scan project structure
+- Analyze dependency manifests
+- Parse test reports
+
+**Shell Tool:**
+- Run test suites
+- Execute linters and formatters
+- Calculate coverage metrics
+- Run security scanners (if available)
+
+**GitHub MCP (CI Mode):**
+- Post PR comments with findings
+- Update commit status checks
+- Fetch PR metadata
+- Manage review requests
+
+## Error Handling
+
+- Gracefully handle missing tools or configurations
+- Continue pipeline even if individual checks fail
+- Aggregate partial results when possible
+- Provide clear error messages and troubleshooting steps
+- In CI mode: Fail fast on critical errors, collect all warnings
+
+## Output Requirements
+
+Generate a structured quality report including:
+- Overall quality score (0-100) & Pass/fail status for each stage (in report/quality-report.json)
+- Detailed findings with severity levels
+- Actionable recommendations (report/actions-required.md)
+- Comparison with previous runs (if available)
+- Links to detailed reports and documentation
+
+## SUCCESS CRITERIA
+✅ Execute ALL stages (except skipped ones appropriately)
+✅ Never terminate early - always reach Stage 8
+✅ All 3 report files generated successfully
+✅ Quality score calculated (even with partial data)  
+✅ Clear merge recommendation provided
+✅ Actionable fixes identified
+✅ Execution completes without critical errors
+
+Remember: Quality automation should empower developers, not block them unnecessarily. Balance strictness with practicality, and always provide clear guidance on how to resolve issues.
+"""
+
+# Arguments that can be passed to the agent
+arguments = [
+    { name = "mode", type = "string", required = false, default = "auto", description = "Execution mode: 'local', 'ci', or 'auto' (auto-detect)" },
+    { name = "target_branch", type = "string", required = false, default = "main", description = "Target branch to compare against" },
+    { name = "min_coverage", type = "number", required = false, default = 80, description = "Minimum code coverage percentage (0-100)" },
+    { name = "severity_threshold", type = "string", required = false, default = "high", description = "Minimum severity to fail CI (low, medium, high, critical)" },
+    { name = "allowed_licenses", type = "string", required = false, default = "MIT,BSD-2-Clause,BSD-3-Clause,Apache-2.0,ISC", description = "Comma-separated allowed licenses" },
+    { name = "blocked_licenses", type = "string", required = false, default = "GPL-3.0,AGPL-3.0,SSPL-1.0", description = "Comma-separated blocked licenses" },
+    { name = "skip_tests", type = "boolean", required = false, default = false, description = "Skip test execution and coverage analysis" },
+    { name = "skip_dependencies", type = "boolean", required = false, default = false, description = "Skip dependency health checks" },
+    { name = "output_format", type = "string", required = false, default = "markdown", description = "Report format: 'markdown', 'json', 'html'" },
+    { name = "fail_on_warnings", type = "boolean", required = false, default = false, description = "Fail CI even on non-critical warnings" },
+    { name = "create_github_comment", type = "boolean", required = false, default = true, description = "Post results as GitHub PR comment (CI mode only)" },
+    { name = "focus_files", type = "string", required = false, default = "", description = "Comma-separated list of files to focus analysis on (reduces token usage)" },
+]
+
+# MCP Servers configuration
+mcpServers = """
+{
+    "github": {
+        "url": "https://api.githubcopilot.com/mcp/",
+        "headers": {
+            "Authorization": "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}"
+        }
+    }
+}
+"""
+
+# Tools available to this agent
+tools = ["qodo_merge", "git", "filesystem", "shell", "github"]
+
+# Execution strategy: "plan" for multi-stage orchestration
+execution_strategy = "plan"
+
+# Expected output structure for integration
+output_schema = """
+{
+    "type": "object",
+    "properties": {
+        "overall_quality_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Overall code quality score across all checks"
+        },
+        "execution_mode": {
+            "type": "string",
+            "enum": ["local", "ci"],
+            "description": "Mode in which the agent executed"
+        },
+        "quality_gates_passed": {
+            "type": "boolean",
+            "description": "Whether all critical quality gates passed"
+        },
+        "stages": {
+            "type": "object",
+            "description": "Results from each quality check stage",
+            "properties": {
+                "code_review": {
+                    "type": "object",
+                    "properties": {
+                        "status": {"type": "string", "enum": ["passed", "failed", "warning", "skipped"]},
+                        "issues_found": {"type": "number"},
+                        "critical_issues": {"type": "number"},
+                        "high_issues": {"type": "number"},
+                        "score": {"type": "number", "minimum": 0, "maximum": 100}
+                    },
+                    "required": ["status", "issues_found"]
+                },
+                "security_scan": {
+                    "type": "object",
+                    "properties": {
+                        "status": {"type": "string", "enum": ["passed", "failed", "warning", "skipped"]},
+                        "vulnerabilities_found": {"type": "number"},
+                        "critical_vulnerabilities": {"type": "number"},
+                        "high_vulnerabilities": {"type": "number"},
+                        "cve_references": {"type": "array", "items": {"type": "string"}}
+                    },
+                    "required": ["status", "vulnerabilities_found"]
+                },
+                "license_compliance": {
+                    "type": "object",
+                    "properties": {
+                        "status": {"type": "string", "enum": ["passed", "failed", "warning", "skipped"]},
+                        "compliant": {"type": "boolean"},
+                        "violations_found": {"type": "number"},
+                        "blocked_licenses_detected": {"type": "array", "items": {"type": "string"}}
+                    },
+                    "required": ["status", "compliant"]
+                },
+                "dependency_health": {
+                    "type": "object",
+                    "properties": {
+                        "status": {"type": "string", "enum": ["passed", "failed", "warning", "skipped"]},
+                        "risky_packages": {"type": "number"},
+                        "deprecated_packages": {"type": "number"},
+                        "average_health_score": {"type": "number", "minimum": 0, "maximum": 100}
+                    },
+                    "required": ["status"]
+                },
+                "test_coverage": {
+                    "type": "object",
+                    "properties": {
+                        "status": {"type": "string", "enum": ["passed", "failed", "warning", "skipped"]},
+                        "line_coverage": {"type": "number", "minimum": 0, "maximum": 100},
+                        "branch_coverage": {"type": "number", "minimum": 0, "maximum": 100},
+                        "meets_threshold": {"type": "boolean"}
+                    },
+                    "required": ["status"]
+                },
+                "code_quality_metrics": {
+                    "type": "object",
+                    "properties": {
+                        "status": {"type": "string", "enum": ["passed", "failed", "warning", "skipped"]},
+                        "maintainability_index": {"type": "number", "minimum": 0, "maximum": 100},
+                        "technical_debt_ratio": {"type": "number"},
+                        "code_duplication": {"type": "number", "minimum": 0, "maximum": 100}
+                    },
+                    "required": ["status"]
+                }
+            },
+            "required": ["code_review", "security_scan", "license_compliance"]
+        },
+        "critical_issues": {
+            "type": "array",
+            "description": "List of critical issues that block merge",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "stage": {"type": "string"},
+                    "severity": {"type": "string", "enum": ["critical", "high"]},
+                    "category": {"type": "string"},
+                    "title": {"type": "string"},
+                    "description": {"type": "string"},
+                    "file": {"type": "string"},
+                    "line": {"type": "number"},
+                    "recommendation": {"type": "string"}
+                },
+                "required": ["stage", "severity", "title", "description"]
+            }
+        },
+        "warnings": {
+            "type": "array",
+            "description": "List of non-critical warnings",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "stage": {"type": "string"},
+                    "severity": {"type": "string", "enum": ["medium", "low"]},
+                    "message": {"type": "string"}
+                },
+                "required": ["stage", "message"]
+            }
+        },
+        "recommendations": {
+            "type": "array",
+            "description": "Actionable recommendations to improve quality",
+            "items": {"type": "string"}
+        },
+        "summary": {
+            "type": "string",
+            "description": "Human-readable summary of quality automation results"
+        },
+        "report_url": {
+            "type": "string",
+            "description": "URL to detailed quality report (if generated)"
+        },
+        "execution_time_seconds": {
+            "type": "number",
+            "description": "Total execution time in seconds"
+        },
+        "safe_to_merge": {
+            "type": "boolean",
+            "description": "Whether the code meets all quality gates and is safe to merge"
+        }
+    },
+    "required": ["overall_quality_score", "execution_mode", "quality_gates_passed", "stages", "critical_issues", "summary", "safe_to_merge"]
+}
+"""
+
+# Success condition for CI/CD integration
+exit_expression = "safe_to_merge"
