@@ -6,7 +6,7 @@ execution_strategy = "plan"
 tools = ["filesystem", "shell"]
 
 arguments = [
-    { name = "swagger_url", type = "string", required = true, description = "URL to the Swagger specification" },
+    { name = "swagger_url", type = "string", required = true, description = "URL to the OpenAPI swagger.json" },
     { name = "output_dir", type = "string", required = false, default = "api-test-plan.md", description = "Path where the test plan document will be saved" },
     { name = "include_negative_tests", type = "boolean", required = false, default = true, description = "Whether to include negative test scenarios in the plan" },
     { name = "single_api", type = "string", required = false, description = "Specific API endpoint to test (e.g., '/pet/{petId}' or 'GET /pet/{petId}'). If provided, only this endpoint will be analyzed" }
@@ -104,7 +104,7 @@ execution_strategy = "act"
 tools = ["filesystem", "shell"]
 
 arguments = [
-    { name = "swagger_url", type = "string", required = true, description = "URL to the Swagger" },
+    { name = "swagger_url", type = "string", required = true, description = "URL to the OpenAPI swagger.json" },
     { name = "output_dir", type = "string", required = false, default = "ApiTests", description = "Directory where test files will be created" },
     { name = "test_framework", type = "string", required = false, default = "NUnit", description = "C# test framework to use (NUnit, xUnit, or MSTest)" },
     { name = "namespace", type = "string", required = false, default = "ApiTests", description = "C# namespace for the generated test classes" },
