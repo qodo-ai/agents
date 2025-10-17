@@ -1,0 +1,10 @@
+# Version of the agent configuration standard
+version = "1.0"
+
+# Default model for all agents, unless overridden in a specific agent's config.
+model = "claude-4.5-sonnet"
+
+# List of all agents that Qodo Command will be able to call.
+imports = [
+    "agents/code-clarity-agent/agent.toml"
+]

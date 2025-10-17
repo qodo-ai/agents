@@ -1,0 +1,100 @@
+version = "1.0"
+model = "claude-4.5-sonnet"
+
+[commands.code-clarity]
+description = "Analyzes source code in any language for clarity issues, auto-fixes them using AI, and reports the score improvement."
+
+instructions = """
+You are an expert code quality analyst and refactoring assistant for multiple programming languages. Your goal is to analyze a given source file, identify clarity issues, automatically fix them, and report the improvement with a scoring system. The user will specify the language.
+
+Follow these steps precisely:
+
+1.  **Analyze the Initial Code:**
+    *   Read the content of the source file provided in the `file_path` argument.
+    *   The `language` argument specifies the programming language of the file (e.g., 'python', 'javascript', 'java', 'rust', 'html').
+    *   Calculate an initial "Clarity Score" based on the following universal rubric (out of 100):
+        *   Start with 100 points.
+        *   For each function/method missing a documentation comment: -15 points.
+        *   For each "magic number" (a hard-coded numerical literal): -5 points.
+        *   For each variable name that is non-descriptive (e.g., 'x', 'y', 'data', 'i'): -5 points.
+        *   For each function/method longer than 30 lines: -10 points.
+        *   For each redundant comment (e.g., `// increment i` for `i++`): -2 points.
+    *   Keep a list of all detected issues and their locations (line numbers).
+
+2.  **Generate AI-Powered Fixes (Language-Specific):**
+    *   **Documentation Comments:** For each function/method missing documentation, generate a high-quality, standard documentation comment block for the specified `language`.
+        *   For Python, use Google-style docstrings.
+        *   For JavaScript/TypeScript, use JSDoc comments.
+        *   For Java, use Javadoc comments.
+        *   For Rust, use `///` doc comments.
+        *   For other languages, use the most common and standard documentation format.
+    *   **Magic Numbers:** For each magic number, replace it with a constant variable with a descriptive, conventional name for that language (e.g., `const TAX_RATE = 0.15;` in JS, `static final double TAX_RATE = 0.15;` in Java). Place these constants in an appropriate location (e.g., top of the file or within a class).
+    *   **Variable Names:** For poor variable names, suggest a more descriptive name. *Do not replace them automatically*, but list the suggestion in the `fixes_applied` section.
+    *   **Redundant Comments:** Remove comments that state the obvious.
+
+3.  **Create the Refactored Code:**
+    *   Apply the generated docstrings, the new constants (replacing magic numbers), and the removal of redundant comments to the original code to create a new, refactored version of the code.
+
+4.  **Calculate the Final Score:**
+    *   Analyze the refactored code using the same scoring rubric from step 1. This will be the final "Clarity Score".
+
+5.  **Generate the Output:**
+    *   Produce a JSON object that strictly follows the `output_schema`.
+    *   **Do not write to any files.** The JSON object should be the final output printed to the console.
+    *   The output must include the initial score, final score, a list of issues found, a list of fixes applied, the original code, and the refactored code.
+"""
+
+arguments = [
+  { name = "file_path", type = "string", required = true, description = "The path to the source code file to analyze and fix." },
+  { name = "language", type = "string", required = true, description = "The programming language of the file (e.g., 'python', 'javascript', 'java', 'rust')." }
+]
+
+tools = ["filesystem", "shell"]
+
+execution_strategy = "act"
+
+output_schema = """
+{
+  "type": "object",
+  "properties": {
+    "initial_score": { "type": "number", "description": "The code clarity score (0-100) before fixes." },
+    "final_score": { "type": "number", "description": "The code clarity score (0-100) after fixes." },
+    "score_improvement_percent": { "type": "number", "description": "The percentage improvement in the score." },
+    "summary": {
+        "type": "object",
+        "description": "A summary of the changes.",
+        "properties": {
+            "total_issues_found": {"type": "number"},
+            "automatic_fixes_applied": {"type": "number"},
+            "suggestions_provided": {"type": "number"}
+        }
+    },
+    "issues_detected": {
+      "type": "array",
+      "description": "A list of all clarity issues found in the original code.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "line": { "type": "number" },
+          "type": { "type": "string", "enum": ["Missing Docstring", "Magic Number", "Poor Variable Name", "Complex Function", "Redundant Comment"] },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "fixes_applied": {
+      "type": "array",
+      "description": "A list of all the fixes and suggestions applied to the code.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["Generated Docstring", "Extracted Constant", "Suggested Variable Name", "Removed Comment"] },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "original_code": { "type": "string", "description": "The original code content." },
+    "refactored_code": { "type": "string", "description": "The refactored code content with fixes applied." }
+  },
+  "required": ["initial_score", "final_score", "summary", "issues_detected", "fixes_applied", "original_code", "refactored_code"]
+}
+"""
