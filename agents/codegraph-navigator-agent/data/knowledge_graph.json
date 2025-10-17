@@ -1,0 +1,333 @@
+{
+  "nodes": [
+    {
+      "id": "adservice",
+      "type": "service",
+      "language": "unknown"
+    },
+    {
+      "id": "cartservice",
+      "type": "service",
+      "language": "unknown"
+    },
+    {
+      "id": "checkoutservice",
+      "type": "service",
+      "language": "Go"
+    },
+    {
+      "id": "currencyservice",
+      "type": "library"
+    },
+    {
+      "id": "emailservice",
+      "type": "library"
+    },
+    {
+      "id": "paymentservice",
+      "type": "library"
+    },
+    {
+      "id": "productcatalogservice",
+      "type": "library"
+    },
+    {
+      "id": "shippingservice",
+      "type": "library"
+    },
+    {
+      "id": "@google-cloud/profiler",
+      "type": "library"
+    },
+    {
+      "id": "@google-cloud/trace-agent",
+      "type": "library"
+    },
+    {
+      "id": "@grpc/grpc-js",
+      "type": "library"
+    },
+    {
+      "id": "@grpc/proto-loader",
+      "type": "library"
+    },
+    {
+      "id": "@opentelemetry/api",
+      "type": "library"
+    },
+    {
+      "id": "@opentelemetry/exporter-otlp-grpc",
+      "type": "library"
+    },
+    {
+      "id": "@opentelemetry/instrumentation-grpc",
+      "type": "library"
+    },
+    {
+      "id": "@opentelemetry/resources",
+      "type": "library"
+    },
+    {
+      "id": "@opentelemetry/sdk-node",
+      "type": "library"
+    },
+    {
+      "id": "@opentelemetry/sdk-trace-base",
+      "type": "library"
+    },
+    {
+      "id": "@opentelemetry/semantic-conventions",
+      "type": "library"
+    },
+    {
+      "id": "async",
+      "type": "library"
+    },
+    {
+      "id": "google-protobuf",
+      "type": "library"
+    },
+    {
+      "id": "pino",
+      "type": "library"
+    },
+    {
+      "id": "xml2js",
+      "type": "library"
+    },
+    {
+      "id": "frontend",
+      "type": "service",
+      "language": "Go"
+    },
+    {
+      "id": "recommendationservice",
+      "type": "library"
+    },
+    {
+      "id": "loadgenerator",
+      "type": "service",
+      "language": "unknown"
+    },
+    {
+      "id": "simple-card-validator",
+      "type": "library"
+    },
+    {
+      "id": "uuid",
+      "type": "library"
+    },
+    {
+      "id": "shoppingassistantservice",
+      "type": "service",
+      "language": "unknown"
+    }
+  ],
+  "edges": [
+    {
+      "source": "checkoutservice",
+      "target": "cartservice",
+      "type": "imports"
+    },
+    {
+      "source": "checkoutservice",
+      "target": "currencyservice",
+      "type": "imports"
+    },
+    {
+      "source": "checkoutservice",
+      "target": "emailservice",
+      "type": "imports"
+    },
+    {
+      "source": "checkoutservice",
+      "target": "paymentservice",
+      "type": "imports"
+    },
+    {
+      "source": "checkoutservice",
+      "target": "productcatalogservice",
+      "type": "imports"
+    },
+    {
+      "source": "checkoutservice",
+      "target": "shippingservice",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "@google-cloud/profiler",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "@google-cloud/trace-agent",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "@grpc/grpc-js",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "@grpc/proto-loader",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "@opentelemetry/api",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "@opentelemetry/exporter-otlp-grpc",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "@opentelemetry/instrumentation-grpc",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "@opentelemetry/resources",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "@opentelemetry/sdk-node",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "@opentelemetry/sdk-trace-base",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "@opentelemetry/semantic-conventions",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "async",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "google-protobuf",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "pino",
+      "type": "imports"
+    },
+    {
+      "source": "currencyservice",
+      "target": "xml2js",
+      "type": "imports"
+    },
+    {
+      "source": "frontend",
+      "target": "adservice",
+      "type": "imports"
+    },
+    {
+      "source": "frontend",
+      "target": "cartservice",
+      "type": "imports"
+    },
+    {
+      "source": "frontend",
+      "target": "checkoutservice",
+      "type": "imports"
+    },
+    {
+      "source": "frontend",
+      "target": "currencyservice",
+      "type": "imports"
+    },
+    {
+      "source": "frontend",
+      "target": "productcatalogservice",
+      "type": "imports"
+    },
+    {
+      "source": "frontend",
+      "target": "recommendationservice",
+      "type": "imports"
+    },
+    {
+      "source": "frontend",
+      "target": "shippingservice",
+      "type": "imports"
+    },
+    {
+      "source": "paymentservice",
+      "target": "@google-cloud/profiler",
+      "type": "imports"
+    },
+    {
+      "source": "paymentservice",
+      "target": "@grpc/grpc-js",
+      "type": "imports"
+    },
+    {
+      "source": "paymentservice",
+      "target": "@grpc/proto-loader",
+      "type": "imports"
+    },
+    {
+      "source": "paymentservice",
+      "target": "@opentelemetry/api",
+      "type": "imports"
+    },
+    {
+      "source": "paymentservice",
+      "target": "@opentelemetry/exporter-otlp-grpc",
+      "type": "imports"
+    },
+    {
+      "source": "paymentservice",
+      "target": "@opentelemetry/instrumentation-grpc",
+      "type": "imports"
+    },
+    {
+      "source": "paymentservice",
+      "target": "@opentelemetry/resources",
+      "type": "imports"
+    },
+    {
+      "source": "paymentservice",
+      "target": "@opentelemetry/sdk-node",
+      "type": "imports"
+    },
+    {
+      "source": "paymentservice",
+      "target": "@opentelemetry/sdk-trace-base",
+      "type": "imports"
+    },
+    {
+      "source": "paymentservice",
+      "target": "@opentelemetry/semantic-conventions",
+      "type": "imports"
+    },
+    {
+      "source": "paymentservice",
+      "target": "pino",
+      "type": "imports"
+    },
+    {
+      "source": "paymentservice",
+      "target": "simple-card-validator",
+      "type": "imports"
+    },
+    {
+      "source": "paymentservice",
+      "target": "uuid",
+      "type": "imports"
+    }
+  ]
+}

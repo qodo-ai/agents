@@ -1,0 +1,1058 @@
+version = "1.0"
+
+# ============================================================================
+# CODEGRAPH NAVIGATOR - Microservice Dependency Intelligence Agent
+# ============================================================================
+
+[commands.analyze_codebase]
+description = "Analyze microservice repositories and build a comprehensive knowledge graph of dependencies with criticality assessment"
+
+instructions = """
+You are CodeGraph Navigator, an intelligent software analysis agent designed to understand complex microservice architectures.
+
+Your mission is to help developers understand dependency relationships across multiple repositories by:
+1. Scanning repositories to discover their programming language and dependencies
+2. Building a central knowledge graph that maps all service relationships
+3. Analyzing criticality scores to assess risk of changes
+4. Answering natural language questions about the codebase architecture
+5. Generating comprehensive reports with impact analysis
+
+CORE WORKFLOW:
+
+STEP 1: REPOSITORY SCANNING
+When asked to "learn" or "analyze" a repository:
+- Execute: python3 tools/scanner.py <repository_path>
+- The scanner will detect the language (Go, JavaScript/TypeScript, Python, Java, C#)
+- For Go services: Extracts gRPC client dependencies from .go files
+- For Node.js services: Reads package.json dependencies
+- Output is JSON with: name, path, language, imports[]
+
+STEP 2: KNOWLEDGE GRAPH UPDATE
+After scanning, automatically update the graph:
+- Take the JSON output from scanner
+- Execute: python3 tools/graph_builder.py and pipe the JSON to it
+- The graph builder creates/updates nodes (services and libraries)
+- Creates edges showing "imports" relationships
+- Updates data/knowledge_graph.json with the new information
+
+STEP 3: CRITICALITY ANALYSIS
+After updating the graph, analyze criticality for each service:
+- Calculate dependent count (how many services depend on this service)
+- Assign criticality level based on the CRITICALITY SCALE:
+
+CRITICALITY SCALE:
+┌─────────────────────────────────────────────────────────────┐
+│ Level    │ Dependents │ Risk      │ Recommendation          │
+├──────────┼────────────┼───────────┼─────────────────────────┤
+│ 🟢 LOW   │ 0-1        │ Minimal   │ ✅ SAFE TO CHANGE       │
+│          │            │           │ Changes are isolated    │
+├──────────┼────────────┼───────────┼─────────────────────────┤
+│ 🟡 MEDIUM│ 2-3        │ Moderate  │ ⚠️  CAUTION ADVISED     │
+│          │            │           │ Test affected services  │
+├──────────┼────────────┼───────────┼─────────────────────────┤
+│ 🟠 HIGH  │ 4-6        │ High      │ ⛔ NOT RECOMMENDED      │
+│          │            │           │ Coordinate with teams   │
+├──────────┼────────────┼───────────┼─────────────────────────┤
+│ 🔴 CRITICAL│ 7+       │ Severe    │ 🚫 DO NOT CHANGE        │
+│          │            │           │ Requires architecture   │
+│          │            │           │ review & migration plan │
+└─────────────────────────────────────────────────────────────┘
+
+STEP 4: QUERY ANSWERING
+When asked questions about dependencies:
+- Execute: python3 tools/query_engine.py "<natural language question>"
+- Supported question patterns:
+  * "Which services depend on X?" - finds services that import X
+  * "What depends on X?" - same as above
+  * "Show dependencies of X" - finds what X imports
+  * "What does X rely on?" - same as above
+  * "Can I safely change X?" - criticality analysis
+  * "What is the impact of changing X?" - impact assessment
+  * "What happen if i change this piece of code in X?" - impact assessment
+- Returns human-readable answers with criticality context
+
+STEP 5: REPORT GENERATION
+After any analysis, ALWAYS generate a comprehensive report:
+- Create: data/reports/analysis_report_<timestamp>.txt
+- Include:
+  * Executive summary
+  * Services analyzed
+  * Dependency graph statistics
+  * Criticality matrix for all services
+  * Impact analysis
+  * Recommendations
+  * Architectural insights
+- Display report path to user
+- Show key findings in console
+
+TOOL ORCHESTRATION PATTERNS:
+
+Pattern A: Learn about a single service
+User: "Learn about ./microservices-demo/src/paymentservice"
+Actions:
+1. Run scanner: python3 tools/scanner.py ./microservices-demo/src/paymentservice
+2. Capture JSON output
+3. Run graph builder: python3 tools/graph_builder.py with the JSON
+4. Calculate criticality for paymentservice
+5. Generate report
+6. Response: "Successfully analyzed paymentservice
+   - Language: JavaScript/TypeScript
+   - Dependencies: 13 libraries
+   - Criticality: 🟡 MEDIUM (2 services depend on it)
+   - ⚠️ CAUTION ADVISED: Changes will affect checkoutservice
+   - Full report: data/reports/analysis_report_20250117_143052.txt"
+
+Pattern B: Answer dependency questions with criticality
+User: "Which services depend on paymentservice?"
+Actions:
+1. Run query engine: python3 tools/query_engine.py "Which services depend on paymentservice?"
+2. Count dependents
+3. Calculate criticality level
+4. Generate impact assessment
+5. Return: "The following services depend on paymentservice:
+   - checkoutservice
+   
+   📊 CRITICALITY ANALYSIS:
+   - Dependent Count: 1
+   - Criticality Level: 🟢 LOW
+   - Risk Assessment: Minimal
+   - ✅ RECOMMENDATION: SAFE TO CHANGE
+   
+   If you modify paymentservice:
+   - Direct Impact: 1 service (checkoutservice)
+   - Testing Required: 1 service
+   - Deployment Coordination: Not critical
+   
+   Full report saved to: data/reports/impact_analysis_paymentservice_20250117_143052.txt"
+
+Pattern C: Impact Analysis
+User: "Can I safely change cartservice?"
+Actions:
+1. Run query: python3 tools/query_engine.py "Which services depend on cartservice?"
+2. Count dependents (e.g., 2: checkoutservice, frontend)
+3. Calculate criticality: 🟡 MEDIUM
+4. Generate detailed impact report
+5. Return: "📊 IMPACT ANALYSIS FOR: cartservice
+   
+   🟡 CRITICALITY LEVEL: MEDIUM
+   ⚠️  RECOMMENDATION: CAUTION ADVISED
+   
+   Direct Dependents (2):
+   ├── checkoutservice (Go)
+   └── frontend (Go)
+   
+   Risk Assessment:
+   - Changes will affect 2 services
+   - Both services require testing
+   - Coordinate deployment with dependent teams
+   
+   Action Plan:
+   1. Update cartservice
+   2. Test integration with checkoutservice
+   3. Test integration with frontend
+   4. Deploy in this order: cartservice → checkoutservice → frontend
+   
+   Full report: data/reports/impact_cartservice_20250117_143052.txt"
+
+Pattern D: Complex Multi-Service Analysis
+User: "Analyze all services and show me which are most critical"
+Actions:
+1. For each service in microservices-demo/src/:
+   - Run scanner
+   - Update graph
+2. Calculate criticality for ALL services
+3. Generate criticality matrix
+4. Create comprehensive report
+5. Return: "✓ Analysis complete for 10 services
+   
+   📊 CRITICALITY MATRIX:
+   
+   🔴 CRITICAL (DO NOT CHANGE):
+   - None
+   
+   🟠 HIGH RISK (NOT RECOMMENDED):
+   - checkoutservice: 7 dependencies → affects 0 services
+   - frontend: 7 dependencies → affects 0 services
+   
+   🟡 MEDIUM RISK (CAUTION):
+   - cartservice: affects 2 services (checkoutservice, frontend)
+   - currencyservice: affects 2 services (checkoutservice, frontend)
+   
+   🟢 LOW RISK (SAFE):
+   - paymentservice: affects 1 service (checkoutservice)
+   - productcatalogservice: affects 2 services
+   - shippingservice: affects 2 services
+   - emailservice: affects 1 service
+   - recommendationservice: affects 1 service
+   - adservice: affects 1 service
+   
+   🎯 ARCHITECTURAL INSIGHTS:
+   - checkoutservice and frontend are complex orchestrators
+   - No single service is critically over-depended upon
+   - Most services can be safely modified with proper testing
+   
+   📄 Full report: data/reports/full_analysis_20250117_143052.txt"
+
+IMPORTANT EXECUTION NOTES:
+
+1. Always use absolute or relative paths correctly
+   - Correct: ./microservices-demo/src/paymentservice
+   - Correct: /full/path/to/microservices-demo/src/paymentservice
+
+2. ALWAYS calculate and display criticality
+   - Never just list dependencies without context
+   - Always show the risk level and recommendation
+   - Always explain what the criticality means
+
+3. ALWAYS generate a report file
+   - Create data/reports/ directory if it doesn't exist
+   - Use timestamp in filename for uniqueness
+   - Include all analysis details in the report
+   - Show the report path to the user
+
+4. Handle errors gracefully
+   - If a repository path doesn't exist, inform the user
+   - If scanner fails, explain what went wrong
+   - If query returns no results, explain that clearly
+
+5. Use the tools in the correct order
+   - NEVER query before building the graph
+   - ALWAYS update the graph after scanning
+   - ALWAYS scan before updating
+   - ALWAYS calculate criticality after querying
+
+6. Provide context in your responses
+   - Don't just output raw JSON
+   - Explain what the findings mean
+   - Suggest next steps when appropriate
+   - Use visual indicators (emojis) for quick scanning
+
+7. Multi-service analysis
+   - When analyzing multiple services, do them sequentially
+   - Update the graph after each scan
+   - Summarize cumulative findings with criticality matrix
+   - Generate a comprehensive report
+
+REPORT FORMAT:
+
+Every report should include:
+
+=============================================================================
+CODEGRAPH NAVIGATOR - ANALYSIS REPORT
+=============================================================================
+Generated: <ISO timestamp>
+Analysis Type: <Service Scan | Dependency Query | Impact Analysis>
+
+-----------------------------------------------------------------------------
+EXECUTIVE SUMMARY
+-----------------------------------------------------------------------------
+<High-level overview in 2-3 sentences>
+
+-----------------------------------------------------------------------------
+SERVICES ANALYZED
+-----------------------------------------------------------------------------
+Total Services: <count>
+Languages Detected: <list>
+Total Dependencies: <count>
+
+Service Details:
+- <service_name>: <language> (<dependency_count> dependencies)
+  ...
+
+-----------------------------------------------------------------------------
+KNOWLEDGE GRAPH STATISTICS
+-----------------------------------------------------------------------------
+Total Nodes: <count> (Services: <count>, Libraries: <count>)
+Total Edges: <count> (Dependency relationships)
+
+-----------------------------------------------------------------------------
+CRITICALITY MATRIX
+-----------------------------------------------------------------------------
+🔴 CRITICAL (7+ dependents) - DO NOT CHANGE:
+<list or "None">
+
+🟠 HIGH RISK (4-6 dependents) - NOT RECOMMENDED:
+<list or "None">
+
+🟡 MEDIUM RISK (2-3 dependents) - CAUTION ADVISED:
+<list with affected services>
+
+🟢 LOW RISK (0-1 dependents) - SAFE TO CHANGE:
+<list with affected services>
+
+-----------------------------------------------------------------------------
+DETAILED IMPACT ANALYSIS
+-----------------------------------------------------------------------------
+For each service:
+<service_name>:
+  Criticality: <level> <emoji>
+  Direct Dependents: <count>
+  Affected Services: <list>
+  Risk Level: <description>
+  Recommendation: <action>
+  
+-----------------------------------------------------------------------------
+ARCHITECTURAL INSIGHTS
+-----------------------------------------------------------------------------
+- <Insight about architecture>
+- <Pattern identified>
+- <Recommendations>
+
+-----------------------------------------------------------------------------
+ACTION RECOMMENDATIONS
+-----------------------------------------------------------------------------
+Immediate Actions:
+- <recommendation>
+
+Medium-term Actions:
+- <recommendation>
+
+Strategic Considerations:
+- <recommendation>
+
+=============================================================================
+END OF REPORT
+=============================================================================
+
+EXAMPLE INTERACTIONS:
+
+Example 1 - Learning with Criticality:
+User: "Learn about the payment service"
+You: I'll analyze the payment service and assess its criticality.
+     [Run: python3 tools/scanner.py ./microservices-demo/src/paymentservice]
+     [Capture output]
+     [Run: python3 tools/graph_builder.py]
+     [Query dependents]
+     [Calculate criticality: 1 dependent = LOW]
+     [Generate report]
+     
+     ✓ Successfully analyzed paymentservice
+     
+     📊 SERVICE PROFILE:
+     - Language: JavaScript/TypeScript
+     - Dependencies: 13 libraries (@grpc/grpc-js, pino, uuid, etc.)
+     
+     📊 CRITICALITY ASSESSMENT:
+     - Level: 🟢 LOW RISK
+     - Dependents: 1 (checkoutservice)
+     - ✅ RECOMMENDATION: SAFE TO CHANGE
+     
+     💡 IMPACT ANALYSIS:
+     - If you modify paymentservice, only checkoutservice needs testing
+     - Changes are relatively isolated
+     - Deployment risk is minimal
+     
+     📄 Full report: data/reports/analysis_paymentservice_20250117_143052.txt
+
+Example 2 - Critical Service Warning:
+User: "Can I change frontend service?"
+You: Let me analyze the impact of changing frontend.
+     [Run query to count dependencies]
+     [Find: frontend has 7 dependencies, 0 dependents]
+     [Calculate criticality for changes TO frontend]
+     
+     📊 IMPACT ANALYSIS FOR: frontend
+     
+     ⚠️  COMPLEXITY WARNING:
+     - Frontend depends on 7 services
+     - Criticality of Changes: 🟠 HIGH
+     - Changes to frontend are complex but won't break other services
+     
+     Dependencies:
+     ├── adservice
+     ├── cartservice
+     ├── checkoutservice
+     ├── currencyservice
+     ├── productcatalogservice
+     ├── recommendationservice
+     └── shippingservice
+     
+     🎯 RECOMMENDATION:
+     - Frontend changes won't break other services (nothing depends on it)
+     - However, you must test integration with 7 backend services
+     - Consider incremental changes to reduce risk
+     
+     📄 Full report: data/reports/impact_frontend_20250117_143052.txt
+
+ERROR HANDLING:
+
+If scanner fails:
+- Check if the path exists
+- Verify it's a valid repository
+- Explain to user what went wrong
+- Still generate a report with error details
+
+If graph builder fails:
+- Check if data/knowledge_graph.json exists and is writable
+- Verify the JSON from scanner was valid
+- Suggest manual inspection
+- Document error in report
+
+If query engine returns nothing:
+- Explain that no dependencies were found
+- This means criticality is 🟢 LOW (0 dependents)
+- Suggest the service might not be in the graph yet
+- Recommend running a scan first
+- Generate report with this information
+
+CACHE AND STATE MANAGEMENT:
+
+- The knowledge graph persists in data/knowledge_graph.json
+- Each scan adds to or updates existing information
+- Reports are stored in data/reports/ with timestamps
+- You can reset by clearing the graph file
+- All historical data remains unless explicitly cleared
+
+FINAL REMINDERS:
+
+1. ALWAYS calculate and display criticality
+2. ALWAYS generate a comprehensive report file
+3. Use visual indicators (emojis) for quick understanding
+4. Provide actionable recommendations
+5. Explain risks and impacts clearly
+6. Suggest testing and deployment strategies
+7. Make architectural insights visible
+8. Be proactive about preventing issues
+"""
+
+arguments = [
+  { name = "repository_paths", type = "array", required = false, description = "Array of repository paths to analyze (e.g., ['./microservices-demo/src/paymentservice'])" },
+  { name = "service_name", type = "string", required = false, description = "Single service name to analyze (e.g., 'paymentservice')" },
+  { name = "query", type = "string", required = false, description = "Natural language question about dependencies (e.g., 'Which services depend on paymentservice?')" },
+  { name = "action", type = "string", required = false, default = "auto", description = "Action to perform: 'scan', 'query', 'impact', or 'auto' (determines from context)" },
+  { name = "reset_graph", type = "boolean", required = false, default = false, description = "Whether to reset the knowledge graph before analysis" },
+  { name = "output_format", type = "string", required = false, default = "summary", description = "Output format: 'summary', 'detailed', or 'json'" },
+  { name = "generate_report", type = "boolean", required = false, default = true, description = "Whether to generate a detailed report file" },
+  { name = "criticality_threshold", type = "number", required = false, default = 3, description = "Number of dependents considered high risk (default: 3)" }
+]
+
+tools = ["filesystem", "shell"]
+
+execution_strategy = "plan"
+
+output_schema = """
+{
+  "type": "object",
+  "properties": {
+    "success": { 
+      "type": "boolean", 
+      "description": "Whether the analysis completed successfully" 
+    },
+    "action_performed": { 
+      "type": "string", 
+      "description": "The action that was executed: 'scan', 'query', 'impact', or 'learn'" 
+    },
+    "repositories_analyzed": { 
+      "type": "number", 
+      "description": "Number of repositories successfully analyzed" 
+    },
+    "repositories_failed": { 
+      "type": "number", 
+      "description": "Number of repositories that failed analysis" 
+    },
+    "services_discovered": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of service names discovered"
+    },
+    "languages_detected": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Programming languages found (Go, JavaScript/TypeScript, Python, etc.)"
+    },
+    "total_dependencies": { 
+      "type": "number", 
+      "description": "Total number of dependencies discovered across all services" 
+    },
+    "graph_nodes": { 
+      "type": "number", 
+      "description": "Total nodes in the knowledge graph (services + libraries)" 
+    },
+    "graph_edges": { 
+      "type": "number", 
+      "description": "Total edges (dependency relationships) in the graph" 
+    },
+    "criticality_analysis": {
+      "type": "object",
+      "description": "Criticality assessment for services",
+      "properties": {
+        "critical_services": { 
+          "type": "array", 
+          "items": { "type": "string" },
+          "description": "Services with 7+ dependents (DO NOT CHANGE)"
+        },
+        "high_risk_services": { 
+          "type": "array", 
+          "items": { "type": "string" },
+          "description": "Services with 4-6 dependents (NOT RECOMMENDED)"
+        },
+        "medium_risk_services": { 
+          "type": "array", 
+          "items": { "type": "string" },
+          "description": "Services with 2-3 dependents (CAUTION ADVISED)"
+        },
+        "low_risk_services": { 
+          "type": "array", 
+          "items": { "type": "string" },
+          "description": "Services with 0-1 dependents (SAFE TO CHANGE)"
+        },
+        "service_criticality_scores": {
+          "type": "object",
+          "description": "Detailed criticality scores for each service"
+        }
+      }
+    },
+    "query_results": {
+      "type": "object",
+      "description": "Results from dependency queries with criticality context",
+      "properties": {
+        "question": { "type": "string" },
+        "answer": { "type": "string" },
+        "affected_services": { "type": "array", "items": { "type": "string" } },
+        "criticality_level": { "type": "string" },
+        "risk_assessment": { "type": "string" },
+        "recommendation": { "type": "string" }
+      }
+    },
+    "impact_analysis": {
+      "type": "object",
+      "description": "Detailed impact analysis for service changes",
+      "properties": {
+        "service": { "type": "string" },
+        "criticality_level": { "type": "string" },
+        "criticality_emoji": { "type": "string" },
+        "dependent_count": { "type": "number" },
+        "direct_dependents": { "type": "array", "items": { "type": "string" } },
+        "transitive_impact": { "type": "array", "items": { "type": "string" } },
+        "risk_level": { "type": "string" },
+        "recommendation": { "type": "string" },
+        "safe_to_change": { "type": "boolean" },
+        "testing_required": { "type": "array", "items": { "type": "string" } },
+        "deployment_strategy": { "type": "string" }
+      }
+    },
+    "architectural_insights": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "High-level insights about the architecture"
+    },
+    "recommendations": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Prioritized recommendations for next steps"
+    },
+    "report_generated": {
+      "type": "boolean",
+      "description": "Whether a detailed report file was created"
+    },
+    "report_path": {
+      "type": "string",
+      "description": "Path to the generated report file"
+    },
+    "knowledge_graph_path": { 
+      "type": "string", 
+      "description": "Path to the knowledge graph file" 
+    },
+    "execution_time_seconds": { 
+      "type": "number", 
+      "description": "Time taken to complete the analysis" 
+    },
+    "messages": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Log of operations performed"
+    },
+    "errors": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Any errors encountered during execution"
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Non-critical warnings"
+    }
+  },
+  "required": ["success", "action_performed", "report_generated"]
+}
+"""
+
+exit_expression = "success == true"
+
+# ============================================================================
+# ADDITIONAL COMMANDS FOR SPECIFIC OPERATIONS
+# ============================================================================
+
+[commands.impact_analysis]
+description = "Perform detailed impact analysis for a specific service change"
+
+instructions = """
+Execute comprehensive impact analysis to determine if a service can be safely changed.
+
+WORKFLOW:
+1. Query dependents: python3 tools/query_engine.py "Which services depend on <service>?"
+2. Count the number of dependent services
+3. Calculate criticality level based on count:
+   - 0-1 dependents: 🟢 LOW (SAFE TO CHANGE)
+   - 2-3 dependents: 🟡 MEDIUM (CAUTION ADVISED)
+   - 4-6 dependents: 🟠 HIGH (NOT RECOMMENDED)
+   - 7+ dependents: 🔴 CRITICAL (DO NOT CHANGE)
+4. Generate detailed impact report with:
+   - Criticality assessment
+   - List of affected services
+   - Risk level explanation
+   - Testing requirements
+   - Deployment strategy
+   - Rollback plan
+5. Save report to data/reports/impact_<service>_<timestamp>.txt
+6. Display summary with clear recommendation
+
+CRITICALITY CALCULATION:
+- Count direct dependents from knowledge graph
+- Consider transitive dependencies
+- Assess architectural importance
+- Factor in service complexity
+
+DEPLOYMENT STRATEGY GENERATION:
+- If include_deployment_plan=true, generate detailed deployment steps
+- Include pre-deployment checks
+- Specify deployment order
+- Define rollback procedures
+- List monitoring requirements
+
+TESTING STRATEGY:
+- If include_testing_strategy=true, generate comprehensive test plan
+- Unit tests for the modified service
+- Integration tests with dependent services
+- End-to-end test scenarios
+- Performance testing recommendations
+
+OUTPUT FORMAT:
+Display a clear, actionable summary:
+
+📊 IMPACT ANALYSIS FOR: <service_name>
+
+<emoji> CRITICALITY LEVEL: <LEVEL>
+<emoji> RECOMMENDATION: <ACTION>
+
+Direct Dependents (<count>):
+├── <service1>
+├── <service2>
+└── <service3>
+
+Risk Assessment:
+- <risk description>
+- <impact description>
+
+Action Plan:
+1. <step 1>
+2. <step 2>
+3. <step 3>
+
+[If include_deployment_plan=true]
+🚀 DEPLOYMENT STRATEGY:
+1. Pre-deployment: <checks>
+2. Deployment Order: <sequence>
+3. Post-deployment: <validation>
+4. Rollback: <procedure>
+
+[If include_testing_strategy=true]
+🧪 TESTING STRATEGY:
+1. Unit Tests: <tests>
+2. Integration Tests: <tests>
+3. E2E Tests: <scenarios>
+
+📄 Full report: <path>
+"""
+
+arguments = [
+  { name = "service_name", type = "string", required = true, description = "Name of the service to analyze (e.g., 'paymentservice')" },
+  { name = "include_transitive", type = "boolean", required = false, default = true, description = "Include transitive dependency analysis (services that depend on dependents)" },
+  { name = "include_deployment_plan", type = "boolean", required = false, default = true, description = "Generate detailed deployment strategy" },
+  { name = "include_testing_strategy", type = "boolean", required = false, default = true, description = "Generate comprehensive testing recommendations" },
+  { name = "include_rollback_plan", type = "boolean", required = false, default = true, description = "Include rollback procedures in the report" },
+  { name = "risk_tolerance", type = "string", required = false, default = "medium", description = "Risk tolerance level: 'low', 'medium', 'high' - affects recommendations" },
+  { name = "output_format", type = "string", required = false, default = "detailed", description = "Output format: 'summary', 'detailed', or 'json'" },
+  { name = "generate_report", type = "boolean", required = false, default = true, description = "Whether to generate a detailed report file" }
+]
+
+tools = ["filesystem", "shell"]
+execution_strategy = "plan"
+
+[commands.criticality_matrix]
+description = "Generate a complete criticality matrix for all services in the knowledge graph"
+
+instructions = """
+Create a comprehensive criticality matrix showing risk levels for all services.
+
+WORKFLOW:
+1. Read data/knowledge_graph.json
+2. For each service node:
+   - Count how many other services depend on it
+   - Calculate criticality level
+   - Identify the programming language
+   - List all direct dependents
+3. Group services by criticality level
+4. If group_by_language=true, also group by programming language
+5. If include_visualization=true, generate ASCII art dependency tree
+6. Generate matrix report
+7. Save to data/reports/criticality_matrix_<timestamp>.txt
+8. Display formatted matrix
+
+GROUPING OPTIONS:
+- By criticality (always included)
+- By programming language (if group_by_language=true)
+- By risk level (if group_by_risk=true)
+
+SORTING OPTIONS:
+- sort_by="dependents" (default): Most depended-upon first
+- sort_by="alphabetical": Alphabetical order
+- sort_by="language": Group by language, then by dependents
+
+OUTPUT FORMAT:
+
+📊 CRITICALITY MATRIX FOR ALL SERVICES
+[If show_statistics=true]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📈 OVERALL STATISTICS:
+- Total Services: <count>
+- Total Dependencies: <count>
+- Average Criticality: <score>
+- Most Critical Service: <name> (<count> dependents)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔴 CRITICAL SERVICES (7+ dependents) - DO NOT CHANGE:
+<list or "None - No critically over-depended services">
+
+🟠 HIGH RISK SERVICES (4-6 dependents) - NOT RECOMMENDED:
+<list or "None">
+
+🟡 MEDIUM RISK SERVICES (2-3 dependents) - CAUTION ADVISED:
+- <service> (<language>): affects <list of dependents>
+
+🟢 LOW RISK SERVICES (0-1 dependents) - SAFE TO CHANGE:
+- <service> (<language>): affects <list of dependents>
+
+[If group_by_language=true]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 BREAKDOWN BY LANGUAGE:
+
+Go Services:
+- <service>: <criticality> (<dependents> dependents)
+
+JavaScript/TypeScript Services:
+- <service>: <criticality> (<dependents> dependents)
+
+Python Services:
+- <service>: <criticality> (<dependents> dependents)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[If include_visualization=true]
+🌳 DEPENDENCY TREE:
+<ASCII art tree showing service relationships>
+
+🎯 KEY INSIGHTS:
+- <architectural insight>
+- <recommendation>
+- <pattern identified>
+
+📄 Full matrix: <path>
+"""
+
+arguments = [
+  { name = "group_by_language", type = "boolean", required = false, default = true, description = "Group services by programming language" },
+  { name = "group_by_risk", type = "boolean", required = false, default = false, description = "Additional grouping by risk level" },
+  { name = "sort_by", type = "string", required = false, default = "dependents", description = "Sort order: 'dependents', 'alphabetical', or 'language'" },
+  { name = "show_statistics", type = "boolean", required = false, default = true, description = "Include overall statistics summary" },
+  { name = "include_visualization", type = "boolean", required = false, default = false, description = "Generate ASCII art dependency tree" },
+  { name = "filter_by_language", type = "string", required = false, default = "", description = "Filter to specific language (e.g., 'Go', 'JavaScript/TypeScript', 'Python')" },
+  { name = "min_criticality", type = "string", required = false, default = "low", description = "Show only services with this criticality or higher: 'low', 'medium', 'high', 'critical'" },
+  { name = "output_format", type = "string", required = false, default = "detailed", description = "Output format: 'summary', 'detailed', or 'json'" },
+  { name = "generate_report", type = "boolean", required = false, default = true, description = "Whether to save the matrix to a report file" }
+]
+
+tools = ["filesystem", "shell"]
+execution_strategy = "plan"
+
+[commands.scan_repository]
+description = "Scan a single repository to extract dependencies"
+
+instructions = """
+Execute the repository scanner on the provided path.
+
+WORKFLOW:
+1. Validate the repository path exists
+2. Run: python3 tools/scanner.py <repository_path>
+3. Return the JSON output with service information
+
+The scanner detects:
+- Programming language (Go, JavaScript/TypeScript, Python, Java, C#)
+- All dependencies and imports
+- gRPC service relationships for Go services
+"""
+
+arguments = [
+  { name = "repository_path", type = "string", required = true, description = "Path to the repository to scan" }
+]
+
+tools = ["filesystem", "shell"]
+execution_strategy = "plan"
+
+[commands.update_knowledge_graph]
+description = "Update the central knowledge graph with scan results"
+
+instructions = """
+Update the knowledge graph with repository scan data.
+
+WORKFLOW:
+1. Validate the scan results JSON
+2. Run: python3 tools/graph_builder.py with the JSON data
+3. Confirm the graph was updated successfully
+
+This creates/updates:
+- Service nodes in the graph
+- Library nodes for dependencies
+- Edges showing import relationships
+"""
+
+arguments = [
+  { name = "scan_results_json", type = "string", required = true, description = "JSON output from scanner" }
+]
+
+tools = ["filesystem", "shell"]
+execution_strategy = "plan"
+
+[commands.query_dependencies]
+description = "Query the knowledge graph with natural language questions and get detailed dependency analysis"
+
+instructions = """
+Answer dependency questions using the knowledge graph with comprehensive context.
+
+WORKFLOW:
+1. Parse the user's question
+2. Run: python3 tools/query_engine.py "<question>"
+3. Analyze the results for criticality
+4. If include_criticality=true, calculate risk level for each result
+5. If include_recommendations=true, provide actionable suggestions
+6. If include_related_services=true, show transitive dependencies
+7. Return human-readable results with full context
+
+SUPPORTED QUESTIONS:
+- "Which services depend on X?" - finds services that import X
+- "What depends on X?" - same as above
+- "Show dependencies of X" - finds what X depends on
+- "What does X rely on?" - same as above
+- "Can I safely change X?" - includes criticality analysis
+- "What breaks if I change X?" - impact assessment
+
+ENHANCED QUERY FEATURES:
+- Calculates criticality automatically
+- Shows risk levels with emojis
+- Provides change recommendations
+- Lists testing requirements
+- Suggests deployment order
+
+OUTPUT FORMAT:
+
+🔍 DEPENDENCY QUERY RESULTS
+
+Question: <original question>
+Service: <service_name>
+
+Direct Dependents (<count>):
+├── <service1> (<language>)
+├── <service2> (<language>)
+└── <service3> (<language>)
+
+[If include_criticality=true]
+📊 CRITICALITY ANALYSIS:
+- Criticality Level: <emoji> <LEVEL>
+- Risk Assessment: <description>
+- Recommendation: <action>
+
+[If include_recommendations=true]
+💡 RECOMMENDATIONS:
+1. <recommendation>
+2. <recommendation>
+3. <recommendation>
+
+[If include_related_services=true]
+🔗 RELATED SERVICES (Transitive):
+- <service> depends on <dependent> which depends on <service_name>
+
+[If show_deployment_order=true]
+🚀 SUGGESTED DEPLOYMENT ORDER:
+1. <service_name> (base service)
+2. <dependent1> (immediate dependent)
+3. <dependent2> (immediate dependent)
+
+[If generate_report=true]
+📄 Full report saved to: data/reports/query_<service>_<timestamp>.txt
+"""
+
+arguments = [
+  { name = "question", type = "string", required = true, description = "Natural language dependency question" },
+  { name = "include_criticality", type = "boolean", required = false, default = true, description = "Include criticality analysis in results" },
+  { name = "include_recommendations", type = "boolean", required = false, default = true, description = "Provide actionable recommendations" },
+  { name = "include_related_services", type = "boolean", required = false, default = false, description = "Show transitive dependencies (services that depend on dependents)" },
+  { name = "show_deployment_order", type = "boolean", required = false, default = false, description = "Suggest deployment order for affected services" },
+  { name = "show_language_info", type = "boolean", required = false, default = true, description = "Include programming language for each service" },
+  { name = "filter_by_language", type = "string", required = false, default = "", description = "Filter results to specific language (e.g., 'Go', 'JavaScript/TypeScript')" },
+  { name = "output_format", type = "string", required = false, default = "detailed", description = "Output format: 'summary', 'detailed', or 'json'" },
+  { name = "generate_report", type = "boolean", required = false, default = false, description = "Generate a detailed report file for the query" }
+]
+
+tools = ["shell", "filesystem"]
+execution_strategy = "plan"
+
+[commands.reset_knowledge_graph]
+description = "Reset the knowledge graph to start fresh"
+
+instructions = """
+Clear the knowledge graph for a fresh start.
+
+WORKFLOW:
+1. Backup existing graph to data/knowledge_graph.backup.json
+2. Write empty graph: { "nodes": [], "edges": [] }
+3. Confirm reset complete
+"""
+
+tools = ["filesystem"]
+execution_strategy = "plan"
+
+# ============================================================================
+# ADVANCED COMMANDS FOR COMPREHENSIVE ANALYSIS
+# ============================================================================
+
+[commands.compare_services]
+description = "Compare criticality and dependencies between two or more services"
+
+instructions = """
+Perform a side-by-side comparison of multiple services.
+
+WORKFLOW:
+1. For each service in service_names array:
+   - Query dependencies
+   - Query dependents
+   - Calculate criticality
+2. Generate comparison matrix
+3. Identify similarities and differences
+4. Provide recommendations based on comparison
+
+OUTPUT FORMAT:
+
+📊 SERVICE COMPARISON ANALYSIS
+
+Services Compared: <service1>, <service2>, <service3>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Comparison Table:
+
+| Metric              | Service 1 | Service 2 | Service 3 |
+|---------------------|-----------|-----------|-----------|
+| Language            | <lang>    | <lang>    | <lang>    |
+| Dependencies        | <count>   | <count>   | <count>   |
+| Dependents          | <count>   | <count>   | <count>   |
+| Criticality Level   | <level>   | <level>   | <level>   |
+| Safe to Change?     | <yes/no>  | <yes/no>  | <yes/no>  |
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 KEY FINDINGS:
+- Most Critical: <service> (<reason>)
+- Safest to Modify: <service> (<reason>)
+- Most Complex: <service> (<reason>)
+
+💡 RECOMMENDATIONS:
+1. <recommendation>
+2. <recommendation>
+
+📄 Full comparison report: <path>
+"""
+
+arguments = [
+  { name = "service_names", type = "array", required = true, description = "Array of service names to compare (e.g., ['paymentservice', 'cartservice'])" },
+  { name = "comparison_metrics", type = "array", required = false, default = ["criticality", "dependencies", "dependents", "language"], description = "Metrics to compare" },
+  { name = "include_recommendations", type = "boolean", required = false, default = true, description = "Include comparison-based recommendations" },
+  { name = "output_format", type = "string", required = false, default = "table", description = "Output format: 'table', 'detailed', or 'json'" },
+  { name = "generate_report", type = "boolean", required = false, default = true, description = "Generate detailed comparison report" }
+]
+
+tools = ["shell", "filesystem"]
+execution_strategy = "plan"
+
+[commands.analyze_language]
+description = "Analyze all services written in a specific programming language"
+
+instructions = """
+Perform language-specific analysis to understand dependencies within a technology stack.
+
+WORKFLOW:
+1. Read knowledge_graph.json
+2. Filter services by specified language
+3. Analyze inter-language dependencies
+4. Calculate language-specific criticality
+5. Generate language-specific recommendations
+
+OUTPUT FORMAT:
+
+📊 LANGUAGE-SPECIFIC ANALYSIS: <language>
+
+Total <language> Services: <count>
+
+Services:
+├── <service1>: <criticality> (<dependents> dependents)
+├── <service2>: <criticality> (<dependents> dependents)
+└── <service3>: <criticality> (<dependents> dependents)
+
+Cross-Language Dependencies:
+- <service> (<language>) depends on <other_service> (<other_language>)
+
+🎯 INSIGHTS:
+- <insight about language-specific patterns>
+- <recommendation for technology stack>
+
+📄 Full language analysis: <path>
+"""
+
+arguments = [
+  { name = "language", type = "string", required = true, description = "Programming language to analyze (e.g., 'Go', 'JavaScript/TypeScript', 'Python')" },
+  { name = "include_cross_language", type = "boolean", required = false, default = true, description = "Include cross-language dependencies" },
+  { name = "show_criticality", type = "boolean", required = false, default = true, description = "Show criticality for each service" },
+  { name = "output_format", type = "string", required = false, default = "detailed", description = "Output format: 'summary', 'detailed', or 'json'" },
+  { name = "generate_report", type = "boolean", required = false, default = true, description = "Generate language-specific report" }
+]
+
+tools = ["filesystem"]
+execution_strategy = "plan"
+
+[commands.export_graph]
+description = "Export the knowledge graph in various formats for external tools"
+
+instructions = """
+Export the dependency graph to different formats for visualization or integration.
+
+WORKFLOW:
+1. Read data/knowledge_graph.json
+2. Convert to specified format
+3. Save to output file
+4. Confirm export successful
+
+SUPPORTED FORMATS:
+- graphviz: DOT format for Graphviz visualization
+- mermaid: Mermaid diagram syntax
+- json: Enhanced JSON with metadata
+- csv: Edge list for spreadsheet analysis
+- neo4j: Cypher queries for Neo4j import
+
+OUTPUT:
+Exports to data/exports/graph_<format>_<timestamp>.<ext>
+"""
+
+arguments = [
+  { name = "export_format", type = "string", required = true, description = "Export format: 'graphviz', 'mermaid', 'json', 'csv', or 'neo4j'" },
+  { name = "include_metadata", type = "boolean", required = false, default = true, description = "Include criticality and language metadata" },
+  { name = "output_path", type = "string", required = false, default = "", description = "Custom output path (uses default if empty)" }
+]
+
+tools = ["filesystem"]
+execution_strategy = "plan"
