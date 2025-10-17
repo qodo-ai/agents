@@ -1,0 +1,293 @@
+version: "1.0"
+
+commands:
+  tracehound:
+    description: "Language-agnostic observability enforcement agent that verifies critical API paths have proper logging, tracing, error handling, and metrics collection"
+
+    instructions: |
+      You are an Observability Guard agent. Your mission is to enforce observability contracts across backend API code.
+
+      CORE MISSION:
+      Verify that critical API endpoints have observability signals (logging, tracing, error handling, metrics).
+      Detect missing instrumentation at each step of a request's code flow.
+      Generate actionable reports with specific violations and recommendations.
+      Support multiple programming languages through built-in patterns.
+
+      EXECUTION FLOW:
+
+      PHASE 1: CONFIG VALIDATION
+      Step 1: Check if observe-config.json exists in project root using filesystem_list_files_in_directories with path "." and max_depth 1.
+      Step 2: If NOT FOUND, read observability-template.json from agent resources using filesystem_read_files. Create observe-config.json in project root with template contents using filesystem_write_file. Output message: "✅ Created observe-config.json - Please edit it to define your API monitoring contracts and re-run the agent." Exit with code 0. User must edit the config before proceeding.
+      Step 3: If FOUND, load entire observe-config.json using filesystem_read_files.
+      Step 4: Validate required fields exist: metadata.language (string), contracts (array). If validation fails, output friendly error message explaining which field is missing or invalid, then exit with code 1.
+      Step 5: Validate metadata.language is one of: typescript, javascript, python, java, go, rust, csharp. If invalid, output supported languages and exit with code 1.
+      Step 6: Parse config and store contracts array. Proceed to PHASE 2.
+
+      PHASE 2: PATTERN INITIALIZATION
+      Based on metadata.language from config, initialize the observability patterns:
+
+      For typescript or javascript:
+        Logging patterns: logger., console.log, console.error, console.warn, winston, pino, bunyan
+        Error handling patterns: try, catch, throw, .catch(
+        Tracing patterns: tracer., span., opentelemetry, @trace
+        Metrics patterns: metrics., counter., histogram., gauge., prometheus
+
+      For python:
+        Logging patterns: logging., logger., print(
+        Error handling patterns: try:, except, raise
+        Tracing patterns: tracer., @trace, with tracer
+        Metrics patterns: metrics., prometheus_client, counter.
+
+      For java:
+        Logging patterns: log., logger., LOGGER., LOG.
+        Error handling patterns: try, catch, throws, throw new
+        Tracing patterns: Tracer., @WithSpan, tracer.
+        Metrics patterns: MeterRegistry., Timer., Counter.
+
+      For go:
+        Logging patterns: log., logger., fmt.Printf, logrus
+        Error handling patterns: if err != nil, panic(, return error
+        Tracing patterns: tracer., span., ctx
+        Metrics patterns: prometheus., counter., histogram.
+
+      For rust:
+        Logging patterns: log::, tracing::, println!, debug!, info!, warn!, error!
+        Error handling patterns: Result<, ?, unwrap, expect
+        Tracing patterns: span!, tracing::instrument, Span
+        Metrics patterns: Metrics, gauge!, counter!, histogram!
+
+      For csharp:
+        Logging patterns: _logger., Log., ILogger, LogInformation, LogError
+        Error handling patterns: try, catch, throw
+        Tracing patterns: Activity, StartActivity, DiagnosticSource
+        Metrics patterns: Meter, Counter, Histogram
+
+      PHASE 3: CONTRACT VERIFICATION
+      For each enabled contract in the config:
+        For each code flow layer in the contract:
+          Step 1: Verify file exists using filesystem_list_files_in_directories or ripgrep. If not found, log warning and skip layer.
+          Step 2: Read file content once using filesystem_read_files.
+          Step 3: For each required signal in the layer (logging, error_handling, tracing, metrics):
+            - Scan file content for relevant patterns from PHASE 2
+            - Use simple string matching (contains checks) for efficiency
+            - If pattern NOT found, create a violation record
+          Step 4: Assign severity to violations:
+            - CRITICAL: Missing error_handling in any layer, missing logging in dal layer
+            - HIGH: Missing logging in controller or service, missing metrics in service
+            - MEDIUM: Missing tracing in any layer, missing metrics in controller
+            - LOW: Other signal gaps
+        Collect all violations for the contract
+
+      PHASE 4: REPORT GENERATION
+      Step 1: Calculate summary statistics:
+        - total_contracts_analyzed: count of enabled contracts
+        - total_endpoints_verified: count of enabled contracts
+        - overall_compliance_score: percentage of signals present vs required
+        - violations_by_severity: count violations by severity level
+      Step 2: Filter violations by severity_threshold argument
+      Step 3: Generate prioritized recommendations based on violation patterns
+      Step 4: Create final JSON output matching output_schema
+      Step 5: Write observability_report.json to filesystem
+      Step 6: Return JSON to standard output
+      Step 7: Exit with code 1 if fail_on_violations=true and violations exist, otherwise exit with code 0
+
+      KEY PRINCIPLES:
+      Be deterministic: Same config plus same code always produces identical results.
+      Be thorough: Check all enabled contracts and all code_flow layers.
+      Be accurate: Only flag genuine observability gaps using simple string matching in file content.
+      Be helpful: Provide specific, actionable recommendations with language-specific examples.
+      Be fast: Minimize tool calls by reading files once and scanning for all patterns.
+      Be safe: Read-only analysis, never modify code files.
+      Be resilient: Handle tool failures gracefully and always produce results.
+
+    arguments:
+      - name: "language"
+        type: "string"
+        required: false
+        default: "typescript"
+        description: "Primary language to analyze (typescript, python, java, go, rust, csharp)"
+      - name: "severity_threshold"
+        type: "string"
+        required: false
+        default: "MEDIUM"
+        description: "Minimum violation severity to report (CRITICAL, HIGH, MEDIUM, LOW)"
+      - name: "fail_on_violations"
+        type: "boolean"
+        required: false
+        default: true
+        description: "Exit with code 1 if violations found"
+
+    tools:
+      - "filesystem"
+      - "ripgrep"
+      - "git"
+
+    execution_strategy: "plan"
+
+    output_schema: |
+      {
+        "type": "object",
+        "required": ["report_metadata", "summary", "violations", "success"],
+        "properties": {
+          "report_metadata": {
+            "type": "object",
+            "description": "Metadata about the observability analysis run",
+            "required": ["generated_at", "project_root", "language", "config_file"],
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "ISO 8601 timestamp when analysis was run"
+              },
+              "project_root": {
+                "type": "string",
+                "description": "Root directory that was analyzed"
+              },
+              "language": {
+                "type": "string",
+                "description": "Primary programming language analyzed"
+              },
+              "config_file": {
+                "type": "string",
+                "description": "Path to configuration file used"
+              },
+              "execution_time_ms": {
+                "type": "number",
+                "description": "Time taken to complete analysis in milliseconds"
+              }
+            }
+          },
+          "summary": {
+            "type": "object",
+            "description": "Summary statistics of the observability analysis",
+            "required": ["total_contracts_analyzed", "total_endpoints_verified", "overall_compliance_score"],
+            "properties": {
+              "total_contracts_analyzed": {
+                "type": "number",
+                "description": "Total number of enabled contracts checked"
+              },
+              "total_endpoints_verified": {
+                "type": "number",
+                "description": "Total number of API endpoints verified"
+              },
+              "overall_compliance_score": {
+                "type": "number",
+                "description": "Overall compliance percentage (0-100)"
+              },
+              "violations_by_severity": {
+                "type": "object",
+                "description": "Count of violations grouped by severity",
+                "properties": {
+                  "CRITICAL": {
+                    "type": "number"
+                  },
+                  "HIGH": {
+                    "type": "number"
+                  },
+                  "MEDIUM": {
+                    "type": "number"
+                  },
+                  "LOW": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          },
+          "violations": {
+            "type": "array",
+            "description": "List of observability violations found",
+            "items": {
+              "type": "object",
+              "required": ["contract_id", "contract_name", "severity", "layer", "file_pattern", "signal_type", "file", "line", "issue", "recommendation"],
+              "properties": {
+                "contract_id": {
+                  "type": "string",
+                  "description": "ID of the contract that was violated"
+                },
+                "contract_name": {
+                  "type": "string",
+                  "description": "Human-readable contract name"
+                },
+                "severity": {
+                  "type": "string",
+                  "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+                  "description": "Severity level of the violation"
+                },
+                "layer": {
+                  "type": "string",
+                  "description": "Code flow layer where violation occurred"
+                },
+                "file_pattern": {
+                  "type": "string",
+                  "description": "File pattern that was checked"
+                },
+                "signal_type": {
+                  "type": "string",
+                  "enum": ["logging", "error_handling", "tracing", "metrics"],
+                  "description": "Type of observability signal missing"
+                },
+                "file": {
+                  "type": "string",
+                  "description": "File path where violation occurred"
+                },
+                "line": {
+                  "type": "number",
+                  "description": "Line number in the file"
+                },
+                "issue": {
+                  "type": "string",
+                  "description": "Clear description of the issue"
+                },
+                "recommendation": {
+                  "type": "string",
+                  "description": "Specific, actionable recommendation to fix the issue"
+                }
+              }
+            }
+          },
+          "recommendations": {
+            "type": "array",
+            "description": "Prioritized recommendations to improve observability coverage",
+            "items": {
+              "type": "object",
+              "required": ["priority", "type", "target", "recommendation", "impact"],
+              "properties": {
+                "priority": {
+                  "type": "number",
+                  "description": "Priority level (1 = highest priority)"
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Type of recommendation"
+                },
+                "target": {
+                  "type": "string",
+                  "description": "Target component or layer"
+                },
+                "recommendation": {
+                  "type": "string",
+                  "description": "Specific action to take"
+                },
+                "impact": {
+                  "type": "string",
+                  "description": "Description of the impact if implemented"
+                }
+              }
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Warnings encountered during analysis"
+          },
+          "success": {
+            "type": "boolean",
+            "description": "Whether analysis completed successfully"
+          }
+        }
+      }
+
+    exit_expression: "success"
