@@ -1,0 +1,2251 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "Effiziente",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/Collection/Summary": {
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Retrieves a summary report for collections from the user company url.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TotalDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TotalDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TotalDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Collection/Top5Total": {
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Get the top 5 clients with more debt for the user company url",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Collection/Top5DDO": {
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Get the top 5 clients with more Days Delinquent Outstanding for the user company url",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Collection/Top5Type": {
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Get the top 5 clients with more debt grouped by type : Next to expire, 30 days, 60 days, > 60 days",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClientDueDateDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClientDueDateDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClientDueDateDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Collection/Top10ToExpire": {
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Get the top 10 client with more debt to expire",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Collection/Top10Limit1": {
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Get the top 10 clients with up 30 days overdue",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Collection/Top10Limit2": {
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Get the top 10 clients with 31 days and up 60 days overdue",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Collection/Top10Limit3": {
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Get the top 10 clients with more than 60 days overdue",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TotalByClientDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Collection/DueDateSummary": {
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Gets a summary of the debt grouped by type : Next to expire, 30 days, 60 days, > 60 days for the company's user",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DueDateSummaryDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DueDateSummaryDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DueDateSummaryDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Collection/Detailed/{id}": {
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Gets a detailed report of the invoice with paid pending",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Client id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionDetailDTOAdapterDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionDetailDTOAdapterDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionDetailDTOAdapterDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Companies/{id}": {
+      "get": {
+        "tags": [
+          "Companies"
+        ],
+        "summary": "Returns the company info by id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Company Id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Companies"
+        ],
+        "summary": "Update a company",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Company Id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Company info to update",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Company"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Company"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Company"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Companies"
+        ],
+        "summary": "Delete a company",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Company Id to delelte",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Companies"
+        ],
+        "summary": "Active or inactive a company",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Company Id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "description": "True for active, false for inactive",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Companies/{companyId}/Users": {
+      "get": {
+        "tags": [
+          "Companies"
+        ],
+        "summary": "Get the users for the company",
+        "parameters": [
+          {
+            "name": "companyId",
+            "in": "path",
+            "description": "Company Id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Companies": {
+      "post": {
+        "tags": [
+          "Companies"
+        ],
+        "summary": "Add a new company",
+        "requestBody": {
+          "description": "Company info",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Company"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Company"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Company"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Returns the health status of the application",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Menu": {
+      "get": {
+        "tags": [
+          "Menu"
+        ],
+        "summary": "Get the user menu",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Page"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Page"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Page"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Menu/Access/{page}": {
+      "get": {
+        "tags": [
+          "Menu"
+        ],
+        "summary": "Validate if the current user has access to the page",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "description": "Page to validate access",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Page/Search": {
+      "get": {
+        "tags": [
+          "Page"
+        ],
+        "summary": "Search a page by key, title or link",
+        "parameters": [
+          {
+            "name": "by",
+            "in": "query",
+            "description": "Page title, link or key to get the key and name",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Page/ByKey/{key}": {
+      "get": {
+        "tags": [
+          "Page"
+        ],
+        "summary": "Search a page by key",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "Page key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Page/{pageKey}/ParameterByCompany": {
+      "get": {
+        "tags": [
+          "Page"
+        ],
+        "summary": "Get the paramaters of the company for the page",
+        "parameters": [
+          {
+            "name": "pageKey",
+            "in": "path",
+            "description": "Page key to return the parameters",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParameterDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParameterDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParameterDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ParameterByCompany/{pageKey}": {
+      "get": {
+        "tags": [
+          "ParameterByCompany"
+        ],
+        "summary": "Get the parameters for the page for the current company user",
+        "parameters": [
+          {
+            "name": "pageKey",
+            "in": "path",
+            "description": "Page key to return params",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/ParameterByCompany/{id}": {
+      "patch": {
+        "tags": [
+          "ParameterByCompany"
+        ],
+        "summary": "Update a parameter by company",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Parameter by Company Id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "value",
+            "in": "query",
+            "description": "Value to update",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Server": {
+      "get": {
+        "tags": [
+          "Server"
+        ],
+        "summary": "Get all servers",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Server"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Server"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Server"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Server"
+        ],
+        "summary": "Add a new server",
+        "requestBody": {
+          "description": "Server to add",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Server"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Server"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Server"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Server"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Server"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Server"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Server/Search": {
+      "get": {
+        "tags": [
+          "Server"
+        ],
+        "summary": "Search a server by key or name",
+        "parameters": [
+          {
+            "name": "by",
+            "in": "query",
+            "description": "Key of name of the server to search",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Server/ByKey/{key}": {
+      "get": {
+        "tags": [
+          "Server"
+        ],
+        "summary": "Search a server by key",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "Key of the server",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Server/{key}/Companies": {
+      "get": {
+        "tags": [
+          "Server"
+        ],
+        "summary": "Get the companies of the server",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "Server key",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Company"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Company"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Company"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Server/{serverId}/Companies/Combo": {
+      "get": {
+        "tags": [
+          "Server"
+        ],
+        "summary": "Get the companies for the server for a combo only Id, Key and Nanme that are active",
+        "parameters": [
+          {
+            "name": "serverId",
+            "in": "path",
+            "description": "Server Id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Server/{id}": {
+      "get": {
+        "tags": [
+          "Server"
+        ],
+        "summary": "Get a server by Id",
+        "operationId": "GetServer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Server Id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Server"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Server"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Server"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Server"
+        ],
+        "summary": "Update a server by id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Server id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Server info to update",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Server"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Server"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Server"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Server"
+        ],
+        "summary": "Delete a server by id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Server id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Server"
+        ],
+        "summary": "Active or inactive a server",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Server id to update",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "description": "True to active, false for inactive the server",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/Users/Login": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Login",
+        "requestBody": {
+          "description": "Data for login",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Users": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get the info of the current user",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyUserDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyUserDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyUserDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update an user",
+        "requestBody": {
+          "description": "User info",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Users/Company": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get the company info for the current user",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Users/{id}": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Change the status of a user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "User id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "description": "True for active, False for inactive",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update and user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "User id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "User info",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Users/RequestPassword/{user}": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Sends an email to the user can change the password",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "description": "Username to return password",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Users/ResetPassword": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update the password for the user",
+        "requestBody": {
+          "description": "New password info",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccessDTO": {
+        "type": "object",
+        "properties": {
+          "HasAccess": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClientDueDateDTO": {
+        "type": "object",
+        "properties": {
+          "ToExpire": {
+            "type": "number",
+            "description": "Amount that is next to expire",
+            "format": "double"
+          },
+          "Limit1": {
+            "type": "number",
+            "description": "Amount for the limit 1 days",
+            "format": "double"
+          },
+          "Limit2": {
+            "type": "number",
+            "description": "Amount for the Limit 2 days",
+            "format": "double"
+          },
+          "Limit3": {
+            "type": "number",
+            "description": "Amount for the Limit 3 days",
+            "format": "double"
+          },
+          "ClientId": {
+            "type": "integer",
+            "description": "Client Id",
+            "format": "int32"
+          },
+          "ClientName": {
+            "type": "string",
+            "description": "Client Name",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionDetailDTO": {
+        "type": "object",
+        "properties": {
+          "ClientId": {
+            "type": "integer",
+            "description": "Client ID",
+            "format": "int32"
+          },
+          "Total": {
+            "type": "number",
+            "description": "Total amount",
+            "format": "double",
+            "nullable": true
+          },
+          "InvoiceNumber": {
+            "type": "string",
+            "description": "Invoice number",
+            "nullable": true
+          },
+          "LastPaymentDate": {
+            "type": "string",
+            "description": "Last payment date",
+            "format": "date-time",
+            "nullable": true
+          },
+          "InvoiceId": {
+            "type": "integer",
+            "description": "Related document",
+            "format": "int32",
+            "nullable": true
+          },
+          "InvoiceDate": {
+            "type": "string",
+            "description": "Sale date",
+            "format": "date-time"
+          },
+          "ClientName": {
+            "type": "string",
+            "description": "Client's name",
+            "nullable": true
+          },
+          "Type": {
+            "type": "string",
+            "description": "Description/Concept",
+            "nullable": true
+          },
+          "Balance": {
+            "type": "number",
+            "description": "Outstanding balance/amount due",
+            "format": "double",
+            "nullable": true
+          },
+          "Paid": {
+            "type": "number",
+            "description": "Amount paid",
+            "format": "double",
+            "nullable": true
+          },
+          "DueDate": {
+            "type": "string",
+            "description": "Due date",
+            "format": "date-time"
+          },
+          "DaysOverdue": {
+            "type": "integer",
+            "description": "Days overdue",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CollectionDetailDTOAdapterDTO": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CollectionDetailDTO"
+            },
+            "nullable": true
+          },
+          "Count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Company": {
+        "required": [
+          "Active",
+          "DataBase",
+          "Key",
+          "Name",
+          "ServerId"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "description": "Company Id",
+            "format": "int32"
+          },
+          "ServerId": {
+            "type": "integer",
+            "description": "User Server Id",
+            "format": "int32"
+          },
+          "Key": {
+            "maximum": 999999,
+            "minimum": 1,
+            "type": "integer",
+            "description": "User Name",
+            "format": "int32"
+          },
+          "Name": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string",
+            "description": "User full name"
+          },
+          "DataBase": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "description": "Info to connect to the client DB"
+          },
+          "Active": {
+            "type": "boolean",
+            "description": "Active or inactive"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Companies that can access to the system"
+      },
+      "DueDateSummaryDTO": {
+        "type": "object",
+        "properties": {
+          "ToExpire": {
+            "type": "number",
+            "description": "Amount that is next to expire",
+            "format": "double"
+          },
+          "Limit1": {
+            "type": "number",
+            "description": "Amount for the limit 1 days",
+            "format": "double"
+          },
+          "Limit2": {
+            "type": "number",
+            "description": "Amount for the Limit 2 days",
+            "format": "double"
+          },
+          "Limit3": {
+            "type": "number",
+            "description": "Amount for the Limit 3 days",
+            "format": "double"
+          },
+          "PercentageToExpire": {
+            "type": "integer",
+            "description": "Percentage to expire",
+            "format": "int32"
+          },
+          "LimitPercentage1": {
+            "type": "integer",
+            "description": "Limit percentage 1",
+            "format": "int32"
+          },
+          "LimitPercentage2": {
+            "type": "integer",
+            "description": "Limit percentage 2",
+            "format": "int32"
+          },
+          "LimitPercentage3": {
+            "type": "integer",
+            "description": "Limit percentage 3",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LoginDTO": {
+        "required": [
+          "Company",
+          "Password",
+          "UserName"
+        ],
+        "type": "object",
+        "properties": {
+          "Company": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string",
+            "description": "Company to login"
+          },
+          "UserName": {
+            "maxLength": 15,
+            "minLength": 0,
+            "type": "string",
+            "description": "User Name"
+          },
+          "Password": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string",
+            "description": "Password"
+          },
+          "Code": {
+            "type": "integer",
+            "description": "After some wrong attempts of invalid password you need to set a code to login again",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MyUserDTO": {
+        "required": [
+          "Email",
+          "Name"
+        ],
+        "type": "object",
+        "properties": {
+          "Name": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "description": "Current user name"
+          },
+          "Email": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "description": "Current user email"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Page": {
+        "required": [
+          "CanSeeMenu",
+          "Description",
+          "Icon",
+          "IsAdmin",
+          "Key",
+          "Selector",
+          "Title"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "description": "Page id",
+            "format": "int32"
+          },
+          "Key": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "description": "Page key"
+          },
+          "Title": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string",
+            "description": "Page title"
+          },
+          "Selector": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "description": "Page angular selector"
+          },
+          "Link": {
+            "maxLength": 60,
+            "minLength": 0,
+            "type": "string",
+            "description": "Page link",
+            "nullable": true
+          },
+          "Description": {
+            "maxLength": 250,
+            "minLength": 0,
+            "type": "string",
+            "description": "Page description"
+          },
+          "Icon": {
+            "maxLength": 25,
+            "minLength": 0,
+            "type": "string",
+            "description": "Page icon"
+          },
+          "IsAdmin": {
+            "type": "boolean",
+            "description": "Indicates if the page require admin access"
+          },
+          "CanSeeMenu": {
+            "type": "boolean",
+            "description": "Indicates if the page can be seen by the user menu"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Pages for the system"
+      },
+      "ParameterDTO": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "description": "Parameter Id",
+            "format": "int32"
+          },
+          "Key": {
+            "type": "integer",
+            "description": "Parameter key",
+            "format": "int32"
+          },
+          "Value": {
+            "type": "string",
+            "description": "Parameter value",
+            "nullable": true
+          },
+          "Name": {
+            "type": "string",
+            "description": "Parameter name",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "description": "Parameter description",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ResetPasswordDTO": {
+        "type": "object",
+        "properties": {
+          "Guid": {
+            "type": "string",
+            "description": "Guuid to access reset password",
+            "format": "uuid"
+          },
+          "Password": {
+            "type": "string",
+            "description": "New password",
+            "nullable": true
+          },
+          "ConfirmPassword": {
+            "type": "string",
+            "description": "Confirmation Password",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SearchDTO": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "description": "Row Id",
+            "format": "int32"
+          },
+          "Key": {
+            "type": "string",
+            "description": "Row Key",
+            "nullable": true
+          },
+          "Name": {
+            "type": "string",
+            "description": "Row name",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Server": {
+        "required": [
+          "Active",
+          "Key",
+          "Name",
+          "Url"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "description": "Server id",
+            "format": "int32"
+          },
+          "Key": {
+            "maximum": 999999,
+            "minimum": 1,
+            "type": "integer",
+            "description": "Server key",
+            "format": "int32"
+          },
+          "Name": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string",
+            "description": "Server name"
+          },
+          "Url": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "description": "Server url"
+          },
+          "Active": {
+            "type": "boolean",
+            "description": "Indicates if the server is enabled"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Servers for the company"
+      },
+      "TokenDTO": {
+        "type": "object",
+        "properties": {
+          "Token": {
+            "type": "string",
+            "description": "User token",
+            "nullable": true
+          },
+          "TokenExpiration": {
+            "type": "string",
+            "description": "Token expiration",
+            "format": "date-time"
+          },
+          "UserId": {
+            "type": "integer",
+            "description": "User id",
+            "format": "int32"
+          },
+          "Name": {
+            "type": "string",
+            "description": "User full name",
+            "nullable": true
+          },
+          "Email": {
+            "type": "string",
+            "description": "User email",
+            "nullable": true
+          },
+          "RefreshToken": {
+            "type": "string",
+            "description": "Refresh token",
+            "nullable": true
+          },
+          "Company": {
+            "type": "string",
+            "description": "Company name",
+            "nullable": true
+          },
+          "CompanyKey": {
+            "type": "integer",
+            "description": "Company key",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TotalByClientDTO": {
+        "type": "object",
+        "properties": {
+          "ClientId": {
+            "type": "integer",
+            "description": "Client Id",
+            "format": "int32"
+          },
+          "Client": {
+            "type": "string",
+            "description": "Client name",
+            "nullable": true
+          },
+          "Total": {
+            "type": "number",
+            "description": "The total amount that remains unpaid",
+            "format": "double",
+            "nullable": true
+          },
+          "DaysOverdue": {
+            "type": "integer",
+            "description": "The number of days that a payment is late/overdue",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TotalDTO": {
+        "type": "object",
+        "properties": {
+          "Total": {
+            "type": "number",
+            "description": "The total amount that remains unpaid",
+            "format": "double"
+          },
+          "DaysDelinquentOutstanding": {
+            "type": "integer",
+            "description": "The number of days that a payment is late/overdue",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "User": {
+        "required": [
+          "Active",
+          "Additional1",
+          "Attempts",
+          "Email",
+          "Key",
+          "Name",
+          "Password"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "description": "User id",
+            "format": "int32"
+          },
+          "Key": {
+            "maxLength": 15,
+            "minLength": 0,
+            "type": "string",
+            "description": "User name"
+          },
+          "Password": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string",
+            "description": "User pass"
+          },
+          "Active": {
+            "type": "boolean",
+            "description": "Determines if the user is enabled"
+          },
+          "Additional1": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Additional info for the user"
+          },
+          "Name": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "description": "User full name"
+          },
+          "Email": {
+            "maxLength": 80,
+            "minLength": 0,
+            "type": "string",
+            "description": "User email"
+          },
+          "Attempts": {
+            "type": "integer",
+            "description": "Total of invalid attempts for the user",
+            "format": "int32"
+          },
+          "RequestPassword": {
+            "type": "string",
+            "description": "Guid to request a new password",
+            "format": "uuid",
+            "nullable": true
+          },
+          "RequestPasswordTime": {
+            "type": "string",
+            "description": "The time that the password was requested",
+            "format": "date-time",
+            "nullable": true
+          },
+          "Code": {
+            "type": "integer",
+            "description": "Code to login after invalid attempts",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Users"
+      },
+      "UserDTO": {
+        "required": [
+          "Active",
+          "Email",
+          "Id",
+          "Key",
+          "Name"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "description": "User id",
+            "format": "int32"
+          },
+          "Key": {
+            "maxLength": 15,
+            "minLength": 0,
+            "type": "string",
+            "description": "User key"
+          },
+          "Name": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "description": "User name"
+          },
+          "Email": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "description": "User email"
+          },
+          "Active": {
+            "type": "boolean",
+            "description": "User active"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "JWT Authorization (bearer)",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
+}
