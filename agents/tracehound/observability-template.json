@@ -1,0 +1,118 @@
+{
+  "_help_quickstart": [
+    "QUICK START GUIDE:",
+    "1. Set your programming language below (typescript, python, java, go, rust, csharp)",
+    "2. Delete the example contracts (or modify them for your use)",
+    "3. Create contracts for YOUR API endpoints that need observability monitoring",
+    "4. For each contract: specify the route(s) and the code layers the request flows through",
+    "5. Save as 'observe-config.json' and run the agent"
+  ],
+  
+  "metadata": {
+    "version": "1.0",
+    "language": "typescript",
+    "_help_language": "Choose your primary language: typescript, python, java, go, rust, or csharp"
+  },
+  
+  "_help_contracts": "Define which API endpoints to monitor and their code flow. Each contract checks that proper logging, error handling, and metrics exist at each step.",
+  
+  "contracts": [
+    {
+      "_help_example": "EXAMPLE 1: Order creation endpoint - tracks the flow from API to database",
+      "id": "order_creation",
+      "name": "Order Creation Monitoring",
+      "enabled": true,
+      "description": "Monitor order creation for proper observability",
+      "routes": [
+        "POST /api/orders",
+        "POST /api/v2/orders"
+      ],
+      "_help_routes": "List the HTTP routes this contract monitors (e.g., POST /api/orders)",
+      
+      "code_flow": [
+        {
+          "layer": "controller",
+          "file_pattern": "OrderController",
+          "_help_layer": "controller = API entry point, service = business logic, database = data layer"
+        },
+        {
+          "layer": "service", 
+          "file_pattern": "OrderService"
+        },
+        {
+          "layer": "database",
+          "file_pattern": "OrderRepository"
+        }
+      ],
+      "_help_code_flow": "List the code layers this request flows through (controller → service → database)"
+    },
+    
+    {
+      "_help_example": "EXAMPLE 2: User authentication - simpler two-layer flow",
+      "id": "user_auth",
+      "name": "User Authentication Monitoring",
+      "enabled": true,
+      "description": "Monitor authentication endpoints",
+      "routes": [
+        "POST /api/auth/login",
+        "POST /api/auth/logout"
+      ],
+      "code_flow": [
+        {
+          "layer": "controller",
+          "file_pattern": "AuthController"
+        },
+        {
+          "layer": "service",
+          "file_pattern": "AuthService"
+        }
+      ]
+    },
+    
+    {
+      "_help_template": "TEMPLATE: Copy and modify this for your own endpoints",
+      "id": "your_endpoint_id",
+      "name": "Your Endpoint Name",
+      "enabled": false,
+      "_help_enabled": "Set to true to activate this contract",
+      "description": "What this endpoint does",
+      "routes": [
+        "GET /api/your-endpoint"
+      ],
+      "code_flow": [
+        {
+          "layer": "controller",
+          "file_pattern": "YourController",
+          "_help_file_pattern": "Class/file name containing this code (e.g., UserController, PaymentService)"
+        },
+        {
+          "layer": "service",
+          "file_pattern": "YourService"
+        },
+        {
+          "layer": "database",
+          "file_pattern": "YourRepository"
+        }
+      ]
+    }
+  ],
+  
+  "_help_requirements": [
+    "WHAT THE AGENT CHECKS:",
+    "✓ Logging - Each code layer has proper log statements",
+    "✓ Error Handling - Try-catch blocks with error logging",
+    "✓ Tracing - Distributed tracing spans (if configured)",
+    "✓ Metrics - Performance/business metrics collection",
+    "",
+    "The agent automatically detects these patterns based on your language.",
+    "You don't need to configure the detection patterns - just specify your endpoints!"
+  ],
+  
+  "_help_notes": [
+    "NOTES:",
+    "- The agent knows language-specific patterns (logger.info vs print vs console.log)",
+    "- You only need to specify WHAT to check, not HOW to check it",
+    "- Start with 1-2 critical endpoints, then expand coverage",
+    "- Use descriptive IDs and names for easy report reading"
+  ]
+}
