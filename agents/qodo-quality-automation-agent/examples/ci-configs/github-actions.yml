@@ -1,0 +1,229 @@
+# Quality Automation Agent - Simple CI Pipeline
+# Place this file in .github/workflows/quality-automation.yml
+
+name: Quality Automation Agent
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Execution mode"
+        required: false
+        default: "ci"
+        type: choice
+        options: [local, ci, auto]
+      severity_threshold:
+        description: "Severity threshold"
+        required: false
+        default: "high"
+        type: choice
+        options: [low, medium, high, critical]
+      min_coverage:
+        description: "Min coverage %"
+        required: false
+        default: "80"
+        type: string
+
+env:
+  QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  quality-automation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: |
+          if [ -f "package.json" ]; then
+            npm ci
+          fi
+
+      - name: Install Qodo CLI
+        run: npm install -g @qodo/command
+
+      - name: Setup Agent
+        run: |
+          if [ -f "agents/qodo-quality-automation-agent/agent.toml" ]; then
+            cp agents/qodo-quality-automation-agent/agent.toml ./quality-agent.toml
+          else
+            curl -fsSL -o quality-agent.toml \
+              https://raw.githubusercontent.com/qodo-ai/agents/main/agents/qodo-quality-automation-agent/agent.toml
+          fi
+
+      - name: Run Quality Automation
+        id: quality-check
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            MODE="${{ github.event.inputs.mode }}"
+            SEVERITY="${{ github.event.inputs.severity_threshold }}"
+            MIN_COV="${{ github.event.inputs.min_coverage }}"
+          else
+            MODE="ci"
+            SEVERITY="high"
+            MIN_COV="80"
+          fi
+
+          TARGET_BRANCH="${{ github.base_ref || 'main' }}"
+
+          mkdir -p report
+
+          set +e
+          qodo --agent-file=quality-agent.toml quality_automation \
+            --set mode="$MODE" \
+            --set target_branch="$TARGET_BRANCH" \
+            --set min_coverage="$MIN_COV" \
+            --set severity_threshold="$SEVERITY" \
+            --set create_github_comment=true \
+            --set output_format=markdown \
+            --ci
+
+          AGENT_EXIT_CODE=$?
+          echo "agent_exit_code=$AGENT_EXIT_CODE" >> $GITHUB_OUTPUT
+
+          if [ -f "report/quality-metrics.json" ]; then
+            OVERALL_SCORE=$(jq -r '.overall_quality_score // 0' report/quality-metrics.json)
+            SAFE_TO_MERGE=$(jq -r '.safe_to_merge // false' report/quality-metrics.json)
+            echo "overall_score=$OVERALL_SCORE" >> $GITHUB_OUTPUT
+            echo "safe_to_merge=$SAFE_TO_MERGE" >> $GITHUB_OUTPUT
+            echo "has_metrics=true" >> $GITHUB_OUTPUT
+          else
+            echo "overall_score=0" >> $GITHUB_OUTPUT
+            echo "safe_to_merge=false" >> $GITHUB_OUTPUT
+            echo "has_metrics=false" >> $GITHUB_OUTPUT
+          fi
+
+          exit 0
+
+      - name: Upload Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-reports-${{ github.run_number }}
+          path: report/
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && steps.quality-check.outputs.has_metrics == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            let commentBody = `## 🚀 Quality Automation Results
+
+            **Overall Quality Score:** ${{ steps.quality-check.outputs.overall_score }}/100
+            **Safe to Merge:** ${{ steps.quality-check.outputs.safe_to_merge == 'true' ? '✅ Yes' : '❌ No' }}
+            **Track 4 Winner:** Best Agent for Quality Automation
+
+            `;
+
+            if (fs.existsSync('report/key-findings.md')) {
+              const keyFindings = fs.readFileSync('report/key-findings.md', 'utf8');
+              commentBody += `### 📋 Key Findings\n\n${keyFindings}\n\n`;
+            }
+
+            if (fs.existsSync('report/actions-required.md')) {
+              const actionsRequired = fs.readFileSync('report/actions-required.md', 'utf8');
+              commentBody += `### 🔧 Actions Required\n\n${actionsRequired}\n\n`;
+            }
+
+            commentBody += `📊 Download artifacts for detailed reports.`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existingComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Quality Automation Results')
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }
+
+      - name: Set Status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const overallScore = parseInt('${{ steps.quality-check.outputs.overall_score }}') || 0;
+            const safeToMerge = '${{ steps.quality-check.outputs.safe_to_merge }}' === 'true';
+
+            let state, description;
+            if (safeToMerge && overallScore >= 80) {
+              state = 'success';
+              description = `Quality check passed (${overallScore}/100)`;
+            } else if (overallScore >= 60) {
+              state = 'pending';
+              description = `Quality issues found (${overallScore}/100)`;
+            } else {
+              state = 'failure';
+              description = `Quality check failed (${overallScore}/100)`;
+            }
+
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: state,
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              description: description,
+              context: 'Quality Automation Agent'
+            });
+
+      - name: Quality Gate
+        if: always()
+        run: |
+          SAFE_TO_MERGE="${{ steps.quality-check.outputs.safe_to_merge }}"
+          OVERALL_SCORE="${{ steps.quality-check.outputs.overall_score }}"
+
+          if [ "$SAFE_TO_MERGE" = "true" ]; then
+            exit 0
+          elif [ "$OVERALL_SCORE" -ge "60" ]; then
+            exit 0
+          else
+            if [ "$OVERALL_SCORE" -lt "40" ]; then
+              exit 1
+            else
+              exit 0
+            fi
+          fi
