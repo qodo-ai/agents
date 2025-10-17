@@ -1,0 +1,21 @@
+{
+  "name": "graph-builder",
+  "description": "Takes a JSON output from the repo-scanner and updates the central knowledge_graph.json.",
+  "script": "python tools/graph_builder.py",
+  "color": "auto",
+  "subprocessMode": false,
+  "chainContinueOnError": false,
+  "chainPipeWithContext": false,
+  "chainValidate": false,
+  "chainDryRun": false,
+  "orchestrator": false,
+  "args": [
+    {
+      "name": "--input",
+      "alias": "-i",
+      "type": "string",
+      "required": false,
+      "description": "Path to repo-scanner JSON; if omitted, reads from stdin"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+=============================================================================
+CODEGRAPH NAVIGATOR - ANALYSIS REPORT
+=============================================================================
+Generated: 2025-10-17T00:00:00Z
+Analysis Type: Service Scan
+
+-----------------------------------------------------------------------------
+EXECUTIVE SUMMARY
+-----------------------------------------------------------------------------
+Analyzed checkoutservice and updated the central knowledge graph. Determined its dependencies and assessed change criticality based on current dependents in the system.
+
+-----------------------------------------------------------------------------
+SERVICES ANALYZED
+-----------------------------------------------------------------------------
+Total Services: 1
+Languages Detected: Go
+Total Dependencies: 6
+
+Service Details:
+- checkoutservice: Go (6 dependencies)
+
+-----------------------------------------------------------------------------
+KNOWLEDGE GRAPH STATISTICS
+-----------------------------------------------------------------------------
+Total Nodes: 29 (Services: 4, Libraries: 25)
+Total Edges: 39 (Dependency relationships)
+
+-----------------------------------------------------------------------------
+CRITICALITY MATRIX
+-----------------------------------------------------------------------------
+🔴 CRITICAL (7+ dependents) - DO NOT CHANGE:
+None
+
+🟠 HIGH RISK (4-6 dependents) - NOT RECOMMENDED:
+None
+
+🟡 MEDIUM RISK (2-3 dependents) - CAUTION ADVISED:
+None
+
+🟢 LOW RISK (0-1 dependents) - SAFE TO CHANGE:
+- checkoutservice: 1 dependent (frontend)
+
+-----------------------------------------------------------------------------
+DETAILED IMPACT ANALYSIS
+-----------------------------------------------------------------------------
+checkoutservice:
+  Criticality: 🟢 LOW
+  Direct Dependents: 1
+  Affected Services: frontend
+  Risk Level: Minimal
+  Recommendation: SAFE TO CHANGE. Coordinate basic integration testing with frontend.
+  Notes: checkoutservice itself depends on 6 backend services (cartservice, currencyservice, emailservice, paymentservice, productcatalogservice, shippingservice). While outward criticality is low, changes may require re-testing integrations with these services.
+  
+-----------------------------------------------------------------------------
+ARCHITECTURAL INSIGHTS
+-----------------------------------------------------------------------------
+- frontend is an orchestrator depending on many backend services, including checkoutservice.
+- checkoutservice is a coordinator that aggregates multiple backend capabilities but has only one known dependent.
+- No single service currently appears critically over-depended upon.
+
+-----------------------------------------------------------------------------
+ACTION RECOMMENDATIONS
+-----------------------------------------------------------------------------
+Immediate Actions:
+- If modifying checkoutservice, plan tests with frontend covering order placement, cart, currency conversion, payment, and shipping flows.
+
+Medium-term Actions:
+- Continue scanning remaining services to complete the knowledge graph and refine criticality scores.
+
+Strategic Considerations:
+- Establish contract tests between frontend and checkoutservice to detect breaking changes early.
+
+=============================================================================
+END OF REPORT
+=============================================================================

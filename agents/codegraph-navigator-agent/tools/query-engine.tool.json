@@ -1,0 +1,20 @@
+{
+  "name": "query-engine",
+  "description": "Answers natural language questions about service dependencies by querying the knowledge graph.",
+  "script": "python tools/query_engine.py",
+  "color": "auto",
+  "subprocessMode": false,
+  "chainContinueOnError": false,
+  "chainPipeWithContext": false,
+  "chainValidate": false,
+  "chainDryRun": false,
+  "orchestrator": false,
+  "args": [
+    {
+      "name": "<query>",
+      "type": "string",
+      "required": true,
+      "description": "Natural language question, e.g., 'Which services depend on auth-service?'"
+    }
+  ]
+}
