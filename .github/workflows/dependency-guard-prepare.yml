@@ -1,0 +1,39 @@
+name: Dependency Guard (Prepare)
+
+# Triggered by pull_request — runs without secrets, safe for fork PRs.
+# Saves PR metadata as an artifact consumed by the scan workflow.
+# No code from the fork is executed here.
+on:
+  pull_request:
+    paths:
+      - '**/package-lock.json'
+      - '**/yarn.lock'
+      - '**/pnpm-lock.yaml'
+      - '**/requirements.txt'
+      - '**/requirements*.txt'
+      - '**/poetry.lock'
+      - '**/Pipfile.lock'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Save PR metadata
+        run: |
+          mkdir -p artifacts
+          printf '%s' "${{ github.event.pull_request.number }}" > artifacts/pr-number.txt
+          printf '%s' "${{ github.event.pull_request.head.sha }}" > artifacts/head-sha.txt
+          printf '%s' "${{ github.event.pull_request.base.ref }}" > artifacts/base-ref.txt
+          printf '%s' "${{ github.repository }}" > artifacts/repo.txt
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: dependency-guard-context
+          path: artifacts/
+          retention-days: 1
