@@ -1,47 +1,59 @@
 name: Dependency Guard
 
-# Triggers on dependency file changes (lockfiles + spec files like requirements*.txt).
-# NOTE: Uses pull_request (not pull_request_target). Fork PRs cannot receive secrets
-# under this trigger, so the scan is intentionally skipped for fork PRs via the
-# job-level condition below. For repos with external contributors, migrate to the
-# workflow_run two-workflow pattern to safely scan fork PRs with secrets.
-# Tracked: https://github.com/qodo-ai/dependency-guard/issues (future work)
+# Triggered by the prepare workflow completing — runs in the BASE repo
+# context so QODO_API_KEY and pull-requests: write are always available,
+# including for fork PRs. This is the safe workflow_run pattern.
 on:
-  pull_request:
-    paths:
-      - '**/package-lock.json'
-      - '**/yarn.lock'
-      - '**/pnpm-lock.yaml'
-      - '**/requirements.txt'
-      - '**/requirements*.txt'
-      - '**/poetry.lock'
-      - '**/Pipfile.lock'
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
-  cancel-in-progress: true
+  workflow_run:
+    workflows: ["Dependency Guard (Prepare)"]
+    types: [completed]
 
 jobs:
   scan:
-    # Skip for fork PRs (secrets unavailable under pull_request trigger) and
-    # when QODO_API_KEY is not configured. Shows as "skipped", not failed.
-    if: >-
-      ${{
-        secrets.QODO_API_KEY != '' &&
-        github.event.pull_request.head.repo.full_name == github.repository
-      }}
+    # Only proceed when the prepare workflow succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: read
       pull-requests: write
+      actions: read  # required to download artifacts from a workflow_run
+
     steps:
+      - name: Download PR context
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e  # v4.2.1
+        with:
+          name: dependency-guard-context
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Read PR metadata
+        id: pr
+        run: |
+          echo "number=$(cat pr-number.txt)"   >> "$GITHUB_OUTPUT"
+          echo "sha=$(cat head-sha.txt)"       >> "$GITHUB_OUTPUT"
+          echo "base_ref=$(cat base-ref.txt)"  >> "$GITHUB_OUTPUT"
+          echo "repo=$(cat repo.txt)"          >> "$GITHUB_OUTPUT"
+
+      # Check out the base repo with full history, then fetch the PR's
+      # exact head commit so git diff origin/<base>...HEAD works correctly.
+      # This does bring in fork code but does NOT execute it — the action
+      # only reads lockfiles and downloads packages from public registries.
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Fetch PR head commit
+        run: |
+          git fetch origin refs/pull/${{ steps.pr.outputs.number }}/head:pr-head
+          git checkout pr-head
 
       - uses: qodo-ai/dependency-guard@6b89a7045e79580127903cf1161b49ee6864ae9f  # v1.0.0-alpha.1
         with:
           qodo-api-key: ${{ secrets.QODO_API_KEY }}
+        env:
+          GH_PR_NUMBER: ${{ steps.pr.outputs.number }}
+          GH_REPO:      ${{ steps.pr.outputs.repo }}
+          GH_BASE_REF:  ${{ steps.pr.outputs.base_ref }}
+          GH_HEAD_REF:  pr-head
