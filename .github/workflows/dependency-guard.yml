@@ -17,20 +17,19 @@ concurrency:
 
 jobs:
   scan:
+    # Skip for fork PRs (no access to secrets) and when QODO_API_KEY is not set.
+    # Shows as "skipped" in the UI rather than failing hard with a red check.
+    if: >-
+      ${{
+        secrets.QODO_API_KEY != '' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: read
       pull-requests: write
     steps:
-      - name: Check QODO_API_KEY is set
-        run: |
-          if [ -z "${{ secrets.QODO_API_KEY }}" ]; then
-            echo "::error::QODO_API_KEY secret is not set. Add it at:"
-            echo "::error::https://github.com/${{ github.repository }}/settings/secrets/actions/new"
-            exit 1
-          fi
-
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
