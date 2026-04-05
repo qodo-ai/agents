@@ -1,5 +1,11 @@
 name: Dependency Guard
 
+# Triggers on dependency file changes (lockfiles + spec files like requirements*.txt).
+# NOTE: Uses pull_request (not pull_request_target). Fork PRs cannot receive secrets
+# under this trigger, so the scan is intentionally skipped for fork PRs via the
+# job-level condition below. For repos with external contributors, migrate to the
+# workflow_run two-workflow pattern to safely scan fork PRs with secrets.
+# Tracked: https://github.com/qodo-ai/dependency-guard/issues (future work)
 on:
   pull_request:
     paths:
@@ -17,8 +23,8 @@ concurrency:
 
 jobs:
   scan:
-    # Skip for fork PRs (no access to secrets) and when QODO_API_KEY is not set.
-    # Shows as "skipped" in the UI rather than failing hard with a red check.
+    # Skip for fork PRs (secrets unavailable under pull_request trigger) and
+    # when QODO_API_KEY is not configured. Shows as "skipped", not failed.
     if: >-
       ${{
         secrets.QODO_API_KEY != '' &&
