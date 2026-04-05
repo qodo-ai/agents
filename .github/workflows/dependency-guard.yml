@@ -1,0 +1,25 @@
+name: Dependency Guard
+
+on:
+  pull_request:
+    paths:
+      - '**/package-lock.json'
+      - '**/yarn.lock'
+      - '**/pnpm-lock.yaml'
+      - '**/requirements.txt'
+      - '**/requirements*.txt'
+      - '**/poetry.lock'
+      - '**/Pipfile.lock'
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: qodo-ai/dependency-guard@v1
+        with:
+          qodo-api-key: ${{ secrets.QODO_API_KEY }}
+
